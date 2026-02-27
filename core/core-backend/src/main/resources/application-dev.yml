@@ -48,6 +48,9 @@ logging:
   level:
     root: INFO
     io.dataease: DEBUG
+    io.dataease.datasource: DEBUG
+    io.dataease.dataset: DEBUG
+    org.apache.calcite: DEBUG
   file:
     path: ./logs
 
@@ -56,6 +59,9 @@ dataease:
   login_timeout: 2880
   xpack-front-distributed: false
   origin-list: http://localhost:8080,http://localhost:5173
+  path:
+    driver: ../../drivers
+    custom-drivers: ../../custom-drivers/
   apisix-api:
     domain: http://127.0.0.1:9180
     key: edd1c9f034335f136f87ad84b625c8f1

@@ -315,8 +315,15 @@ public class CalciteProvider extends Provider {
         DatasourceConfiguration datasourceConfiguration = JsonUtil.parseObject(datasourceRequest.getDatasource().getConfiguration(), DatasourceConfiguration.class);
 
         String table = datasourceRequest.getTable();
-        if (!getTables(datasourceRequest).stream().map(DatasetTableDTO::getTableName).collect(Collectors.toList()).contains(table)) {
-            DEException.throwException(Translator.get("i18n_invalid_table_name"));
+        // Oracle表名大小写不敏感处理：Oracle存储表名为大写，比较时统一转大写
+        if (StringUtils.isNotEmpty(table)) {
+            List<String> availableTables = getTables(datasourceRequest).stream()
+                .map(DatasetTableDTO::getTableName)
+                .map(String::toUpperCase)
+                .collect(Collectors.toList());
+            if (!availableTables.contains(table.toUpperCase())) {
+                DEException.throwException(Translator.get("i18n_invalid_table_name") + " [期望: " + table.toUpperCase() + ", 实际: " + table + "]");
+            }
         }
         if (StringUtils.isEmpty(table)) {
             ResultSet resultSet = null;

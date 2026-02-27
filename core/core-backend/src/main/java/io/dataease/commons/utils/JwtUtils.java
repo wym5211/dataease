@@ -16,7 +16,7 @@ public class JwtUtils {
     public static String createToken(String username, Map<String, Object> claims) {
         return JWT.create()
                 .withSubject(username)
-                .withPayload(claims)
+                .withClaim("claims", claims.toString())
                 .withExpiresAt(new Date(System.currentTimeMillis() + EXPIRATION))
                 .sign(Algorithm.HMAC256(SECRET));
     }
