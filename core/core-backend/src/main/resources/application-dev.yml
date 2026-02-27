@@ -1,0 +1,74 @@
+spring:
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:./data/desktop;AUTO_SERVER=TRUE;AUTO_RECONNECT=TRUE;MODE=MySQL;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DATABASE_TO_UPPER=FALSE
+    username: sa
+    password: 123456
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  messages:
+    basename: i18n/core
+    encoding: UTF-8
+
+  flyway:
+    enabled: true
+    table: de_desktop_version
+    validate-on-migrate: false
+    locations: classpath:db/desktop
+    baseline-on-migrate: true
+    out-of-order: true
+
+  cache:
+    type: jcache
+    jcache:
+      config: classpath:ehcache/ehcache.xml
+
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      password: 123456
+      database: 0
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+mybatis-plus:
+  mapper-locations: classpath:mybatis/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    root: INFO
+    io.dataease: DEBUG
+  file:
+    path: ./logs
+
+dataease:
+  version: 2.10.19
+  login_timeout: 2880
+  xpack-front-distributed: false
+  origin-list: http://localhost:8080,http://localhost:5173
+  apisix-api:
+    domain: http://127.0.0.1:9180
+    key: edd1c9f034335f136f87ad84b625c8f1
+
+management:
+  health:
+    redis:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+quartz:
+  enabled: true
+  scheduler-name: deSyncJob

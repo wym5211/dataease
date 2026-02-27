@@ -39,9 +39,9 @@ core/core-frontend/.stylelintcache
 /core/core-frontend/components.d.ts
 core/core-frontend/src/assets/fsSvg.js
 core/core-frontend/src/assets/fsSvg.html
-.flattened-pom.xml
-/core/core-backend/
-/core/frontend/
+#.flattened-pom.xml
+#/core/core-backend/
+#/core/frontend/
 /core/mobile/
 /sdk/dataease-plugin-common/
 /sdk/dataease-plugin-datasource/
