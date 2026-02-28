@@ -99,12 +99,8 @@ const formData = reactive<PersonalInfo>({
 })
 
 const formRules: FormRules = {
-  nickName: [
-    { required: true, message: t('user.nick_name_required'), trigger: 'blur' }
-  ],
-  email: [
-    { type: 'email', message: t('user.email_invalid'), trigger: 'blur' }
-  ],
+  nickName: [{ required: true, message: t('user.nick_name_required'), trigger: 'blur' }],
+  email: [{ type: 'email', message: t('user.email_invalid'), trigger: 'blur' }],
   phone: [
     {
       pattern: /^1[3-9]\d{9}$/,
@@ -126,7 +122,7 @@ const handleCancel = () => {
 const handleSave = async () => {
   if (!formRef.value) return
 
-  await formRef.value.validate((valid) => {
+  await formRef.value.validate(valid => {
     if (valid) {
       // TODO: 调用 API 保存用户信息
       ElMessage.success(t('user.save_success'))
