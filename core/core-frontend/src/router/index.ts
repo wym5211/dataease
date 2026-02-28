@@ -220,6 +220,24 @@ export const routes: AppRouteRecordRaw[] = [
         meta: { title: '权限审计' }
       }
     ]
+  },
+  {
+    path: '/user-setting',
+    name: 'user-setting',
+    component: () => import('@/layout/index.vue'),
+    hidden: true,
+    meta: {},
+    children: [
+      {
+        path: 'index',
+        name: 'us-index',
+        component: () => import('@/views/system/user-setting/index.vue'),
+        meta: {
+          title: '用户设置',
+          hidden: true
+        }
+      }
+    ]
   }
 ]
 
