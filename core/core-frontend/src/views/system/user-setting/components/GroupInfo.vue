@@ -28,10 +28,8 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
-import { useUserStoreWithOut } from '@/store/modules/user'
 
 const { t } = useI18n()
-const userStore = useUserStoreWithOut()
 
 interface Role {
   id: string
@@ -53,9 +51,6 @@ const loadGroupInfo = async () => {
     // TODO: 从后端 API 获取用户分组和角色信息
     // 暂时使用模拟数据
     await new Promise(resolve => setTimeout(resolve, 500))
-
-    // 获取当前用户信息
-    const userInfo = userStore.getuserInfo || {}
 
     // 模拟数据 - 管理员默认拥有管理员角色和默认分组
     userRoles.value = [{ id: '1', name: '管理员' }]
