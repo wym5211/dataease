@@ -786,7 +786,18 @@ export default {
     return_to_view: '返回查看',
     continue_importing: '繼續導入',
     data_import_failed: '部分資料導入失敗',
-    data_import_failed_de: '資料導入失敗'
+    data_import_failed_de: '資料導入失敗',
+    user_setting: '使用者設定',
+    personal_info: '個人資訊',
+    security_settings: '安全性',
+    preferences: '偏好設定',
+    group_info: '群組資訊',
+    username: '使用者名稱',
+    email: '信箱',
+    phone: '手機號碼',
+    groups: '所屬群組',
+    save_success: '儲存成功',
+    save_failed: '儲存失敗'
   },
   userimport: {
     buttonText: '批次導入',
