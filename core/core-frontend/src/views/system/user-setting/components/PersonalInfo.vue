@@ -59,7 +59,9 @@
 
       <div v-if="isEditing" class="form-actions">
         <el-button @click="handleCancel">{{ t('common.cancel') }}</el-button>
-        <el-button type="primary" @click="handleSave">{{ t('common.save') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="handleSave">
+          {{ t('common.save') }}
+        </el-button>
       </div>
     </el-card>
   </div>
@@ -86,6 +88,7 @@ interface PersonalInfo {
 
 const formRef = ref<FormInstance>()
 const isEditing = ref(false)
+const saving = ref(false)
 
 const formData = reactive<PersonalInfo>({
   username: 'admin',
@@ -98,37 +101,80 @@ const formData = reactive<PersonalInfo>({
   language: 'zh_CN'
 })
 
+// 保存原始数据用于取消时恢复
+const originalData = ref<PersonalInfo>({ ...formData })
+
 const formRules: FormRules = {
   nickName: [{ required: true, message: t('user.nick_name_required'), trigger: 'blur' }],
-  email: [{ type: 'email', message: t('user.email_invalid'), trigger: 'blur' }],
+  email: [
+    {
+      validator: (rule, value, callback) => {
+        if (!value) {
+          callback()
+          return
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          callback(new Error(t('user.email_invalid')))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur'
+    }
+  ],
   phone: [
     {
-      pattern: /^1[3-9]\d{9}$/,
-      message: t('user.phone_invalid'),
+      validator: (rule, value, callback) => {
+        if (!value) {
+          callback()
+          return
+        }
+        if (!/^1[3-9]\d{9}$/.test(value)) {
+          callback(new Error(t('user.phone_invalid')))
+        } else {
+          callback()
+        }
+      },
       trigger: 'blur'
     }
   ]
 }
 
 const handleEdit = () => {
+  originalData.value = { ...formData }
   isEditing.value = true
 }
 
 const handleCancel = () => {
+  // 恢复原始数据
+  Object.assign(formData, originalData.value)
   isEditing.value = false
-  formRef.value?.resetFields()
+  formRef.value?.clearValidate()
 }
 
 const handleSave = async () => {
   if (!formRef.value) return
 
-  await formRef.value.validate(valid => {
-    if (valid) {
-      // TODO: 调用 API 保存用户信息
-      ElMessage.success(t('user.save_success'))
-      isEditing.value = false
-    }
-  })
+  try {
+    const valid = await formRef.value.validate()
+    if (!valid) return
+
+    saving.value = true
+
+    // TODO: 调用 API 保存用户信息
+    // 模拟 API 调用
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    // 更新原始数据
+    originalData.value = { ...formData }
+
+    ElMessage.success(t('user.save_success'))
+    isEditing.value = false
+  } catch (error) {
+    ElMessage.error(t('user.save_failed'))
+  } finally {
+    saving.value = false
+  }
 }
 </script>
 
