@@ -101,6 +101,7 @@ if (uid.value === '1') {
   const desktop = wsCache.get('app.desktop')
   if (!desktop) {
     linkLoaded([{ id: 2, link: '/modify-pwd/index', label: t('user.change_password') }])
+    linkLoaded([{ id: 3, link: '/user-setting/index', label: t('user.user_setting') }])
   }
 }
 </script>
