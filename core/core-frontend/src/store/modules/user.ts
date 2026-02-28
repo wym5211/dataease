@@ -67,7 +67,17 @@ export const userStore = defineStore('user', {
         wsCache.set('user.' + key, this[key])
       })
       const locale = useLocaleStoreWithOut()
-      if (locale.getCurrentLocale?.lang !== this.language && !window.DataEaseBi) {
+      // 标准化语言格式，避免 zh_CN 与 zh-CN 差异导致不必要的刷新
+      const storedLang = locale.getCurrentLocale?.lang
+      const normalizedStoredLang = storedLang ? storedLang.replace('_', '-') : null
+      const normalizedUserLang = this.language?.replace('_', '-')
+      // 只有当两者都有值且不相等时才刷新
+      if (
+        normalizedStoredLang &&
+        normalizedUserLang &&
+        normalizedStoredLang !== normalizedUserLang &&
+        !window.DataEaseBi
+      ) {
         window.location.reload()
       }
       this.setLanguage(this.language)

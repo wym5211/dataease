@@ -1,65 +1,51 @@
-# DataEase 产品概述
+# Product Overview
 
-## 产品目的
-DataEase 是一个人人可用的开源数据可视化分析工具。它致力于帮助用户快速分析数据并洞察业务趋势，支持丰富的数据源连接，能够通过拖拉拽方式快速制作图表，并进行数据的分享与协作。
+## Product Purpose
+[Describe the core purpose of this product/project. What problem does it solve?]
 
-DataEase 的核心理念是**开源、易用、人人可用**。
+## Target Users
+[Who are the primary users of this product? What are their needs and pain points?]
 
-## 目标用户
-- **数据分析师**：需要快速连接多源数据，进行探索性分析和报表制作。
-- **业务人员/运营**：无需 SQL 技能，通过可视化界面自助分析业务数据。
-- **开发人员**：需要将数据可视化能力嵌入到现有系统或产品中。
-- **企业管理者**：通过仪表板和大屏实时监控关键业务指标 (KPI)。
+## Key Features
+[List the main features that deliver value to users]
 
-## 关键功能
-DataEase 提供端到端的数据分析能力：
+1. **Feature 1**: [Description]
+2. **Feature 2**: [Description]
+3. **Feature 3**: [Description]
 
-1.  **多源数据连接**：
-    - 支持关系型数据库（MySQL, PostgreSQL, Oracle, SQL Server 等）。
-    - 支持大数据平台（Doris, ClickHouse, StarRocks, Impala 等）。
-    - 支持 API 数据源和 Excel/CSV 文件上传。
+## Business Objectives
+[What are the business goals this product aims to achieve?]
 
-2.  **可视化报表制作**：
-    - 提供丰富的图表类型（柱状图、折线图、饼图、地图、散点图、雷达图等）。
-    - 支持拖拉拽式操作，所见即所得。
-    - 支持 ECharts 和 AntV G2Plot 等多种图表库。
+- [Objective 1]
+- [Objective 2]
+- [Objective 3]
 
-3.  **仪表板与大屏**：
-    - 灵活的布局设计，支持移动端和 PC 端展示。
-    - 内置多种主题和配色方案。
-    - 支持公共链接分享和嵌入集成。
+## Success Metrics
+[How will we measure the success of this product?]
 
-4.  **数据集管理**：
-    - 支持直连数据集和定时同步数据集（抽取模式）。
-    - 提供字段管理、计算字段、数据过滤等数据准备功能。
-    - 支持行级权限控制，确保数据安全。
+- [Metric 1]: [Target]
+- [Metric 2]: [Target]
+- [Metric 3]: [Target]
 
-## 业务目标
-- **降低门槛**：让非技术人员也能轻松进行数据分析。
-- **提升效率**：缩短从数据接入到报表展示的周期，从几周缩短到几小时。
-- **开源生态**：建立活跃的开源社区，通过社区反馈不断迭代产品。
-- **企业级能力**：提供权限管理、单点登录 (SSO)、多租户等企业级特性。
+## Product Principles
+[Core principles that guide product decisions]
 
-## 成功指标
-- **社区活跃度**：GitHub Star 数、Fork 数、Issue 响应速度。
-- **用户增长**：下载量、部署实例数、活跃用户数。
-- **性能指标**：亿级数据查询响应时间（秒级）、高并发下的系统稳定性。
-- **易用性反馈**：用户上手时间、NPS（净推荐值）。
+1. **[Principle 1]**: [Explanation]
+2. **[Principle 2]**: [Explanation]
+3. **[Principle 3]**: [Explanation]
 
-## 产品原则
-1.  **易用性优先**：交互设计应尽可能简单直观，降低学习成本。
-2.  **性能至上**：在大数据量下保持流畅的交互和快速的查询响应。
-3.  **开放与扩展**：支持插件机制，允许开发者扩展数据源和图表类型。
+## Monitoring & Visibility (if applicable)
+[How do users track progress and monitor the system?]
 
-## 监控与可见性
-- **系统监控**：提供系统状态监控页面，展示 CPU、内存、JVM 状态。
-- **操作日志**：记录用户的关键操作，便于审计和追踪。
-- **数据血缘**：展示数据集与图表之间的引用关系。
+- **Dashboard Type**: [e.g., Web-based, CLI, Desktop app]
+- **Real-time Updates**: [e.g., WebSocket, polling, push notifications]
+- **Key Metrics Displayed**: [What information is most important to surface]
+- **Sharing Capabilities**: [e.g., read-only links, exports, reports]
 
-## 未来愿景
-DataEase 将向**智能化**和**云原生**方向演进：
+## Future Vision
+[Where do we see this product evolving in the future?]
 
-### 潜在增强
-- **AI Copilot**：集成 LLM，支持自然语言生成 SQL (Text-to-SQL) 和智能数据洞察。
-- **云原生架构**：进一步微服务化，支持 Serverless 部署和弹性伸缩。
-- **实时数据分析**：增强对流式数据的支持，实现秒级实时大屏。
+### Potential Enhancements
+- **Remote Access**: [e.g., Tunnel features for sharing dashboards with stakeholders]
+- **Analytics**: [e.g., Historical trends, performance metrics]
+- **Collaboration**: [e.g., Multi-user support, commenting]

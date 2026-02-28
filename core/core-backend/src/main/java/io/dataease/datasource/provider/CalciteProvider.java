@@ -105,8 +105,10 @@ public class CalciteProvider extends Provider {
         }
         if (datasourceRequest.getDatasource().getType().equalsIgnoreCase(DatasourceConfiguration.DatasourceType.pg.name())) {
             Set<String> SYSTEM_SCHEMAS = new HashSet<>(Arrays.asList("information_schema", "pg_catalog", "pg_temp_1", "pg_toast", "pg_toast_temp_1"));
-            return schemas.stream().filter(schema -> !SYSTEM_SCHEMAS.contains(schema)).collect(Collectors.toList());
+            schemas = schemas.stream().filter(schema -> !SYSTEM_SCHEMAS.contains(schema)).collect(Collectors.toList());
         }
+        // Sort schemas alphabetically
+        Collections.sort(schemas, String.CASE_INSENSITIVE_ORDER);
         return schemas;
     }
 

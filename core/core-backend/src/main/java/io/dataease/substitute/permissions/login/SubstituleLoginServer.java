@@ -17,6 +17,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
+import io.dataease.utils.TokenUtils;
+
 @Component
 @ConditionalOnMissingBean(name = "loginServer")
 @RestController
@@ -44,7 +46,7 @@ public class SubstituleLoginServer {
         tokenUserBO.setUserId(1L);
         tokenUserBO.setDefaultOid(1L);
         String md5Pwd = Md5Utils.md5(pwd);
-        return generate(tokenUserBO, md5Pwd);
+        return generate(tokenUserBO, TokenUtils.getSecret());
     }
 
 

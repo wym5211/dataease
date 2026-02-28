@@ -1,0 +1,14 @@
+[GET] http://localhost:8082/api/sysParameter/requestTimeOut => [200] OK
+[GET] http://localhost:8082/api/sysParameter/i18nOptions => [200] OK
+[GET] http://localhost:8082/api/typeface/defaultFont => [200] OK
+[GET] http://localhost:8082/api/sysParameter/ui => [200] OK
+[GET] http://localhost:8082/api/typeface/listFont => [200] OK
+[GET] http://localhost:8082/api/sysParameter/defaultSettings => [200] OK
+[GET] http://localhost:8082/api/typeface/listFont => [200] OK
+[GET] http://localhost:8082/api/sysParameter/defaultSettings => [200] OK
+[GET] http://localhost:8082/api/typeface/listFont => [200] OK
+[GET] http://localhost:8082/api/dekey => [200] OK
+[POST] http://localhost:8082/api/login/localLogin => [200] OK
+[GET] http://localhost:8082/api/typeface/listFont => [200] OK
+[GET] http://localhost:8082/api/sysParameter/defaultSettings => [200] OK
+[GET] http://localhost:8082/api/user/info => [404] Not Found

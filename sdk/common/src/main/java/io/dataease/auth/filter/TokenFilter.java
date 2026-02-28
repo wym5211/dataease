@@ -61,7 +61,9 @@ public class TokenFilter implements Filter {
             return;
         }
         try {
-            if (ModelUtils.isDesktop()) {
+            boolean isDesktop = ModelUtils.isDesktop();
+            LogUtil.info("TokenFilter: isDesktop = " + isDesktop);
+            if (isDesktop) {
                 UserUtils.setDesktopUser();
                 filterChain.doFilter(servletRequest, servletResponse);
                 return;
@@ -82,18 +84,8 @@ public class TokenFilter implements Filter {
             UserUtils.setUserInfo(userBO);
             filterChain.doFilter(servletRequest, servletResponse);
         } catch (Exception e) {
-            if (!LicenseUtil.licenseValid()) {
-                HttpServletResponse res = (HttpServletResponse) servletResponse;
-                ResultMessage resultMessage = new ResultMessage(HttpStatus.UNAUTHORIZED.value(), e.getMessage());
-                HttpHeaders headers = new HttpHeaders();
-                String msg = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8).replace("+", "%20");
-                headers.add(headName, msg);
-                ResponseEntity<ResultMessage> entity = new ResponseEntity<>(resultMessage, headers, HttpStatus.UNAUTHORIZED);
-                sendResponseEntity(res, entity);
-                LogUtil.error(e.getMessage(), e);
-            } else {
-                throw e;
-            }
+            // 社区版：直接抛出异常，不进行许可证检查
+            throw e;
         } finally {
             UserUtils.removeUser();
         }

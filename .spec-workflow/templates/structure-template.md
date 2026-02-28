@@ -1,131 +1,145 @@
-# DataEase 项目结构
+# Project Structure
 
-## 目录组织
-
-DataEase 采用多模块 Maven 项目结构，主要目录如下：
+## Directory Organization
 
 ```
-e:\cursor\dataease/
-├── core/                       # 核心代码库
-│   ├── core-backend/           # 后端 Spring Boot 应用
-│   │   ├── src/main/java/io/dataease/
-│   │   │   ├── commons/        # 通用工具类、常量
-│   │   │   ├── config/         # Spring 配置类
-│   │   │   ├── controller/     # REST API 控制器
-│   │   │   ├── service/        # 业务逻辑服务层
-│   │   │   ├── dao/            # MyBatis Plus 数据访问层
-│   │   │   ├── dto/            # 数据传输对象
-│   │   │   └── provider/       # 数据源适配器实现 (EngineProvider)
-│   │   └── src/main/resources/ # 配置文件 (application.yml, Mapper XML)
-│   └── core-frontend/          # 前端 Vue 3 应用
-│       ├── src/
-│       │   ├── api/            # Axios API 请求定义
-│       │   ├── assets/         # 静态资源 (图片, 样式)
-│       │   ├── components/     # 通用 Vue 组件
-│       │   ├── views/          # 页面视图 (仪表板, 图表编辑器)
-│       │   ├── store/          # Pinia 状态管理
-│       │   ├── router/         # Vue Router 路由配置
-│       │   └── utils/          # 前端工具函数
-│       ├── vite.config.ts      # Vite 构建配置
-│       └── package.json        # 前端依赖配置
-├── installer/                  # 安装与部署脚本
-│   ├── dectl                   # 控制脚本
-│   ├── install.sh              # 安装脚本
-│   └── docker-compose.yml      # Docker 编排文件
-├── mapFiles/                   # 地图 GeoJSON 数据文件
-├── docs/                       # 项目文档
-└── pom.xml                     # 父级 Maven 配置
+[Define your project's directory structure. Examples below - adapt to your project type]
+
+Example for a library/package:
+project-root/
+├── src/                    # Source code
+├── tests/                  # Test files  
+├── docs/                   # Documentation
+├── examples/               # Usage examples
+└── [build/dist/out]        # Build output
+
+Example for an application:
+project-root/
+├── [src/app/lib]           # Main source code
+├── [assets/resources]      # Static resources
+├── [config/settings]       # Configuration
+├── [scripts/tools]         # Build/utility scripts
+└── [tests/spec]            # Test files
+
+Common patterns:
+- Group by feature/module
+- Group by layer (UI, business logic, data)
+- Group by type (models, controllers, views)
+- Flat structure for simple projects
 ```
 
-## 命名约定
+## Naming Conventions
 
-### 后端 (Java)
-- **类名**：`PascalCase` (e.g., `UserService`, `ChartController`)。
-- **方法/变量**：`camelCase` (e.g., `getUserById`, `chartData`)。
-- **常量**：`UPPER_SNAKE_CASE` (e.g., `MAX_RETRY_COUNT`)。
-- **包名**：全小写，反向域名 (e.g., `io.dataease.service`)。
-- **接口实现**：通常以 `Impl` 结尾，或者使用具体的描述性名称。
+### Files
+- **Components/Modules**: [e.g., `PascalCase`, `snake_case`, `kebab-case`]
+- **Services/Handlers**: [e.g., `UserService`, `user_service`, `user-service`]
+- **Utilities/Helpers**: [e.g., `dateUtils`, `date_utils`, `date-utils`]
+- **Tests**: [e.g., `[filename]_test`, `[filename].test`, `[filename]Test`]
 
-### 前端 (Vue/TS)
-- **组件文件**：`PascalCase` (e.g., `ChartEditor.vue`, `DashboardPanel.vue`)。
-- **目录**：`kebab-case` (e.g., `chart-editor`, `data-source`)。
-- **TS 类/接口**：`PascalCase` (e.g., `IChartOption`, `User`)。
-- **变量/函数**：`camelCase` (e.g., `fetchData`, `handleClick`)。
-- **常量**：`UPPER_SNAKE_CASE`。
+### Code
+- **Classes/Types**: [e.g., `PascalCase`, `CamelCase`, `snake_case`]
+- **Functions/Methods**: [e.g., `camelCase`, `snake_case`, `PascalCase`]
+- **Constants**: [e.g., `UPPER_SNAKE_CASE`, `SCREAMING_CASE`, `PascalCase`]
+- **Variables**: [e.g., `camelCase`, `snake_case`, `lowercase`]
 
-## 导入模式
+## Import Patterns
 
-### 后端
-- 标准 Java 导入顺序。
-- 避免使用 `.*` 通配符导入。
-- 使用 Lombok 注解 (`@Data`, `@Slf4j`) 简化代码。
+### Import Order
+1. External dependencies
+2. Internal modules
+3. Relative imports
+4. Style imports
 
-### 前端
-- 使用 `@/` 别名指向 `src/` 目录。
-- 优先导入类型定义 (`import type { ... }`)。
-- 组件导入通常放在 `<script setup>` 顶部。
-
-## 代码结构模式
-
-### 后端服务 (Service)
-```java
-@Service
-public class XxxService {
-    @Resource
-    private XxxMapper xxxMapper;
-
-    public XxxDTO method(XxxRequest request) {
-        // 1. 验证输入
-        // 2. 业务逻辑处理
-        // 3. 调用 DAO 层
-        // 4. 返回 DTO
-    }
-}
+### Module/Package Organization
+```
+[Describe your project's import/include patterns]
+Examples:
+- Absolute imports from project root
+- Relative imports within modules
+- Package/namespace organization
+- Dependency management approach
 ```
 
-### 前端组件 (Vue 3 Composition API)
-```vue
-<template>
-  <div class="component-container">...</div>
-</template>
+## Code Structure Patterns
 
-<script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useStore } from '@/store';
+[Define common patterns for organizing code within files. Below are examples - choose what applies to your project]
 
-// 1. Props & Emits 定义
-const props = defineProps<{...}>();
-const emit = defineEmits([...]);
-
-// 2. 响应式状态
-const data = ref([]);
-
-// 3. 业务逻辑与方法
-const loadData = async () => { ... };
-
-// 4. 生命周期钩子
-onMounted(() => { loadData(); });
-</script>
-
-<style scoped>
-/* 样式定义 */
-</style>
+### Module/Class Organization
+```
+Example patterns:
+1. Imports/includes/dependencies
+2. Constants and configuration
+3. Type/interface definitions
+4. Main implementation
+5. Helper/utility functions
+6. Exports/public API
 ```
 
-## 模块边界
+### Function/Method Organization
+```
+Example patterns:
+- Input validation first
+- Core logic in the middle
+- Error handling throughout
+- Clear return points
+```
 
-- **Backend vs Frontend**: 通过 REST API (`/api/v1/...`) 进行通信。前端不直接访问数据库。
-- **Core vs Plugins**: DataEase 支持插件机制（如数据源插件），插件通常作为独立的 Jar 包加载，通过定义的接口 (`Provider`) 与核心交互。
-- **Service vs DAO**: Service 层封装业务逻辑，DAO 层仅负责数据库 CRUD。Service 层不应返回 PO (Persistent Object) 给 Controller，应转换为 DTO/VO。
+### File Organization Principles
+```
+Choose what works for your project:
+- One class/module per file
+- Related functionality grouped together
+- Public API at the top/bottom
+- Implementation details hidden
+```
 
-## 代码大小指南
+## Code Organization Principles
 
-- **类/文件大小**：尽量控制在 500 行以内。对于复杂的类（如 `ChartController`），考虑拆分为多个 Helper 或 Service。
-- **方法大小**：尽量控制在 50 行以内，保持逻辑清晰。
-- **Vue 组件**：如果 `<template>` 超过 300 行，考虑拆分为子组件。
+1. **Single Responsibility**: Each file should have one clear purpose
+2. **Modularity**: Code should be organized into reusable modules
+3. **Testability**: Structure code to be easily testable
+4. **Consistency**: Follow patterns established in the codebase
 
-## 仪表板/监控结构
+## Module Boundaries
+[Define how different parts of your project interact and maintain separation of concerns]
 
-- **前端路由**：`/panel/index` 是仪表板的主要入口。
-- **状态管理**：`store/modules/panel` 存储当前仪表板的全局状态（组件列表、样式配置）。
-- **组件库**：`views/chart/components` 包含了各种图表的具体实现逻辑。
+Examples of boundary patterns:
+- **Core vs Plugins**: Core functionality vs extensible plugins
+- **Public API vs Internal**: What's exposed vs implementation details  
+- **Platform-specific vs Cross-platform**: OS-specific code isolation
+- **Stable vs Experimental**: Production code vs experimental features
+- **Dependencies direction**: Which modules can depend on which
+
+## Code Size Guidelines
+[Define your project's guidelines for file and function sizes]
+
+Suggested guidelines:
+- **File size**: [Define maximum lines per file]
+- **Function/Method size**: [Define maximum lines per function]
+- **Class/Module complexity**: [Define complexity limits]
+- **Nesting depth**: [Maximum nesting levels]
+
+## Dashboard/Monitoring Structure (if applicable)
+[How dashboard or monitoring components are organized]
+
+### Example Structure:
+```
+src/
+└── dashboard/          # Self-contained dashboard subsystem
+    ├── server/        # Backend server components
+    ├── client/        # Frontend assets
+    ├── shared/        # Shared types/utilities
+    └── public/        # Static assets
+```
+
+### Separation of Concerns
+- Dashboard isolated from core business logic
+- Own CLI entry point for independent operation
+- Minimal dependencies on main application
+- Can be disabled without affecting core functionality
+
+## Documentation Standards
+- All public APIs must have documentation
+- Complex logic should include inline comments
+- README files for major modules
+- Follow language-specific documentation conventions

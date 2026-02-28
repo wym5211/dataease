@@ -34,11 +34,9 @@ router.beforeEach(async (to, from, next) => {
   start()
   loadStart()
   const platform = checkPlatform()
-  let isDesktop = wsCache.get('app.desktop')
-  if (isDesktop === null) {
-    await appStore.setAppModel()
-    isDesktop = appStore.getDesktop
-  }
+  // 始终重新获取后端模式，避免缓存与后端实际模式不一致导致的问题
+  await appStore.setAppModel()
+  const isDesktop = appStore.getDesktop
   if (isMobile() && !['/chart-view'].includes(to.path)) {
     done()
     loadDone()
@@ -89,7 +87,22 @@ router.beforeEach(async (to, from, next) => {
       await userStore.setUser()
     }
     if (to.path === '/login') {
+      if (!permissionStore.getIsAddRouters) {
+        let roleRouters = (await getRoleRouters()) || []
+        if (isDesktop) {
+          roleRouters = roleRouters.filter(item => item.name !== 'system')
+        }
+        const routers: any[] = roleRouters as AppCustomRouteRecordRaw[]
+        routers.forEach(item => (item['top'] = true))
+        await permissionStore.generateRoutes(routers as AppCustomRouteRecordRaw[])
+        permissionStore.getAddRouters.forEach(route => {
+          router.addRoute(route as unknown as RouteRecordRaw)
+        })
+        permissionStore.setIsAddRouters(true)
+        await interactiveStore.initInteractive(true)
+      }
       next({ path: '/workbranch/index' })
+      return
     } else {
       permissionStore.setCurrentPath(to.path)
       if (permissionStore.getIsAddRouters) {

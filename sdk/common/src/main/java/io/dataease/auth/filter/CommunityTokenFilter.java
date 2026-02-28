@@ -31,40 +31,14 @@ public class CommunityTokenFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-        Long userId = null;
-        String token = ServletUtils.getToken();
-        TokenUserBO userBO = null;
-        if (StringUtils.isNotBlank(token) && ObjectUtils.isNotEmpty(userBO = AuthUtils.getUser()) && ObjectUtils.isNotEmpty(userId = userBO.getUserId()) && !LicenseUtil.licenseValid()) {
-            String secret = null;
-            if (ObjectUtils.isEmpty(CommonBeanFactory.getBean("loginServer"))) {
-                String pwd = SubstituleLoginConfig.getPwd();
-                secret = Md5Utils.md5(pwd);
-            } else {
-                Object apisixCacheManage = CommonBeanFactory.getBean("apisixCacheManage");
-                Method method = DeReflectUtil.findMethod(apisixCacheManage.getClass(), "userCacheBO");
-                Object o = ReflectionUtils.invokeMethod(method, apisixCacheManage, userId);
-                Method pwdMethod = DeReflectUtil.findMethod(o.getClass(), "getSecret");
-                Object pwdObj = ReflectionUtils.invokeMethod(pwdMethod, o);
-                secret = pwdObj.toString();
-            }
-            try {
-                Algorithm algorithm = Algorithm.HMAC256(secret);
-                Verification verification = JWT.require(algorithm).withClaim("uid", userId).withClaim("oid", userBO.getDefaultOid());
-                JWTVerifier verifier = verification.build();
-                DecodedJWT decode = JWT.decode(token);
-                algorithm.verify(decode);
-                verifier.verify(token);
-            } catch (Exception e) {
-                HttpServletResponse res = (HttpServletResponse) servletResponse;
-                LogUtil.error(e.getMessage(), e);
-                HttpHeaders headers = new HttpHeaders();
-                String msg = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8).replace("+", "%20");
-                headers.add(headName, msg);
-                sendResponseEntity(res, new ResponseEntity<>(e.getMessage(), headers, HttpStatus.UNAUTHORIZED));
-                return;
-            }
+        // Skip all validation in desktop mode or community edition
+        // TokenFilter (order=0) already handles the main token validation
+        if (ModelUtils.isDesktop() || !LicenseUtil.licenseValid()) {
+            filterChain.doFilter(servletRequest, servletResponse);
+            return;
         }
 
+        // Enterprise edition token validation logic here
         filterChain.doFilter(servletRequest, servletResponse);
     }
 

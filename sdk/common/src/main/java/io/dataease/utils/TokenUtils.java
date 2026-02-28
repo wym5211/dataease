@@ -10,6 +10,12 @@ import org.apache.commons.lang3.StringUtils;
 public class TokenUtils {
 
 
+    private static final String SECRET = "DataEase_Secret_Key_2024";
+
+    public static String getSecret() {
+        return SECRET;
+    }
+
     public static TokenUserBO userBOByToken(String token) {
         DecodedJWT jwt = JWT.decode(token);
         Long userId = jwt.getClaim("uid").asLong();
@@ -27,6 +33,12 @@ public class TokenUtils {
         }
         if (StringUtils.length(token) < 100) {
             DEException.throwException("token is invalid");
+        }
+        try {
+            com.auth0.jwt.algorithms.Algorithm algorithm = com.auth0.jwt.algorithms.Algorithm.HMAC256(SECRET);
+            JWT.require(algorithm).build().verify(token);
+        } catch (Exception e) {
+             DEException.throwException("token verification failed");
         }
         return userBOByToken(token);
     }

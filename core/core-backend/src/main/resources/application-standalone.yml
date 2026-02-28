@@ -16,4 +16,9 @@ spring:
 mybatis-plus:
   mapper-locations: classpath:mybatis/*.xml
 
+dataease:
+  path:
+    driver: ../../drivers
+    custom-drivers: ../../custom-drivers/
+
 
