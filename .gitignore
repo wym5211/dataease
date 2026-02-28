@@ -52,3 +52,5 @@ core/core-frontend/src/assets/fsSvg.html
 .vite/
 /core/backend/
 /classpath:substitule.json
+core/tmp/
+core/logs/

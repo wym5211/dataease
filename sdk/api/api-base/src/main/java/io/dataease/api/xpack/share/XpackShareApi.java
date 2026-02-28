@@ -5,6 +5,7 @@ import io.dataease.api.visualization.request.VisualizationWorkbranchQueryRequest
 import io.dataease.api.xpack.share.vo.XpackShareGridVO;
 import io.dataease.api.xpack.share.vo.XpackShareProxyVO;
 import io.dataease.api.xpack.share.vo.XpackShareVO;
+import io.dataease.auth.DePermit;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -22,25 +23,30 @@ public interface XpackShareApi {
 
     @Operation(summary = "查询资源分享状态")
     @Parameter(name = "resourceId", description = "资源ID", required = true, in = ParameterIn.PATH)
+    @DePermit({"#p0 + ':share'"})
     @GetMapping("/status/{resourceId}")
     boolean status(@PathVariable("resourceId") Long resourceId);
 
     @Operation(summary = "切换资源分享状态")
     @Parameter(name = "resourceId", description = "资源ID", required = true, in = ParameterIn.PATH)
+    @DePermit({"#p0 + ':share'"})
     @PostMapping("/switcher/{resourceId}")
     void switcher(@PathVariable("resourceId") Long resourceId);
 
     @Operation(summary = "设置分享有效期")
+    @DePermit({"#p0.resourceId + ':share'"})
     @PostMapping("/editExp")
     void editExp(@RequestBody XpackShareExpRequest request);
 
     @Operation(summary = "编辑分享密码")
+    @DePermit({"#p0.resourceId + ':share'"})
     @PostMapping("/editPwd")
     void editPwd(@RequestBody XpackSharePwdRequest request);
 
     @Operation(summary = "查询分享详情")
     @GetMapping("/detail/{resourceId}")
     @Parameter(name = "resourceId", description = "资源ID", required = true, in = ParameterIn.PATH)
+    @DePermit({"#p0 + ':share'"})
     XpackShareVO detail(@PathVariable("resourceId") Long resourceId);
 
     @Operation(summary = "查询分享列表")
@@ -60,6 +66,7 @@ public interface XpackShareApi {
     Map<String, String> queryRelationByUserId(@PathVariable("uid") Long uid);
 
     @Operation(summary = "编辑分享uuid")
+    @DePermit({"#p0.resourceId + ':share'"})
     @PostMapping("/editUuid")
     String editUuid(@RequestBody XpackShareUuidEditor editor);
 }

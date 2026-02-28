@@ -99,6 +99,13 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!-- Lombok for annotation-based getters/setters used in core-backend -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.32</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <profiles>
@@ -149,6 +156,23 @@
 
             <build>
                 <plugins>
+                    <!-- Ensure annotation processing for Lombok during test compilation -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>3.11.0</version>
+                        <configuration>
+                            <source>${maven.compiler.source}</source>
+                            <target>${maven.compiler.target}</target>
+                            <annotationProcessorPaths>
+                                <path>
+                                    <groupId>org.projectlombok</groupId>
+                                    <artifactId>lombok</artifactId>
+                                    <version>1.18.32</version>
+                                </path>
+                            </annotationProcessorPaths>
+                        </configuration>
+                    </plugin>
                     <plugin>
                         <artifactId>maven-clean-plugin</artifactId>
                         <configuration>

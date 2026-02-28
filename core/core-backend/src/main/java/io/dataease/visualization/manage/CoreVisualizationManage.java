@@ -18,6 +18,8 @@ import io.dataease.model.BusiNodeRequest;
 import io.dataease.model.BusiNodeVO;
 import io.dataease.operation.manage.CoreOptRecentManage;
 import io.dataease.share.manage.XpackShareManage;
+import io.dataease.system.dao.auto.entity.SysResourcePermission;
+import io.dataease.system.dao.auto.mapper.SysResourcePermissionMapper;
 import io.dataease.utils.*;
 import io.dataease.visualization.dao.auto.entity.DataVisualizationInfo;
 import io.dataease.visualization.dao.auto.entity.SnapshotDataVisualizationInfo;
@@ -73,6 +75,9 @@ public class CoreVisualizationManage {
 
     @Resource
     private XpackShareManage xpackShareManage;
+
+    @Resource
+    private SysResourcePermissionMapper sysResourcePermissionMapper;
 
     @XpackInteract(value = "visualizationResourceTree", replace = true, invalid = true)
     public List<BusiNodeVO> tree(BusiNodeRequest request) {
@@ -144,6 +149,9 @@ public class CoreVisualizationManage {
         extDataVisualizationMapper.deleteViewsBatch(delIds, CommonConstants.RESOURCE_TABLE.CORE);
         extDataVisualizationMapper.deleteViewsBatch(delIds, CommonConstants.RESOURCE_TABLE.SNAPSHOT);
 
+        sysResourcePermissionMapper.delete(new QueryWrapper<SysResourcePermission>()
+                .in("resource_id", delIds.stream().map(String::valueOf).toList()));
+
         coreOptRecentManage.saveOpt(id, OptConstants.OPT_RESOURCE_TYPE.VISUALIZATION, OptConstants.OPT_TYPE.DELETE);
     }
 
@@ -177,16 +185,26 @@ public class CoreVisualizationManage {
         }
         visualizationInfo.setDeleteFlag(DataVisualizationConstants.DELETE_FLAG.AVAILABLE);
         visualizationInfo.setStatus(visualizationInfo.getStatus());
-        visualizationInfo.setCreateBy(AuthUtils.getUser().getUserId().toString());
-        visualizationInfo.setUpdateBy(AuthUtils.getUser().getUserId().toString());
+        var user = AuthUtils.getUser();
+        visualizationInfo.setCreateBy(user.getUserId().toString());
+        visualizationInfo.setUpdateBy(user.getUserId().toString());
         visualizationInfo.setCreateTime(System.currentTimeMillis());
         visualizationInfo.setUpdateTime(System.currentTimeMillis());
-        visualizationInfo.setOrgId(AuthUtils.getUser().getDefaultOid());
+        visualizationInfo.setOrgId(user.getDefaultOid());
         mapper.insert(visualizationInfo);
         // 镜像文件插入
         SnapshotDataVisualizationInfo snapshotVisualizationInfo = new SnapshotDataVisualizationInfo();
         BeanUtils.copyBean(snapshotVisualizationInfo, visualizationInfo);
         snapshotMapper.insert(snapshotVisualizationInfo);
+
+        SysResourcePermission p = new SysResourcePermission();
+        p.setOwnerId(user.getUserId());
+        p.setOwnerType(0);
+        p.setResourceType(visualizationInfo.getType());
+        p.setResourceId(String.valueOf(visualizationInfo.getId()));
+        p.setPermission(7);
+        sysResourcePermissionMapper.insert(p);
+
         coreOptRecentManage.saveOpt(visualizationInfo.getId(), OptConstants.OPT_RESOURCE_TYPE.VISUALIZATION, OptConstants.OPT_TYPE.NEW);
         return visualizationInfo.getId();
     }

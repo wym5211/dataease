@@ -163,6 +163,63 @@ export const routes: AppRouteRecordRaw[] = [
     hidden: true,
     meta: {},
     component: () => import('@/views/template/indexInject.vue')
+  },
+  {
+    path: '/404',
+    name: '404',
+    hidden: true,
+    meta: {},
+    component: () => import('@/views/404/index.vue')
+  },
+  {
+    path: '/auto-login',
+    name: 'auto-login',
+    hidden: true,
+    meta: {},
+    component: () => import('@/views/tools/auto-login/index.vue')
+  },
+  {
+    path: '/permissions/',
+    redirect: { name: 'permissions-menu' }
+  },
+  {
+    path: '/permissions',
+    name: 'permissions',
+    component: () => import('@/layout/index.vue'),
+    meta: { title: '权限管理' },
+    redirect: { name: 'permissions-menu' },
+    children: [
+      {
+        path: '',
+        name: 'permissions-index',
+        component: () => import('@/views/permissions/index.vue'),
+        meta: { title: '权限中心' }
+      },
+      {
+        path: 'menu',
+        name: 'permissions-menu',
+        component: () => import('@/views/permissions/menu/index.vue'),
+        meta: { title: '菜单授权' }
+      },
+      {
+        path: 'resource',
+        name: 'permissions-resource',
+        component: () => import('@/views/permissions/resource/index.vue'),
+        meta: { title: '资源授权' }
+      },
+      {
+        path: 'templates',
+        name: 'permissions-templates',
+        component: () => import('@/views/permissions/template/index.vue'),
+        meta: { title: '权限模板' }
+      },
+      {
+        path: 'audit',
+        name: 'permissions-audit',
+        component: () => import('@/views/permissions/audit/index.vue'),
+        meta: { title: '权限审计' }
+      }
+    ]
   }
 ]
 

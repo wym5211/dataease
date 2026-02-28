@@ -16,10 +16,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.util.List;
 import java.util.Map;
 
-import static io.dataease.constant.AuthResourceEnum.DATASOURCE;
+import static io.dataease.constant.AuthResourceEnum.DATASET;
 
 @Tag(name = "数据导出中心")
 @ApiSupport(order = 971)
+@DeApiPath(value = "/exportCenter", rt = DATASET)
 public interface ExportCenterApi {
 
 

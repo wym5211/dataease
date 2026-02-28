@@ -944,6 +944,11 @@ export default {
     set_rules: '设置规则',
     inner_role_tips: '系统内置角色，权限无法编辑'
   },
+  permissions: {
+    rollback: '回滚',
+    audit_detail: '审计详情',
+    manage: '权限管理'
+  },
   datasource: {
     datasource: '数据源',
     create: '新建数据源',
@@ -2620,6 +2625,7 @@ export default {
     system_setting: '系统设置',
     input_content: '请输入内容',
     create: '新建',
+    detail: '详情',
     edit: '编辑',
     copy: '复制',
     refresh: '刷新',
@@ -2741,6 +2747,7 @@ export default {
     },
     monitor: '监控',
     image: '镜像',
+    export: '导出',
     tag: '标签',
     module: {
       select_module: '选择模块',

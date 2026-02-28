@@ -3,6 +3,8 @@ package io.dataease.exportCenter.server;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.dataease.api.exportCenter.ExportCenterApi;
+import io.dataease.auth.DeApiPath;
+import io.dataease.constant.AuthResourceEnum;
 import io.dataease.exportCenter.manage.ExportCenterManage;
 import io.dataease.exportCenter.util.ExportCenterUtils;
 import io.dataease.model.ExportTaskDTO;
@@ -18,6 +20,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/exportCenter")
 @Transactional(rollbackFor = Exception.class)
+@DeApiPath(value = "/exportCenter", rt = AuthResourceEnum.DATASET)
 public class ExportCenterServer implements ExportCenterApi {
     @Resource
     private ExportCenterManage exportCenterManage;

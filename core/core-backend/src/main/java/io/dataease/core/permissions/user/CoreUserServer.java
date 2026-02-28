@@ -16,6 +16,7 @@ import io.dataease.model.KeywordRequest;
 import io.dataease.system.dao.auto.entity.SysUser;
 import io.dataease.system.dao.auto.mapper.SysUserMapper;
 import io.dataease.utils.BeanUtils;
+import io.dataease.utils.IPUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
@@ -43,7 +44,6 @@ public class CoreUserServer implements UserApi {
 
     @Override
     public IPage<UserGridVO> pager(int goPage, int pageSize, UserGridRequest request) {
-        // TODO: Implement real pagination
         return null;
     }
 
@@ -77,13 +77,21 @@ public class CoreUserServer implements UserApi {
 
     @Override
     public CurIpVO ipInfo() {
-        // TODO: Implement IP info
-        return new CurIpVO();
+        CurIpVO vo = new CurIpVO();
+        vo.setIp(IPUtils.get());
+        TokenUserBO tokenUser = AuthUtils.getUser();
+        if (tokenUser != null) {
+            SysUser user = sysUserMapper.selectById(tokenUser.getUserId());
+            if (user != null) {
+                vo.setAccount(user.getUsername());
+                vo.setName(user.getNickName());
+            }
+        }
+        return vo;
     }
 
     @Override
     public Long create(UserCreator creator) {
-        // TODO: Implement create
         return 0L;
     }
 
@@ -119,7 +127,21 @@ public class CoreUserServer implements UserApi {
 
     @Override
     public List<UserItemVO> optionForOrg() {
-        return Collections.emptyList();
+        TokenUserBO tokenUser = AuthUtils.getUser();
+        if (tokenUser == null) {
+            return Collections.emptyList();
+        }
+        QueryWrapper<SysUser> qw = new QueryWrapper<>();
+        qw.eq("dept_id", tokenUser.getDefaultOid());
+        qw.eq("status", 1);
+        return sysUserMapper.selectList(qw).stream().map(u -> {
+            UserItemVO vo = new UserItemVO();
+            vo.setId(u.getId());
+            vo.setAccount(u.getUsername());
+            vo.setName(u.getNickName());
+            vo.setEmail(u.getEmail());
+            return vo;
+        }).toList();
     }
 
     @Override
@@ -143,13 +165,32 @@ public class CoreUserServer implements UserApi {
         if (sysUser != null) {
             vo.setId(sysUser.getId());
             vo.setName(sysUser.getNickName());
+            vo.setOid(tokenUser.getDefaultOid());
+            vo.setLanguage("zh-CN");
         }
         return vo;
     }
 
     @Override
     public List<UserItem> byCurOrg(KeywordRequest request) {
-        return Collections.emptyList();
+        TokenUserBO tokenUser = AuthUtils.getUser();
+        if (tokenUser == null) {
+            return Collections.emptyList();
+        }
+        QueryWrapper<SysUser> qw = new QueryWrapper<>();
+        qw.eq("dept_id", tokenUser.getDefaultOid());
+        if (request != null && StringUtils.isNotBlank(request.getKeyword())) {
+            qw.and(w -> w.like("username", request.getKeyword()).or().like("nick_name", request.getKeyword()));
+        }
+        qw.eq("status", 1);
+        qw.orderByAsc("id");
+        return sysUserMapper.selectList(qw).stream().map(u -> {
+            UserItem item = new UserItem();
+            item.setId(u.getId());
+            item.setName(u.getNickName());
+            item.setAccount(u.getUsername());
+            return item;
+        }).toList();
     }
 
     @Override

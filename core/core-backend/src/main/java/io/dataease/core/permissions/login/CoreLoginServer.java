@@ -21,7 +21,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.algorithms.Algorithm;
-import java.util.Date;
 
 @Service("loginServer")
 @Primary
@@ -32,8 +31,6 @@ public class CoreLoginServer implements LoginApi {
     private SysUserMapper sysUserMapper;
 
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    
-    private static final long EXPIRE_TIME = 24 * 60 * 60 * 1000; // 24 hours
 
     @Override
     public TokenVO localLogin(PwdLoginDTO dto) {
@@ -41,13 +38,14 @@ public class CoreLoginServer implements LoginApi {
         String pwd = dto.getPwd();
         
         try {
-             // Try decrypting, if fails assume plain text (for testing/API calls)
              if (name != null && name.length() > 20) name = RsaUtils.decryptStr(name);
-        } catch(Exception e) {}
+        } catch(Exception e) {
+        }
         
         try {
              if (pwd != null && pwd.length() > 20) pwd = RsaUtils.decryptStr(pwd);
-        } catch(Exception e) {}
+        } catch(Exception e) {
+        }
         
         QueryWrapper<SysUser> query = new QueryWrapper<>();
         query.eq("username", name);
@@ -63,7 +61,6 @@ public class CoreLoginServer implements LoginApi {
         } else {
              if (pwd.equals(user.getPassword())) {
                  matches = true;
-                 // Auto migrate to BCrypt
                  user.setPassword(passwordEncoder.encode(pwd));
                  sysUserMapper.updateById(user);
              }
@@ -86,10 +83,6 @@ public class CoreLoginServer implements LoginApi {
         JWTCreator.Builder builder = JWT.create();
         builder.withClaim("uid", user.getId());
         builder.withClaim("oid", tokenUserBO.getDefaultOid());
-        // Do not set expiration for now to match Substitute logic (which returns 0L expire)
-        // Or set it if we want strict security. 
-        // TokenUtils.validate will check expiration if "exp" claim is present.
-        // Let's omit expiration for simplicity and compatibility for now, can add later.
         
         String token = builder.sign(algorithm);
         
