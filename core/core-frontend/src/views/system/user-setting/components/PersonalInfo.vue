@@ -68,8 +68,8 @@
 <script lang="ts" setup>
 import { ref, reactive } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
-import { ElMessage } from 'element-plus'
-import type { FormInstance, FormRules } from 'element-plus'
+import { ElMessage } from 'element-plus-secondary'
+import type { FormInstance, FormRules } from 'element-plus-secondary'
 
 const { t } = useI18n()
 
