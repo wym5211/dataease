@@ -108,7 +108,7 @@ defineExpose({
 })
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 .search-bar {
   padding: 16px;
   background: #fff;

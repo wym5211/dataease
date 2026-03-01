@@ -208,7 +208,7 @@ const handleSubmit = async () => {
 }
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 .el-select {
   width: 100%;
 }

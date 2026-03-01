@@ -131,7 +131,7 @@ defineExpose({
 })
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 .user-table-container {
   background: #fff;
   border-radius: 4px;
