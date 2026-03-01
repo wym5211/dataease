@@ -19,7 +19,7 @@ export interface RoleListResponse {
   total: number
 }
 
-const BASE_URL = '/api/permissions/roles'
+const BASE_URL = '/permissions/roles'
 
 export const roleList = (params: RoleListRequest): Promise<RoleListResponse> => {
   return request.get({ url: `${BASE_URL}/list`, params })
