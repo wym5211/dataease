@@ -133,14 +133,14 @@ defineExpose({
 
 <style scoped>
 .user-table-container {
+  padding: 16px;
   background: #fff;
   border-radius: 4px;
-  padding: 16px;
 }
 
 .pagination-container {
-  margin-top: 16px;
   display: flex;
+  margin-top: 16px;
   justify-content: flex-end;
 }
 

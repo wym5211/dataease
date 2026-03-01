@@ -111,9 +111,9 @@ defineExpose({
 <style scoped>
 .search-bar {
   padding: 16px;
+  margin-bottom: 16px;
   background: #fff;
   border-radius: 4px;
-  margin-bottom: 16px;
 }
 
 .search-form {

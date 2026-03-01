@@ -200,6 +200,7 @@ onMounted(() => {
   .el-card {
     min-height: calc(100vh - 120px);
 
+    /* stylelint-disable-next-line selector-class-pattern */
     :deep(.el-card__body) {
       padding: 20px;
     }
