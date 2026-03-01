@@ -86,10 +86,12 @@ export const getUserList = async (params: UserListRequest): Promise<UserListResp
 export const getUserOptions = async (): Promise<UserOptionsResponse> => {
   try {
     // 调用后端获取角色选项API
+    // 后端API: POST /user/role/option
     // axios自动添加 /api 前缀 -> /api/user/role/option
     // Vite代理将 /api 替换为 de2api -> /de2api/user/role/option
-    const roleResponse: any = await request.get({
-      url: '/user/role/option'
+    const roleResponse: any = await request.post({
+      url: '/user/role/option',
+      data: {} // 后端需要POST请求体
     })
 
     // 后端没有分组选项，返回空数组
