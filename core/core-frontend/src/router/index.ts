@@ -218,6 +218,15 @@ export const routes: AppRouteRecordRaw[] = [
         name: 'permissions-audit',
         component: () => import('@/views/permissions/audit/index.vue'),
         meta: { title: '权限审计' }
+      },
+      {
+        path: 'user',
+        name: 'permissions-user',
+        component: () => import('@/views/permissions/user/index.vue'),
+        meta: {
+          title: '用户管理',
+          roles: ['admin']
+        }
       }
     ]
   },
