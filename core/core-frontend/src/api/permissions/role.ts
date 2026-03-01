@@ -22,7 +22,8 @@ export interface RoleListResponse {
 const BASE_URL = '/role'
 
 export const roleList = (params: RoleListRequest): Promise<RoleListResponse> => {
-  return request.get({ url: `${BASE_URL}/list`, params })
+  // 后端API: POST /role/byCurOrg
+  return request.post({ url: `${BASE_URL}/byCurOrg`, data: { keyword: params.keyword || '' } })
 }
 
 export const getRoleOptions = (): Promise<Role[]> => {
