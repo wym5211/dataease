@@ -10,7 +10,14 @@ import type {
 /**
  * 用户管理API适配器
  * 将前端RESTful API调用适配到后端实际的API格式
+ *
+ * 后端API前缀：/de2api
+ * 前端baseURL：/api
+ * 完整路径：/api/de2api/user/...
  */
+
+// 后端API基础路径（包含/de2api前缀）
+const API_BASE = '/de2api/user'
 
 /**
  * 适配后端UserGridVO到前端User格式
@@ -54,9 +61,9 @@ export const getUserList = async (params: UserListRequest): Promise<UserListResp
   }
 
   try {
-    // 调用后端实际API: POST /user/pager/{goPage}/{pageSize}
+    // 调用后端实际API: POST /de2api/user/pager/{goPage}/{pageSize}
     const response: any = await request.post({
-      url: `/user/pager/${page}/${pageSize}`,
+      url: `${API_BASE}/pager/${page}/${pageSize}`,
       data: requestBody
     })
 
@@ -79,7 +86,7 @@ export const getUserOptions = async (): Promise<UserOptionsResponse> => {
     // 调用后端获取角色选项API
     // 后端没有专门的options接口，使用role接口
     const roleResponse: any = await request.get({
-      url: '/api/permissions/roles/options'
+      url: '/de2api/role/option'
     })
 
     // 后端没有分组选项，返回空数组
@@ -109,9 +116,9 @@ export const createUser = async (data: UserForm): Promise<User> => {
       enable: data.status === 1 // 前端status(0/1) -> 后端enable(boolean)
     }
 
-    // 调用后端实际API: POST /user/create
+    // 调用后端实际API: POST /de2api/user/create
     const response: any = await request.post({
-      url: '/user/create',
+      url: `${API_BASE}/create`,
       data: requestBody
     })
 
@@ -149,9 +156,9 @@ export const updateUser = async (userId: string, data: UserForm): Promise<User> 
       enable: data.status === 1 // 前端status(0/1) -> 后端enable(boolean)
     }
 
-    // 调用后端实际API: POST /user/edit
+    // 调用后端实际API: POST /de2api/user/edit
     await request.post({
-      url: '/user/edit',
+      url: `${API_BASE}/edit`,
       data: requestBody
     })
 
@@ -175,9 +182,9 @@ export const updateUser = async (userId: string, data: UserForm): Promise<User> 
 
 export const deleteUser = async (userId: string): Promise<void> => {
   try {
-    // 调用后端实际API: POST /user/delete/{id}
+    // 调用后端实际API: POST /de2api/user/delete/{id}
     await request.post({
-      url: `/user/delete/${userId}`
+      url: `${API_BASE}/delete/${userId}`
     })
   } catch (error) {
     console.error('删除用户失败:', error)
@@ -194,7 +201,7 @@ export const resetPassword = async (userId: string, newPassword: string): Promis
     // 注意：后端resetPwd不需要密码参数，会重置为默认密码
     // 如果需要设置自定义密码，可能需要使用modifyPwd API
     await request.post({
-      url: `/user/resetPwd/${userId}`
+      url: `${API_BASE}/resetPwd/${userId}`
     })
   } catch (error) {
     console.error('重置密码失败:', error)
