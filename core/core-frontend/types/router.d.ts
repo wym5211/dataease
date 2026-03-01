@@ -6,6 +6,7 @@ declare module 'vue-router' {
     title?: string
     icon?: string
     hidden?: boolean
+    roles?: string[]
   }
 }
 
@@ -13,6 +14,7 @@ interface RouteMeta extends Record<string | number | symbol, unknown> {
   title?: string
   icon?: string
   hidden?: boolean
+  roles?: string[]
 }
 
 type Component<T = any> =

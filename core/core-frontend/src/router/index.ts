@@ -227,6 +227,7 @@ export const routes: AppRouteRecordRaw[] = [
           title: '用户管理',
           roles: ['admin']
         }
+        // 用户管理页面 - 仅管理员可访问
       }
     ]
   },
