@@ -811,7 +811,7 @@ export default {
       status_filter: 'Status Filter',
       role_filter: 'Role Filter',
       confirm_delete: 'Are you sure you want to delete this user? This action cannot be undone',
-      confirm_reset_password: 'Are you sure you want to reset this user\'s password?',
+      confirm_reset_password: "Are you sure you want to reset this user's password?",
       delete_success: 'User has been deleted',
       create_success: 'User created successfully',
       update_success: 'User information updated',
