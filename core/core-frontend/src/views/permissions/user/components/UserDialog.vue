@@ -82,7 +82,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
+import { ElMessage } from 'element-plus-secondary'
+import type { FormInstance, FormRules } from 'element-plus-secondary'
 import { createUser, updateUser } from '../api'
 import type { UserForm, Role, Group } from '../types'
 

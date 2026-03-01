@@ -49,7 +49,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
+import { ElMessage } from 'element-plus-secondary'
+import type { FormInstance, FormRules } from 'element-plus-secondary'
 import { resetPassword } from '../api'
 
 interface Props {

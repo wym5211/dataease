@@ -51,7 +51,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { ElMessageBox, ElMessage } from 'element-plus'
+import { ElMessageBox, ElMessage } from 'element-plus-secondary'
 import { Plus } from '@element-plus/icons-vue'
 import { getUserList, getUserOptions, deleteUser } from './api'
 import { roleList } from '@/api/permissions/role'
