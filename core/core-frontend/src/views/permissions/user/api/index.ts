@@ -1,4 +1,4 @@
-import request from '@/config/axios'
+import axiosInstance from '@/config/axios'
 import type {
   User,
   UserForm,
@@ -10,25 +10,25 @@ import type {
 const BASE_URL = '/api/permissions/users'
 
 export const getUserList = (params: UserListRequest): Promise<UserListResponse> => {
-  return request.get({ url: `${BASE_URL}/list`, params })
+  return axiosInstance.get({ url: `${BASE_URL}/list`, params })
 }
 
 export const getUserOptions = (): Promise<UserOptionsResponse> => {
-  return request.get({ url: `${BASE_URL}/options` })
+  return axiosInstance.get({ url: `${BASE_URL}/options` })
 }
 
 export const createUser = (data: UserForm): Promise<User> => {
-  return request.post({ url: `${BASE_URL}/create`, data })
+  return axiosInstance.post({ url: `${BASE_URL}/create`, data })
 }
 
 export const updateUser = (userId: string, data: UserForm): Promise<User> => {
-  return request.put({ url: `${BASE_URL}/update/${userId}`, data })
+  return axiosInstance.put({ url: `${BASE_URL}/update/${userId}`, data })
 }
 
 export const deleteUser = (userId: string): Promise<void> => {
-  return request.post({ url: `${BASE_URL}/delete/${userId}` })
+  return axiosInstance.delete({ url: `${BASE_URL}/delete/${userId}` })
 }
 
 export const resetPassword = (userId: string, newPassword: string): Promise<void> => {
-  return request.post({ url: `${BASE_URL}/reset-password/${userId}`, data: { newPassword } })
+  return axiosInstance.put({ url: `${BASE_URL}/reset-password/${userId}`, data: { newPassword } })
 }
