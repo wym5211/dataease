@@ -155,15 +155,11 @@ const handleEdit = (user: User) => {
 // 删除用户
 const handleDelete = async (user: User) => {
   try {
-    await ElMessageBox.confirm(
-      `确定要删除用户 "${user.nickName}" 吗？`,
-      '提示',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
+    await ElMessageBox.confirm(`确定要删除用户 "${user.nickName}" 吗？`, '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
 
     await deleteUser(user.userId)
     ElMessage.success('删除成功')

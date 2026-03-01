@@ -43,12 +43,13 @@ export const getUserList = async (params: UserListRequest): Promise<UserListResp
   const requestBody = {
     keyword: keyword || '',
     // statusList: 状态列表（true/false数组）
-    statusList: status !== undefined
-      ? [status === 1]  // 转换为[Boolean]
-      : undefined,
+    statusList:
+      status !== undefined
+        ? [status === 1] // 转换为[Boolean]
+        : undefined,
     // roleIdList: 角色ID列表
     roleIdList: roleId
-      ? [parseInt(roleId)]  // 转换为[Long]
+      ? [parseInt(roleId)] // 转换为[Long]
       : undefined
   }
 
@@ -100,12 +101,12 @@ export const createUser = async (data: UserForm): Promise<User> => {
   try {
     // 适配请求格式：前端UserForm -> 后端UserCreator
     const requestBody = {
-      account: data.username,  // 前端username -> 后端account
-      name: data.nickName,     // 前端nickName -> 后端name
+      account: data.username, // 前端username -> 后端account
+      name: data.nickName, // 前端nickName -> 后端name
       email: data.email,
       phone: data.phone,
       roleIds: data.roleIds ? data.roleIds.map(id => parseInt(id)) : [],
-      enable: data.status === 1  // 前端status(0/1) -> 后端enable(boolean)
+      enable: data.status === 1 // 前端status(0/1) -> 后端enable(boolean)
     }
 
     // 调用后端实际API: POST /user/create
@@ -124,7 +125,7 @@ export const createUser = async (data: UserForm): Promise<User> => {
       nickName: data.nickName,
       email: data.email,
       phone: data.phone,
-      roles: [],  // 角色信息需要重新查询获取
+      roles: [], // 角色信息需要重新查询获取
       groups: [],
       status: data.status,
       createTime: new Date().toISOString()
@@ -139,13 +140,13 @@ export const updateUser = async (userId: string, data: UserForm): Promise<User> 
   try {
     // 适配请求格式：前端UserForm -> 后端UserEditor
     const requestBody = {
-      id: parseInt(userId),     // 前端userId(string) -> 后端id(Long)
-      account: data.username,    // 前端username -> 后端account
-      name: data.nickName,       // 前端nickName -> 后端name
+      id: parseInt(userId), // 前端userId(string) -> 后端id(Long)
+      account: data.username, // 前端username -> 后端account
+      name: data.nickName, // 前端nickName -> 后端name
       email: data.email,
       phone: data.phone,
       roleIds: data.roleIds ? data.roleIds.map(id => parseInt(id)) : [],
-      enable: data.status === 1  // 前端status(0/1) -> 后端enable(boolean)
+      enable: data.status === 1 // 前端status(0/1) -> 后端enable(boolean)
     }
 
     // 调用后端实际API: POST /user/edit

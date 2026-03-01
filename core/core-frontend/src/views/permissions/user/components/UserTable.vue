@@ -1,12 +1,6 @@
 <template>
   <div class="user-table-container">
-    <el-table
-      v-loading="loading"
-      :data="tableData"
-      border
-      stripe
-      style="width: 100%"
-    >
+    <el-table v-loading="loading" :data="tableData" border stripe style="width: 100%">
       <el-table-column prop="username" label="用户名" width="150" />
       <el-table-column prop="nickName" label="姓名" width="120" />
       <el-table-column prop="email" label="邮箱" min-width="200" />
@@ -58,15 +52,11 @@
 
       <el-table-column label="操作" width="200" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" size="small" @click="handleEdit(row)">
-            编辑
-          </el-button>
+          <el-button link type="primary" size="small" @click="handleEdit(row)"> 编辑 </el-button>
           <el-button link type="warning" size="small" @click="handleResetPassword(row)">
             重置密码
           </el-button>
-          <el-button link type="danger" size="small" @click="handleDelete(row)">
-            删除
-          </el-button>
+          <el-button link type="danger" size="small" @click="handleDelete(row)"> 删除 </el-button>
         </template>
       </el-table-column>
     </el-table>

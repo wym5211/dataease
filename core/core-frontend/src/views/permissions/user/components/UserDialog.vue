@@ -14,32 +14,19 @@
       @submit.prevent="handleSubmit"
     >
       <el-form-item label="用户名" prop="username">
-        <el-input
-          v-model="formData.username"
-          placeholder="请输入用户名"
-          :disabled="isEdit"
-        />
+        <el-input v-model="formData.username" placeholder="请输入用户名" :disabled="isEdit" />
       </el-form-item>
 
       <el-form-item label="姓名" prop="nickName">
-        <el-input
-          v-model="formData.nickName"
-          placeholder="请输入姓名"
-        />
+        <el-input v-model="formData.nickName" placeholder="请输入姓名" />
       </el-form-item>
 
       <el-form-item label="邮箱" prop="email">
-        <el-input
-          v-model="formData.email"
-          placeholder="请输入邮箱"
-        />
+        <el-input v-model="formData.email" placeholder="请输入邮箱" />
       </el-form-item>
 
       <el-form-item label="手机号" prop="phone">
-        <el-input
-          v-model="formData.phone"
-          placeholder="请输入手机号"
-        />
+        <el-input v-model="formData.phone" placeholder="请输入手机号" />
       </el-form-item>
 
       <el-form-item label="密码" prop="password" v-if="!isEdit">
@@ -52,12 +39,7 @@
       </el-form-item>
 
       <el-form-item label="角色" prop="roleIds">
-        <el-select
-          v-model="formData.roleIds"
-          multiple
-          placeholder="请选择角色"
-          style="width: 100%"
-        >
+        <el-select v-model="formData.roleIds" multiple placeholder="请选择角色" style="width: 100%">
           <el-option
             v-for="role in roleOptions"
             :key="role.roleId"
@@ -93,9 +75,7 @@
 
     <template #footer>
       <el-button @click="handleClose">取消</el-button>
-      <el-button type="primary" @click="handleSubmit" :loading="submitting">
-        确定
-      </el-button>
+      <el-button type="primary" @click="handleSubmit" :loading="submitting"> 确定 </el-button>
     </template>
   </el-dialog>
 </template>
@@ -126,7 +106,7 @@ const submitting = ref(false)
 
 const dialogVisible = computed({
   get: () => props.modelValue,
-  set: (val) => emit('update:modelValue', val)
+  set: val => emit('update:modelValue', val)
 })
 
 const isEdit = computed(() => !!props.user)
@@ -149,28 +129,22 @@ const formRules: FormRules = {
     { required: true, message: '请输入用户名', trigger: 'blur' },
     { min: 3, max: 20, message: '用户名长度在 3 到 20 个字符', trigger: 'blur' }
   ],
-  nickName: [
-    { required: true, message: '请输入姓名', trigger: 'blur' }
-  ],
+  nickName: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
   email: [
     { required: true, message: '请输入邮箱', trigger: 'blur' },
     { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
   ],
-  phone: [
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号格式', trigger: 'blur' }
-  ],
+  phone: [{ pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号格式', trigger: 'blur' }],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, max: 20, message: '密码长度在 6 到 20 个字符', trigger: 'blur' }
   ],
-  roleIds: [
-    { required: true, message: '请选择角色', trigger: 'change', type: 'array' }
-  ]
+  roleIds: [{ required: true, message: '请选择角色', trigger: 'change', type: 'array' }]
 }
 
 watch(
   () => props.user,
-  (user) => {
+  user => {
     if (user) {
       formData.value = {
         username: user.username,
@@ -211,7 +185,7 @@ const handleClose = () => {
 const handleSubmit = async () => {
   if (!formRef.value) return
 
-  await formRef.value.validate(async (valid) => {
+  await formRef.value.validate(async valid => {
     if (!valid) return
 
     submitting.value = true

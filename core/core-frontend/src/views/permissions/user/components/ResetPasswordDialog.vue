@@ -42,9 +42,7 @@
 
     <template #footer>
       <el-button @click="handleClose">取消</el-button>
-      <el-button type="primary" @click="handleSubmit" :loading="submitting">
-        确定
-      </el-button>
+      <el-button type="primary" @click="handleSubmit" :loading="submitting"> 确定 </el-button>
     </template>
   </el-dialog>
 </template>
@@ -72,7 +70,7 @@ const submitting = ref(false)
 
 const dialogVisible = computed({
   get: () => props.modelValue,
-  set: (val) => emit('update:modelValue', val)
+  set: val => emit('update:modelValue', val)
 })
 
 const username = computed(() => props.user?.username || '')
@@ -98,14 +96,12 @@ const formRules: FormRules = {
     { required: true, message: '请输入新密码', trigger: 'blur' },
     { min: 6, max: 20, message: '密码长度在 6 到 20 个字符', trigger: 'blur' }
   ],
-  confirmPassword: [
-    { required: true, validator: validateConfirmPassword, trigger: 'blur' }
-  ]
+  confirmPassword: [{ required: true, validator: validateConfirmPassword, trigger: 'blur' }]
 }
 
 watch(
   () => props.modelValue,
-  (val) => {
+  val => {
     if (val) {
       formData.value = {
         newPassword: '',
@@ -127,7 +123,7 @@ const handleClose = () => {
 const handleSubmit = async () => {
   if (!formRef.value) return
 
-  await formRef.value.validate(async (valid) => {
+  await formRef.value.validate(async valid => {
     if (!valid) return
 
     submitting.value = true
