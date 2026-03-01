@@ -143,6 +143,21 @@ const formRules: FormRules = {
   roleIds: [{ required: true, message: '请选择角色', trigger: 'change', type: 'array' }]
 }
 
+// 定义resetForm函数（必须在watch之前定义，避免"Cannot access before initialization"错误）
+const resetForm = () => {
+  formData.value = {
+    username: '',
+    nickName: '',
+    email: '',
+    phone: '',
+    password: '',
+    roleIds: [],
+    groupIds: [],
+    status: 1
+  }
+  formRef.value?.clearValidate()
+}
+
 watch(
   () => props.user,
   user => {
@@ -163,20 +178,6 @@ watch(
   },
   { immediate: true }
 )
-
-const resetForm = () => {
-  formData.value = {
-    username: '',
-    nickName: '',
-    email: '',
-    phone: '',
-    password: '',
-    roleIds: [],
-    groupIds: [],
-    status: 1
-  }
-  formRef.value?.clearValidate()
-}
 
 const handleClose = () => {
   dialogVisible.value = false
