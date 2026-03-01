@@ -975,7 +975,11 @@ export default {
   permissions: {
     rollback: '回滚',
     audit_detail: '审计详情',
-    manage: '权限管理'
+    manage: '权限管理',
+    menu_authorization: '菜单授权',
+    resource_authorization: '资源授权',
+    permission_templates: '权限模板',
+    permission_audit: '权限审计'
   },
   datasource: {
     datasource: '数据源',

@@ -986,6 +986,15 @@ export default {
     set_rules: 'Set rules',
     inner_role_tips: 'System built-in role, permissions cannot be edited'
   },
+  permissions: {
+    rollback: 'Rollback',
+    audit_detail: 'Audit Detail',
+    manage: 'Permission Management',
+    menu_authorization: 'Menu Authorization',
+    resource_authorization: 'Resource Authorization',
+    permission_templates: 'Permission Templates',
+    permission_audit: 'Permission Audit'
+  },
   datasource: {
     datasource: 'Datasource',
     create: 'Create a new Datasource',

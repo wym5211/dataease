@@ -2,19 +2,19 @@
   <div class="permissions-container">
     <p class="router-title">{{ t('commons.permissions_manage') }}</p>
     <el-tabs v-model="activeName">
-      <el-tab-pane label="菜单授权" name="menu">
+      <el-tab-pane :label="t('permissions.menu_authorization')" name="menu">
         <menu-authorization />
       </el-tab-pane>
-      <el-tab-pane label="资源授权" name="resource">
+      <el-tab-pane :label="t('permissions.resource_authorization')" name="resource">
         <resource-authorization />
       </el-tab-pane>
-      <el-tab-pane label="权限模板" name="templates">
+      <el-tab-pane :label="t('permissions.permission_templates')" name="templates">
         <permission-templates />
       </el-tab-pane>
-      <el-tab-pane label="权限审计" name="audit">
+      <el-tab-pane :label="t('permissions.permission_audit')" name="audit">
         <permission-audit />
       </el-tab-pane>
-      <el-tab-pane label="用户管理" name="user">
+      <el-tab-pane :label="t('commons.user_management')" name="user">
         <user-management />
       </el-tab-pane>
     </el-tabs>

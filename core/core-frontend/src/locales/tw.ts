@@ -953,6 +953,15 @@ export default {
     set_rules: '設定規則',
     inner_role_tips: '系統內建角色，權限無法編輯'
   },
+  permissions: {
+    rollback: '回滾',
+    audit_detail: '審計詳情',
+    manage: '權限管理',
+    menu_authorization: '選單授權',
+    resource_authorization: '資源授權',
+    permission_templates: '權限範本',
+    permission_audit: '權限審計'
+  },
   datasource: {
     datasource: '資料來源',
     create: '新資料來源',
