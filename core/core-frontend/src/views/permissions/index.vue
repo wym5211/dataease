@@ -14,6 +14,9 @@
       <el-tab-pane label="权限审计" name="audit">
         <permission-audit />
       </el-tab-pane>
+      <el-tab-pane label="用户管理" name="user">
+        <user-management />
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
@@ -25,6 +28,7 @@ import MenuAuthorization from './menu/index.vue'
 import ResourceAuthorization from './resource/index.vue'
 import PermissionTemplates from './template/index.vue'
 import PermissionAudit from './audit/index.vue'
+import UserManagement from './user/index.vue'
 
 const { t } = useI18n()
 const activeName = ref('menu')
