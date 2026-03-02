@@ -1,14 +1,4 @@
-[GET] http://localhost:8082/api/sysParameter/requestTimeOut => [200] OK
-[GET] http://localhost:8082/api/sysParameter/i18nOptions => [200] OK
-[GET] http://localhost:8082/api/typeface/defaultFont => [200] OK
-[GET] http://localhost:8082/api/sysParameter/ui => [200] OK
-[GET] http://localhost:8082/api/typeface/listFont => [200] OK
-[GET] http://localhost:8082/api/sysParameter/defaultSettings => [200] OK
-[GET] http://localhost:8082/api/typeface/listFont => [200] OK
-[GET] http://localhost:8082/api/sysParameter/defaultSettings => [200] OK
-[GET] http://localhost:8082/api/typeface/listFont => [200] OK
-[GET] http://localhost:8082/api/dekey => [200] OK
-[POST] http://localhost:8082/api/login/localLogin => [200] OK
-[GET] http://localhost:8082/api/typeface/listFont => [200] OK
-[GET] http://localhost:8082/api/sysParameter/defaultSettings => [200] OK
-[GET] http://localhost:8082/api/user/info => [404] Not Found
+[GET] http://localhost:8081/api/model => [500] Internal Server Error
+[GET] http://localhost:8100/websocket/info?userId=1&t=1772381786779 => [FAILED] net::ERR_CONNECTION_REFUSED
+[GET] http://localhost:8100/websocket/info?userId=1&t=1772381786779 => [FAILED] net::ERR_CONNECTION_REFUSED
+[GET] http://localhost:8100/websocket/info?userId=1&t=1772381791778

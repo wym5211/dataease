@@ -1,0 +1,121 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - img [ref=e5] [cursor=pointer]
+    - menubar [ref=e23]:
+      - menuitem [ref=e24] [cursor=pointer]
+      - menuitem "权限管理" [ref=e25]:
+        - generic [ref=e26] [cursor=pointer]:
+          - generic [ref=e27]: 权限管理
+          - img [ref=e29]
+      - menuitem "工作台" [ref=e31] [cursor=pointer]:
+        - generic [ref=e32]: 工作台
+      - menuitem "仪表板" [ref=e33] [cursor=pointer]:
+        - generic [ref=e34]: 仪表板
+      - menuitem "数据大屏" [ref=e35] [cursor=pointer]:
+        - generic [ref=e36]: 数据大屏
+      - menuitem "数据准备" [ref=e37]:
+        - generic [ref=e38] [cursor=pointer]:
+          - generic [ref=e39]: 数据准备
+          - img [ref=e41]
+    - generic [ref=e43]:
+      - img [ref=e45] [cursor=pointer]
+      - img [ref=e54] [cursor=pointer]
+      - img [ref=e58] [cursor=pointer]
+      - img [ref=e62] [cursor=pointer]
+      - generic [ref=e64] [cursor=pointer]:
+        - img [ref=e66]
+        - generic [ref=e71]: 管理员
+        - img [ref=e73]
+      - generic:
+        - generic:
+          - img [ref=e76] [cursor=pointer]
+          - img [ref=e79] [cursor=pointer]
+          - iframe
+  - main [ref=e82]:
+    - generic [ref=e83]:
+      - generic [ref=e85]:
+        - generic [ref=e86]:
+          - generic [ref=e87]: 角色
+          - generic [ref=e90] [cursor=pointer]:
+            - generic:
+              - combobox "角色" [ref=e92]
+              - generic [ref=e93]: 管理员
+            - img [ref=e96]
+        - generic [ref=e98]:
+          - generic [ref=e99]: 搜索菜单
+          - generic [ref=e102]:
+            - img [ref=e105]
+            - textbox "搜索菜单" [ref=e107]:
+              - /placeholder: 输入菜单名称
+        - generic [ref=e109]:
+          - button "保存变更" [active] [ref=e110] [cursor=pointer]:
+            - generic [ref=e111]: 保存变更
+          - button "重置" [ref=e112] [cursor=pointer]:
+            - generic [ref=e113]: 重置
+      - generic [ref=e114]:
+        - generic [ref=e115]:
+          - generic [ref=e116]:
+            - generic [ref=e117]: 菜单权限树
+            - generic [ref=e118]:
+              - button "全部展开" [ref=e119] [cursor=pointer]:
+                - generic [ref=e120]: 全部展开
+              - button "全部收起" [ref=e121] [cursor=pointer]:
+                - generic [ref=e122]: 全部收起
+          - tree [ref=e124]:
+            - treeitem "工作台 已授权" [checked] [ref=e215]:
+              - generic [ref=e126] [cursor=pointer]:
+                - generic [ref=e128]:
+                  - checkbox [checked]
+                - generic [ref=e130]:
+                  - generic [ref=e131]: 工作台
+                  - generic [ref=e217]: 已授权
+            - treeitem "仪表板 已授权" [checked] [ref=e218]:
+              - generic [ref=e133] [cursor=pointer]:
+                - generic [ref=e135]:
+                  - checkbox [checked]
+                - generic [ref=e137]:
+                  - generic [ref=e138]: 仪表板
+                  - generic [ref=e220]: 已授权
+            - treeitem "数据大屏 已授权" [checked] [ref=e221]:
+              - generic [ref=e140] [cursor=pointer]:
+                - generic [ref=e142]:
+                  - checkbox [checked]
+                - generic [ref=e144]:
+                  - generic [ref=e145]: 数据大屏
+                  - generic [ref=e223]: 已授权
+            - treeitem "数据准备 已授权" [checked] [ref=e224]:
+              - generic [ref=e147] [cursor=pointer]:
+                - img [ref=e149]
+                - generic [ref=e152]:
+                  - checkbox [checked]
+                - generic [ref=e154]:
+                  - generic [ref=e155]: 数据准备
+                  - generic [ref=e226]: 已授权
+            - treeitem "模板市场 未授权" [checked] [ref=e227]:
+              - generic [ref=e157] [cursor=pointer]:
+                - generic [ref=e159]:
+                  - checkbox [checked]
+                - generic [ref=e161]:
+                  - generic [ref=e162]: 模板市场
+                  - generic [ref=e229]: 未授权
+            - treeitem "系统设置 未授权" [ref=e230]:
+              - generic [ref=e164] [cursor=pointer]:
+                - img [ref=e166]
+                - generic [ref=e169]:
+                  - checkbox
+                - generic [ref=e171]:
+                  - generic [ref=e172]: 系统设置
+                  - generic [ref=e232]: 未授权
+            - treeitem "工具箱 未授权" [ref=e233]:
+              - generic [ref=e174] [cursor=pointer]:
+                - img [ref=e176]
+                - generic [ref=e179]:
+                  - checkbox
+                - generic [ref=e181]:
+                  - generic [ref=e182]: 工具箱
+                  - generic [ref=e235]: 未授权
+        - generic [ref=e183]:
+          - generic [ref=e184]: 权限详情
+          - generic [ref=e186]:
+            - img [ref=e188]
+            - paragraph [ref=e205]: 请选择菜单节点

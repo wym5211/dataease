@@ -228,6 +228,16 @@ export const routes: AppRouteRecordRaw[] = [
           roles: ['admin']
         }
         // 用户管理页面 - 仅管理员可访问
+      },
+      {
+        path: 'role',
+        name: 'permissions-role',
+        component: () => import('@/views/permissions/role/index.vue'),
+        meta: {
+          title: '角色管理',
+          roles: ['admin']
+        }
+        // 角色管理页面 - 仅管理员可访问
       }
     ]
   },

@@ -279,7 +279,7 @@ const dsInfo = reactive({
 
 const createDataset = () => {
   router.push({
-    path: '/dataset-form',
+    path: '/dataset-embedded-form',
     query: {
       datasourceId: dsInfo.id
     }

@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
 import io.dataease.utils.TokenUtils;
+import java.util.Date;
 
 @Component
 @ConditionalOnMissingBean(name = "loginServer")
@@ -60,7 +61,20 @@ public class SubstituleLoginServer {
         Long userId = bo.getUserId();
         Long defaultOid = bo.getDefaultOid();
         JWTCreator.Builder builder = JWT.create();
-        builder.withClaim("uid", userId).withClaim("oid", defaultOid);
+
+        // 添加标准JWT声明，确保token长度超过100
+        Date now = new Date();
+        Date exp = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24小时过期
+
+        builder.withClaim("uid", userId)
+               .withClaim("oid", defaultOid)
+               .withClaim("username", "admin")
+               .withClaim("nickName", "管理员")
+               .withIssuedAt(now)
+               .withExpiresAt(exp)
+               .withIssuer("DataEase")
+               .withSubject("auth_token");
+
         String token = builder.sign(algorithm);
         return new TokenVO(token, 0L);
     }

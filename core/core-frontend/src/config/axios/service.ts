@@ -96,10 +96,15 @@ const cancelMap = {}
 // request拦截器
 service.interceptors.request.use(
   async (c: InternalAxiosRequestConfigWidthLoading<InternalAxiosRequestConfig>) => {
+    console.log('[DEBUG] Request URL:', c.url)
     let config = configHandler(c)
     if (config instanceof Promise) {
       config = await config
     }
+    console.log(
+      '[DEBUG] After configHandler, X-DE-TOKEN:',
+      (config.headers as any)['X-DE-TOKEN'] ? 'exists' : 'missing'
+    )
     if (
       config.method === 'post' &&
       (config.headers as AxiosRequestHeaders)['Content-Type'] ===

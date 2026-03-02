@@ -50,13 +50,15 @@
 
       <el-table-column prop="createTime" label="创建时间" width="180" />
 
-      <el-table-column label="操作" width="200" fixed="right">
+      <el-table-column label="操作" min-width="320" width="320" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" size="small" @click="handleEdit(row)"> 编辑 </el-button>
-          <el-button link type="warning" size="small" @click="handleResetPassword(row)">
-            重置密码
-          </el-button>
-          <el-button link type="danger" size="small" @click="handleDelete(row)"> 删除 </el-button>
+          <div class="operation-buttons">
+            <el-button link type="primary" size="small" @click="handleEdit(row)">编辑</el-button>
+            <el-button link type="warning" size="small" @click="handleResetPassword(row)">
+              重置密码
+            </el-button>
+            <el-button link type="danger" size="small" @click="handleDelete(row)">删除</el-button>
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -66,7 +68,7 @@
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"
         :page-sizes="[10, 20, 50, 100]"
-        :total="total"
+        :total="pagination.total"
         layout="total, sizes, prev, pager, next, jumper"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
@@ -77,12 +79,15 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus-secondary'
 import type { User } from '../types'
 
 interface Props {
-  data: User[]
-  total: number
+  users: User[]
+  pagination: {
+    page: number
+    pageSize: number
+    total: number
+  }
   loading?: boolean
 }
 
@@ -100,7 +105,17 @@ const emit = defineEmits<{
 const currentPage = ref(1)
 const pageSize = ref(10)
 
-const tableData = computed(() => props.data)
+const tableData = computed(() => props.users)
+
+// 同步分页状态
+const syncPagination = () => {
+  currentPage.value = props.pagination.page
+  pageSize.value = props.pagination.pageSize
+}
+
+// 监听pagination变化
+import { watch } from 'vue'
+watch(() => props.pagination, syncPagination, { deep: true, immediate: true })
 
 const handleSizeChange = (size: number) => {
   pageSize.value = size
@@ -144,9 +159,19 @@ defineExpose({
   justify-content: flex-end;
 }
 
-:deep(.el-table) {
-  .el-button + .el-button {
-    margin-left: 8px;
-  }
+.operation-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+  justify-content: flex-start;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+.operation-buttons .el-button {
+  padding: 0 2px !important;
+  margin: 0 1px !important;
+  flex-shrink: 0;
 }
 </style>

@@ -137,7 +137,7 @@ const createDataset = (tableName?: string) => {
   }
   wsCache.set('ds-info-id', nodeInfo.id)
   router.push({
-    path: '/dataset-form',
+    path: '/dataset-embedded-form',
     query: {
       datasourceId: nodeInfo.id,
       tableName

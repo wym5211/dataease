@@ -18,6 +18,8 @@ public class RoleCreator implements Serializable {
     private Integer typeCode;
     @Schema(description = "描述", hidden = true)
     private String desc;
+    @Schema(description = "状态 0:禁用 1:启用")
+    private Integer status;
     @JsonIgnore
     @Schema(hidden = true)
     private Long rid;

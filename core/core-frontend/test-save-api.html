@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Save Menu Permission API Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/web-storage-cache@1.1.2/dist/web-storage-cache.min.js"></script>
+</head>
+<body>
+  <h1>Menu Permission Save API Test</h1>
+  <div id="output"></div>
+  <button onclick="testSave()">Test Save API</button>
+
+  <script>
+    const output = document.getElementById('output');
+    const wsCache = new WebStorageCache({ storage: 'localStorage' });
+
+    function log(msg) {
+      output.innerHTML += '<pre>' + msg + '</pre>';
+    }
+
+    // 从 localStorage 获取 token（模拟 refresh.ts 的逻辑）
+    function getToken() {
+      const rawToken = localStorage.getItem('user.token');
+      log('Raw token from localStorage: ' + rawToken?.substring(0, 100));
+
+      if (!rawToken) return null;
+
+      try {
+        const parsed = JSON.parse(rawToken);
+        log('Parsed type: ' + typeof parsed);
+
+        if (parsed && parsed.v) {
+          let innerToken = parsed.v;
+          if (typeof innerToken === 'string' &&
+              innerToken.startsWith('"') &&
+              innerToken.endsWith('"')) {
+            innerToken = innerToken.slice(1, -1);
+          }
+          log('Extracted token: ' + innerToken?.substring(0, 50) + '...');
+          return innerToken;
+        }
+      } catch (e) {
+        log('Parse error: ' + e.message);
+      }
+      return rawToken;
+    }
+
+    async function testSave() {
+      output.innerHTML = '';
+
+      const token = getToken();
+      if (!token) {
+        log('ERROR: No token found!');
+        return;
+      }
+
+      // 测试数据 - 模拟前端发送的数据格式
+      const testData = {
+        id: 1,  // role ID
+        permissions: [
+          { id: 1, weight: 1 },
+          { id: 2, weight: 1 },
+          { id: 3, weight: 1 }
+        ]
+      };
+
+      log('Request URL: /api/auth/saveMenuPer');
+      log('Request Method: POST');
+      log('Request Headers:');
+      log('  X-DE-TOKEN: ' + token.substring(0, 50) + '...');
+      log('  Content-Type: application/json');
+      log('Request Body:');
+      log(JSON.stringify(testData, null, 2));
+
+      try {
+        const response = await fetch('/api/auth/saveMenuPer', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-DE-TOKEN': token
+          },
+          body: JSON.stringify(testData)
+        });
+
+        log('\nResponse Status: ' + response.status);
+        log('Response Headers:');
+        response.headers.forEach((value, name) => {
+          log('  ' + name + ': ' + value);
+        });
+
+        const responseData = await response.text();
+        log('Response Body:');
+        log(responseData);
+
+      } catch (error) {
+        log('ERROR: ' + error.message);
+      }
+    }
+
+    // 页面加载时自动获取 token 信息
+    window.onload = function() {
+      const token = getToken();
+      log('Current token exists: ' + (token ? 'YES' : 'NO'));
+      if (token) {
+        log('Token length: ' + token.length);
+      }
+    };
+  </script>
+</body>
+</html>

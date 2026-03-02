@@ -64,6 +64,7 @@ public class CoreRoleServer implements RoleApi {
         role.setRoleAlias(creator.getName());
         role.setType(creator.getTypeCode());
         role.setDescription(creator.getDesc());
+        role.setStatus(creator.getStatus() != null ? creator.getStatus() : 1); // 默认启用
         role.setCreateTime(System.currentTimeMillis());
         sysRoleMapper.insert(role);
         return role.getId();
@@ -81,6 +82,9 @@ public class CoreRoleServer implements RoleApi {
         role.setName(editor.getName());
         role.setRoleAlias(editor.getName());
         role.setDescription(editor.getDesc());
+        if (editor.getStatus() != null) {
+            role.setStatus(editor.getStatus());
+        }
         sysRoleMapper.updateById(role);
     }
 
@@ -183,6 +187,7 @@ public class CoreRoleServer implements RoleApi {
         vo.setName(role.getName());
         vo.setTypeCode(role.getType());
         vo.setDesc(role.getDescription());
+        vo.setStatus(role.getStatus() != null ? role.getStatus() : 1);
         vo.setRid(role.getId());
         return vo;
     }
@@ -226,6 +231,10 @@ public class CoreRoleServer implements RoleApi {
         RoleVO vo = new RoleVO();
         vo.setId(role.getId());
         vo.setName(role.getName());
+        vo.setCode(role.getRoleAlias()); // 角色编码使用 role_alias
+        vo.setDescription(role.getDescription());
+        vo.setCreateTime(role.getCreateTime());
+        vo.setStatus(role.getStatus() != null ? role.getStatus() : 1); // 使用数据库中的 status
         vo.setReadonly(role.getType() != null && role.getType() == 0);
         vo.setRoot(role.getId() != null && role.getId() == 1L);
         return vo;

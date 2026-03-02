@@ -228,14 +228,14 @@ import {
 } from '@element-plus/icons-vue'
 import type { TreeInstance } from 'element-plus-secondary'
 import { usePermissionStore } from '@/stores/permission'
-import type { ResourceItem, RoleItem } from '@/stores/permission'
+import type { ResourceItem } from '@/stores/permission'
 
 const permissionStore = usePermissionStore()
 
-// 直接使用store返回的computed属性
-const roleList = permissionStore.roleList
-const hasChanges = permissionStore.hasChanges
-const changeSummary = permissionStore.changeSummary
+// 直接使用 store 的计算属性（在模板中自动解包）
+const roleList = computed(() => permissionStore.roleList as any)
+const hasChanges = computed(() => permissionStore.hasChanges)
+const changeSummary = computed(() => permissionStore.changeSummary)
 
 const selectedRole = ref<string>('')
 const selectedResourceType = ref<string>('dashboard')
@@ -279,7 +279,9 @@ const treeProps = {
 const handleRoleChange = async (roleId: string) => {
   if (!roleId) return
   try {
-    await permissionStore.loadRolePermissions(roleId)
+    // 选择角色
+    permissionStore.selectRole(roleId)
+    // 加载资源树
     await permissionStore.loadResourceTree(selectedResourceType.value)
     updateTreeChecks()
   } catch (error) {
@@ -472,9 +474,20 @@ const resetChanges = () => {
 // 初始化
 onMounted(async () => {
   try {
+    console.log('[资源授权页面] 开始加载角色列表...')
     await permissionStore.loadRoles()
+    console.log('[资源授权页面] loadRoles 完成')
+    console.log('[资源授权页面] permissionStore.state.roles:', permissionStore.state.roles)
+    console.log('[资源授权页面] roleList 长度:', roleList.value?.length || 0)
+    console.log('[资源授权页面] roleList 值:', roleList.value)
+    console.log('[资源授权页面] permissionStore.roleList:', permissionStore.roleList)
+
+    // 加载默认的资源树
+    console.log('[资源授权页面] 加载默认资源树:', selectedResourceType.value)
+    await permissionStore.loadResourceTree(selectedResourceType.value)
+    console.log('[资源授权页面] 资源树加载完成')
   } catch (error) {
-    console.error('加载角色列表失败:', error)
+    console.error('初始化失败:', error)
   }
 })
 </script>

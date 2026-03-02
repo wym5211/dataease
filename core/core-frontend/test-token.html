@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Token Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/web-storage-cache@1.1.2/dist/web-storage-cache.min.js"></script>
+</head>
+<body>
+  <h1>Token Extraction Test</h1>
+  <pre id="output"></pre>
+  <script>
+    // 模拟WebStorageCache存储token
+    const wsCache = new WebStorageCache({ storage: 'localStorage' });
+
+    // 存储一个模拟token（类似后端返回的格式）
+    const mockToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOjEsIm9pZCI6MSwidXNlcm5hbWUiOiJhZG1pbiJ9.test';
+    wsCache.set('user.token', mockToken);
+
+    // 测试提取逻辑
+    let token = wsCache.get('user.token');
+    const output = [];
+
+    output.push('=== Token Extraction Test ===');
+    output.push('Raw token type: ' + typeof token);
+    output.push('Raw token: ' + JSON.stringify(token));
+
+    // WebStorageCache 将值包装在对象中，格式为 {c: createTime, e: expireTime, v: value}
+    if (token && typeof token === 'object' && token.v) {
+      token = token.v;
+      output.push('Extracted from object.v: ' + token);
+      // 如果值还被引号包裹，去除引号
+      if (typeof token === 'string' && token.startsWith('"') && token.endsWith('"')) {
+        token = token.slice(1, -1);
+        output.push('Removed quotes: ' + token);
+      }
+    }
+
+    output.push('Final token: ' + token);
+    output.push('Token length: ' + (token ? token.length : 0));
+
+    document.getElementById('output').textContent = output.join('\n');
+
+    // 测试实际API调用
+    output.push('\n=== API Call Test ===');
+    fetch('/api/auth/saveMenuPer', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-DE-TOKEN': token || ''
+      },
+      body: JSON.stringify({id: 1, permissions: [{id: 1}]})
+    }).then(r => {
+      output.push('Response status: ' + r.status);
+      document.getElementById('output').textContent = output.join('\n');
+    }).catch(e => {
+      output.push('Error: ' + e.message);
+      document.getElementById('output').textContent = output.join('\n');
+    });
+  </script>
+</body>
+</html>

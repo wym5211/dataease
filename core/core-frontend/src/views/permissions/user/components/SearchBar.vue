@@ -37,7 +37,7 @@
           @change="handleSearch"
         >
           <el-option
-            v-for="role in roles"
+            v-for="role in roleOptions"
             :key="role.roleId"
             :label="role.roleName"
             :value="role.roleId"
@@ -54,7 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { Search } from '@element-plus/icons-vue'
 import { getUserOptions } from '../api'
 import type { Role } from '../types'
@@ -65,29 +65,54 @@ interface SearchForm {
   roleId?: string
 }
 
-const emit = defineEmits<{
-  search: [form: SearchForm]
-}>()
-
-const searchForm = ref<SearchForm>({
-  keyword: undefined,
-  status: undefined,
-  roleId: undefined
-})
-
-const roles = ref<Role[]>([])
-
-const loadRoles = async () => {
-  try {
-    const data = await getUserOptions()
-    roles.value = data.roles
-  } catch (error) {
-    console.error('加载角色列表失败:', error)
-  }
+interface Props {
+  keyword?: string
+  status?: number
+  roleId?: string
+  roleOptions: Role[]
 }
 
+interface Emits {
+  (e: 'update:keyword', value: string): void
+  (e: 'update:status', value: number | undefined): void
+  (e: 'update:roleId', value: string | undefined): void
+  (e: 'search'): void
+  (e: 'reset'): void
+}
+
+const props = defineProps<Props>()
+const emit = defineEmits<Emits>()
+
+const searchForm = ref<SearchForm>({
+  keyword: props.keyword,
+  status: props.status,
+  roleId: props.roleId
+})
+
+// 监听props变化，同步到searchForm
+watch(
+  () => [props.keyword, props.status, props.roleId],
+  ([keyword, status, roleId]) => {
+    searchForm.value = {
+      keyword,
+      status,
+      roleId
+    }
+  }
+)
+
 const handleSearch = () => {
-  emit('search', { ...searchForm.value })
+  // 更新父组件的v-model值
+  if (searchForm.value.keyword !== undefined) {
+    emit('update:keyword', searchForm.value.keyword)
+  }
+  if (searchForm.value.status !== undefined) {
+    emit('update:status', searchForm.value.status)
+  }
+  if (searchForm.value.roleId !== undefined) {
+    emit('update:roleId', searchForm.value.roleId)
+  }
+  emit('search')
 }
 
 const handleReset = () => {
@@ -96,12 +121,11 @@ const handleReset = () => {
     status: undefined,
     roleId: undefined
   }
-  emit('search', { ...searchForm.value })
+  emit('update:keyword', '')
+  emit('update:status', undefined)
+  emit('update:roleId', undefined)
+  emit('reset')
 }
-
-onMounted(() => {
-  loadRoles()
-})
 
 defineExpose({
   handleReset

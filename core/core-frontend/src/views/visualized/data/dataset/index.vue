@@ -487,7 +487,7 @@ const handleEdit = id => {
     return
   }
   router.push({
-    path: '/dataset-form',
+    path: '/dataset-embedded-form',
     query: {
       id
     }
@@ -502,7 +502,7 @@ const createDataset = (data?: BusiTreeNode) => {
     return
   }
   router.push({
-    path: '/dataset-form',
+    path: '/dataset-embedded-form',
     query: {
       pid: data?.id
     }

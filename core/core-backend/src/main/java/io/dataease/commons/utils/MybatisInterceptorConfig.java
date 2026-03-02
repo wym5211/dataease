@@ -1,11 +1,6 @@
 package io.dataease.commons.utils;
 
 
-import lombok.Getter;
-import lombok.Setter;
-
-@Getter
-@Setter
 public class MybatisInterceptorConfig {
     private String modelName;
     private String attrName;
@@ -16,6 +11,63 @@ public class MybatisInterceptorConfig {
     private String undoMethod;
 
     public MybatisInterceptorConfig() {
+    }
+
+    // Getters and Setters
+    public String getModelName() {
+        return modelName;
+    }
+
+    public void setModelName(String modelName) {
+        this.modelName = modelName;
+    }
+
+    public String getAttrName() {
+        return attrName;
+    }
+
+    public void setAttrName(String attrName) {
+        this.attrName = attrName;
+    }
+
+    public String getAttrNameForList() {
+        return attrNameForList;
+    }
+
+    public void setAttrNameForList(String attrNameForList) {
+        this.attrNameForList = attrNameForList;
+    }
+
+    public String getInterceptorClass() {
+        return interceptorClass;
+    }
+
+    public void setInterceptorClass(String interceptorClass) {
+        this.interceptorClass = interceptorClass;
+    }
+
+    public String getInterceptorMethod() {
+        return interceptorMethod;
+    }
+
+    public void setInterceptorMethod(String interceptorMethod) {
+        this.interceptorMethod = interceptorMethod;
+    }
+
+    public String getUndoClass() {
+        return undoClass;
+    }
+
+    public void setUndoClass(String undoClass) {
+        this.undoClass = undoClass;
+    }
+
+    public String getUndoMethod() {
+        return undoMethod;
+    }
+
+    public void setUndoMethod(String undoMethod) {
+        this.undoMethod = undoMethod;
     }
 
     /**

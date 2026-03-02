@@ -111,7 +111,12 @@ const loadOptions = async () => {
     groupOptions.value = userOptionsRes.groups
     // 如果从 getUserOptions 获取的角色为空，则使用角色列表
     if (roleOptions.value.length === 0) {
-      roleOptions.value = roleListRes.records
+      // 适配 roleList 返回的数据格式 (id, name) -> (roleId, roleName)
+      roleOptions.value = roleListRes.records.map(role => ({
+        roleId: String(role.id),
+        roleName: role.name,
+        roleCode: role.code
+      }))
     }
   } catch (error) {
     ElMessage.error('获取选项数据失败')

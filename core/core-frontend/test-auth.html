@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>认证状态检查</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .section h3 {
+            margin-top: 0;
+        }
+        .info {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 3px;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>DataEase 认证状态检查</h1>
+
+    <div class="section">
+        <h3>1. 本地存储检查</h3>
+        <div id="localStorage-info" class="info">检查中...</div>
+        <button onclick="checkLocalStorage()">重新检查</button>
+    </div>
+
+    <div class="section">
+        <h3>2. Token状态</h3>
+        <div id="token-info" class="info">检查中...</div>
+    </div>
+
+    <div class="section">
+        <h3>3. API测试</h3>
+        <button onclick="testModelAPI()">测试 /model API</button>
+        <button onclick="testUserListAPI()">测试用户列表API</button>
+        <div id="api-result" class="info"></div>
+    </div>
+
+    <div class="section">
+        <h3>4. 手动登录测试</h3>
+        <input type="text" id="username" placeholder="用户名" value="admin" style="padding: 5px; margin-right: 5px;">
+        <input type="password" id="password" placeholder="密码" value="DataEase@123456" style="padding: 5px; margin-right: 5px;">
+        <button onclick="testLogin()">登录</button>
+        <div id="login-result" class="info"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8100';
+
+        function checkLocalStorage() {
+            const info = document.getElementById('localStorage-info');
+            let html = '<h4>LocalStorage 内容:</h4><pre>';
+
+            const items = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('user.')) {
+                    items[key] = localStorage.getItem(key);
+                }
+            }
+
+            if (Object.keys(items).length === 0) {
+                html += '（没有找到 user. 开头的键）';
+            } else {
+                html += JSON.stringify(items, null, 2);
+            }
+            html += '</pre>';
+
+            info.innerHTML = html;
+            updateTokenInfo();
+        }
+
+        function updateTokenInfo() {
+            const info = document.getElementById('token-info');
+            const token = localStorage.getItem('user.token');
+
+            if (token) {
+                info.innerHTML = `<span class="success">✓ Token 存在</span><br>长度: ${token.length}<br>前缀: ${token.substring(0, 20)}...`;
+            } else {
+                info.innerHTML = `<span class="error">✗ Token 不存在</span>`;
+            }
+        }
+
+        async function testModelAPI() {
+            const result = document.getElementById('api-result');
+            result.innerHTML = '请求中...';
+
+            try {
+                const response = await fetch(`${API_BASE}/de2api/model`);
+                const data = await response.json();
+                result.innerHTML = `<span class="success">✓ /model API 成功</span><pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                result.innerHTML = `<span class="error">✗ /model API 失败</span><pre>${error.message}</pre>`;
+            }
+        }
+
+        async function testUserListAPI() {
+            const result = document.getElementById('api-result');
+            result.innerHTML = '请求中...';
+
+            const token = localStorage.getItem('user.token');
+
+            try {
+                const response = await fetch(`${API_BASE}/de2api/user/pager/1/10`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-DE-TOKEN': token || ''
+                    },
+                    body: JSON.stringify({
+                        keyword: '',
+                        statusList: []
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    result.innerHTML = `<span class="success">✓ 用户列表API 成功</span><pre>${JSON.stringify(data, null, 2).substring(0, 500)}...</pre>`;
+                } else {
+                    result.innerHTML = `<span class="error">✗ 用户列表API 失败 (${response.status})</span><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<span class="error">✗ 用户列表API 失败</span><pre>${error.message}</pre>`;
+            }
+        }
+
+        async function testLogin() {
+            const result = document.getElementById('login-result');
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            result.innerHTML = '登录中...';
+
+            try {
+                const response = await fetch(`${API_BASE}/de2api/login/localLogin`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        account: username,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.data) {
+                    // 保存token到localStorage
+                    localStorage.setItem('user.token', data.data.token || data.data);
+                    if (data.data.exp) {
+                        localStorage.setItem('user.exp', data.data.exp);
+                    }
+                    if (data.data.time) {
+                        localStorage.setItem('user.time', Date.now());
+                    }
+
+                    result.innerHTML = `<span class="success">✓ 登录成功</span><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                    checkLocalStorage();
+                } else {
+                    result.innerHTML = `<span class="error">✗ 登录失败</span><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<span class="error">✗ 登录失败</span><pre>${error.message}</pre>`;
+            }
+        }
+
+        // 页面加载时自动检查
+        window.onload = function() {
+            checkLocalStorage();
+        };
+    </script>
+</body>
+</html>

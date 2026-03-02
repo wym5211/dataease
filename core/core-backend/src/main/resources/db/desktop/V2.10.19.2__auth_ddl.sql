@@ -40,6 +40,7 @@ CREATE TABLE `sys_role`
     `role_alias`  varchar(50) DEFAULT NULL COMMENT '角色别名',
     `type`        int(11) DEFAULT '1' COMMENT '类型 0:系统 1:自定义',
     `description` varchar(255) DEFAULT NULL COMMENT '描述',
+    `status`      int(11) DEFAULT '1' COMMENT '状态 0:禁用 1:启用',
     `create_time` bigint(13) DEFAULT NULL COMMENT '创建时间',
     PRIMARY KEY (`id`)
 ) COMMENT='角色表';

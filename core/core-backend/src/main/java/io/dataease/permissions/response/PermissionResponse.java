@@ -20,8 +20,8 @@ public class PermissionResponse {
     /**
      * 成功响应（带数据）
      */
-    public static <T> ResponseEntity<ResultMessage<T>> success(T data) {
-        ResultMessage<T> resultMessage = new ResultMessage<>(200, "操作成功", data);
+    public static <T> ResponseEntity<ResultMessage> success(T data) {
+        ResultMessage resultMessage = ResultMessage.success(data);
         return new ResponseEntity<>(resultMessage, HttpStatus.OK);
     }
 

@@ -1,11 +1,20 @@
 import { defineStore } from 'pinia'
 import { ref, computed, readonly } from 'vue'
+import { ElMessage } from 'element-plus-secondary'
+import { menuTreeApi, menuPerSaveApi, menuPerApi } from '@/api/auth'
+import { getRoleList } from '@/views/permissions/role/api'
+import { getDatasetTree, getDatasourceList } from '@/api/dataset'
+import { queryTreeApi } from '@/api/visualization/dataVisualization'
 
 export interface MenuNode {
   id: string
   name: string
   type: string
   path?: string
+  icon?: string
+  sort?: number
+  status?: string
+  auth?: boolean
   hasPermission: boolean
   children?: MenuNode[]
   createTime?: string
@@ -27,7 +36,10 @@ export interface ResourceNode {
 export interface Role {
   id: string
   name: string
-  description: string
+  code: string
+  description?: string
+  status: number
+  createTime: string
 }
 
 // 类型别名，用于兼容不同组件中的命名
@@ -72,6 +84,68 @@ export interface AuditLog {
   errorMsg?: string
 }
 
+// 后端菜单项接口
+interface BackendMenuItem {
+  id?: number | string
+  auth?: boolean
+  path: string
+  component?: string
+  hidden: boolean
+  name: string
+  inLayout: boolean
+  redirect?: string | null
+  meta: {
+    title: string
+    icon?: string | null
+  }
+  children?: BackendMenuItem[] | null
+  plugin: boolean
+}
+
+// 转换后端菜单数据到前端格式
+const transformMenuData = (backendMenus: BackendMenuItem[]): MenuNode[] => {
+  if (!Array.isArray(backendMenus)) return []
+
+  return backendMenus
+    .filter(menu => menu && menu.name) // 过滤掉空菜单
+    .map(menu => {
+      // 检查是否有非空的子节点数组
+      const hasChildren = menu.children && Array.isArray(menu.children) && menu.children.length > 0
+
+      const node: MenuNode = {
+        id: String(menu.id ?? menu.name),
+        name: menu.meta?.title || menu.name,
+        type: hasChildren ? 'folder' : 'menu',
+        path: menu.path,
+        icon: menu.meta?.icon || '',
+        auth: menu.auth,
+        hasPermission: false,
+        parentId: undefined
+      }
+
+      // 递归处理子菜单（只在真正有子节点时）
+      if (hasChildren) {
+        node.children = transformMenuData(menu.children)
+        // 为子节点设置 parentId
+        node.children.forEach(child => {
+          child.parentId = node.id
+        })
+      }
+
+      return node
+    })
+}
+
+const applyMenuPermissions = (nodes: MenuNode[], grantedMenuIds: Set<string>, isRoot: boolean) => {
+  nodes.forEach(node => {
+    const isPublic = node.auth !== true
+    node.hasPermission = isRoot || isPublic || grantedMenuIds.has(node.id)
+    if (node.children?.length) {
+      applyMenuPermissions(node.children, grantedMenuIds, isRoot)
+    }
+  })
+}
+
 export interface PermissionState {
   roles: Role[]
   selectedRoleId: string
@@ -97,11 +171,7 @@ export interface PermissionState {
 export const usePermissionStore = defineStore('permissionManager', () => {
   // 状态
   const state = ref<PermissionState>({
-    roles: [
-      { id: 'role_001', name: '超级管理员', description: '拥有所有权限' },
-      { id: 'role_002', name: '普通用户', description: '基础权限用户' },
-      { id: 'role_003', name: '数据分析师', description: '数据分析相关权限' }
-    ],
+    roles: [],
     selectedRoleId: '',
     menuTreeData: [],
     resourceTreeData: {},
@@ -133,18 +203,20 @@ export const usePermissionStore = defineStore('permissionManager', () => {
   // 获取角色列表
   const loadRoles = async () => {
     try {
-      // TODO: 调用API获取角色列表
-      // const response = await getRoles()
-      // state.value.roles = response.data
-
-      // 模拟数据
-      state.value.roles = [
-        { id: 'role_001', name: '超级管理员', description: '拥有所有权限' },
-        { id: 'role_002', name: '普通用户', description: '基础权限用户' },
-        { id: 'role_003', name: '数据分析师', description: '数据分析相关权限' }
-      ]
+      console.log('[Permission Store] 开始加载角色列表...')
+      const response = await getRoleList({
+        page: 1,
+        pageSize: 1000,
+        keyword: ''
+      })
+      console.log('[Permission Store] 角色列表响应:', response)
+      console.log('[Permission Store] 角色数量:', response.records?.length || 0)
+      console.log('[Permission Store] 角色数据:', response.records)
+      state.value.roles = response.records || []
+      console.log('[Permission Store] 更新后的 state.value.roles:', state.value.roles)
     } catch (error) {
-      console.error('加载角色列表失败:', error)
+      console.error('[Permission Store] 加载角色列表失败:', error)
+      ElMessage.error('加载角色列表失败')
       throw error
     }
   }
@@ -163,40 +235,54 @@ export const usePermissionStore = defineStore('permissionManager', () => {
   // 加载菜单权限
   const loadMenuPermissions = async () => {
     try {
-      // TODO: 调用API获取角色菜单权限
-      // const response = await getMenuPermissions(state.value.selectedRoleId)
-      // state.value.menuTreeData = response.data
-
-      // 模拟数据 - 无论是否选择角色都加载菜单结构
       console.log('加载菜单数据...')
-      state.value.menuTreeData = [
-        {
-          id: 'menu_001',
-          name: '系统管理',
-          type: 'folder',
-          hasPermission: true,
-          children: [
-            {
-              id: 'menu_001_01',
-              name: '用户管理',
-              type: 'menu',
-              path: '/system/users',
-              hasPermission: true,
-              createTime: '2024-01-01 10:00:00'
-            },
-            {
-              id: 'menu_001_02',
-              name: '角色管理',
-              type: 'menu',
-              path: '/system/roles',
-              hasPermission: false,
-              createTime: '2024-01-01 10:00:00'
-            }
-          ]
+
+      // 调用后端 API 获取菜单树
+      const response = await menuTreeApi()
+      console.log('后端返回的菜单数据:', response.data)
+
+      // 转换后端数据格式到前端期望的格式
+      const transformedMenus = transformMenuData(response.data || [])
+
+      // 如果有选择角色，加载角色的菜单权限
+      if (state.value.selectedRoleId) {
+        try {
+          const permResponse = await menuPerApi({ id: Number(state.value.selectedRoleId) })
+          console.log('角色菜单权限响应:', permResponse)
+          const permissionItems = Array.isArray(permResponse?.permissions)
+            ? permResponse.permissions
+            : Array.isArray(permResponse?.data?.permissions)
+            ? permResponse.data.permissions
+            : []
+          console.log('角色菜单权限 permissions:', permissionItems)
+          const isRoot = Boolean(permResponse?.root ?? permResponse?.data?.root)
+
+          const grantedMenuIds = new Set<string>()
+          if (permissionItems.length) {
+            permissionItems.forEach((p: any) => {
+              console.log('Permission item:', p, 'id:', p.id, 'type:', typeof p.id)
+              grantedMenuIds.add(String(p.id))
+            })
+          }
+          console.log('有权限的菜单 IDs:', Array.from(grantedMenuIds))
+          console.log(
+            '菜单节点 IDs:',
+            transformedMenus.map((m: MenuNode) => ({ id: m.id, name: m.name }))
+          )
+
+          applyMenuPermissions(transformedMenus, grantedMenuIds, isRoot)
+        } catch (error) {
+          console.error('加载角色菜单权限失败，使用默认值:', error)
+          // 如果获取角色权限失败，所有菜单默认有权限
         }
-      ]
+      }
+
+      console.log('最终菜单数据:', transformedMenus)
+      state.value.menuTreeData = transformedMenus
     } catch (error) {
       console.error('加载菜单权限失败:', error)
+      // 如果 API 调用失败，使用空数组
+      state.value.menuTreeData = []
       throw error
     }
   }
@@ -244,13 +330,117 @@ export const usePermissionStore = defineStore('permissionManager', () => {
     }
   }
 
+  // 加载资源树（资源授权页面使用）
+  const loadResourceTree = async (resourceType: string) => {
+    try {
+      console.log('[Permission Store] 加载资源树:', resourceType)
+
+      let treeData: ResourceNode[] = []
+
+      // 根据资源类型调用不同的API
+      if (resourceType === 'dashboard' || resourceType === 'screen' || resourceType === 'chart') {
+        // 仪表板、大屏、图表 - 使用可视化API
+        // busiFlag: dashboard=dashboard-dataV, screen=screen
+        const busiFlag = resourceType === 'dashboard' ? 'dashboard-dataV' : resourceType
+
+        const response = await queryTreeApi({
+          busiFlag,
+          leaf: false,
+          withLeaf: true
+        })
+        console.log('[Permission Store] 可视化资源响应:', response)
+
+        // 转换数据格式
+        const transformVisualizationNode = (node: any): ResourceNode => {
+          return {
+            id: String(node.id),
+            name: node.name,
+            type: resourceType,
+            hasPermission: false,
+            permissions: [],
+            createTime: node.updateTime || new Date().toISOString(),
+            creator: node.createBy || '未知',
+            children: node.children?.map((child: any) => transformVisualizationNode(child))
+          }
+        }
+
+        treeData = (response || []).map(transformVisualizationNode)
+      } else if (resourceType === 'dataset') {
+        // 数据集 - 使用数据集API
+        const response = await getDatasetTree({
+          busiFlag: 'dataset',
+          leaf: false,
+          withLeaf: true
+        })
+        console.log('[Permission Store] 数据集资源响应:', response)
+
+        // 转换数据格式
+        const transformDatasetNode = (node: any): ResourceNode => {
+          return {
+            id: String(node.id),
+            name: node.name,
+            type: 'dataset',
+            hasPermission: false,
+            permissions: [],
+            createTime: node.updateTime || new Date().toISOString(),
+            creator: node.createBy || '未知',
+            children: node.children?.map((child: any) => transformDatasetNode(child))
+          }
+        }
+
+        treeData = (response || []).map(transformDatasetNode)
+      } else if (resourceType === 'datasource') {
+        // 数据源 - 使用数据源API
+        const response = await getDatasourceList()
+        console.log('[Permission Store] 数据源资源响应:', response)
+
+        // 转换数据格式
+        const transformDatasourceNode = (node: any): ResourceNode => {
+          return {
+            id: String(node.id),
+            name: node.name,
+            type: 'datasource',
+            hasPermission: false,
+            permissions: [],
+            createTime: node.updateTime || new Date().toISOString(),
+            creator: node.createBy || '未知',
+            children: node.children?.map((child: any) => transformDatasourceNode(child))
+          }
+        }
+
+        treeData = (response || []).map(transformDatasourceNode)
+      } else {
+        // 其他类型暂时使用空数组
+        console.log('[Permission Store] 资源类型暂未实现:', resourceType)
+        treeData = []
+      }
+
+      state.value.resourceTreeData[resourceType] = treeData
+      console.log('[Permission Store] 资源树加载完成，数量:', treeData.length)
+    } catch (error) {
+      console.error('加载资源树失败:', error)
+      ElMessage.error(`加载${resourceType}资源树失败`)
+      // 失败时使用空数组
+      state.value.resourceTreeData[resourceType] = []
+      throw error
+    }
+  }
+
   // 更新菜单权限
   const updateMenuPermission = (menuId: string, hasPermission: boolean) => {
+    console.log('[DEBUG] updateMenuPermission - menuId:', menuId, 'hasPermission:', hasPermission)
     const updateNodePermission = (nodes: MenuNode[]): boolean => {
       for (const node of nodes) {
         if (node.id === menuId) {
           const oldPermission = node.hasPermission
           node.hasPermission = hasPermission
+          console.log(
+            '[DEBUG] Updated node hasPermission:',
+            menuId,
+            oldPermission,
+            '->',
+            hasPermission
+          )
 
           // 记录变更
           if (oldPermission !== hasPermission) {
@@ -355,26 +545,66 @@ export const usePermissionStore = defineStore('permissionManager', () => {
 
   // 保存菜单权限变更
   const saveMenuPermissionChanges = async () => {
-    if (!hasMenuChanges.value) return
+    console.log('[DEBUG] saveMenuPermissionChanges called')
+    console.log('[DEBUG] selectedRoleId:', state.value.selectedRoleId)
+    console.log('[DEBUG] hasMenuChanges:', hasMenuChanges.value)
+    console.log('[DEBUG] menuTreeData length:', state.value.menuTreeData.length)
+
+    if (!state.value.selectedRoleId) {
+      throw new Error('未选择角色')
+    }
 
     try {
-      // TODO: 调用API保存菜单权限变更
-      // await saveMenuPermissions({
-      //   roleId: state.value.selectedRoleId,
-      //   grants: state.value.menuChanges.grants.map(item => item.id),
-      //   revokes: state.value.menuChanges.revokes.map(item => item.id)
-      // })
+      // 收集所有有权限的菜单ID
+      const grantedMenuIds = new Set<string>()
 
-      // 模拟API调用
-      await new Promise(resolve => setTimeout(resolve, 500))
+      // 从菜单树中获取所有已授权的菜单
+      const collectGrantedIds = (nodes: MenuNode[]) => {
+        nodes.forEach(node => {
+          if (node.hasPermission) {
+            grantedMenuIds.add(node.id)
+          }
+          if (node.children?.length) {
+            collectGrantedIds(node.children)
+          }
+        })
+      }
+      collectGrantedIds(state.value.menuTreeData)
+
+      console.log('[DEBUG] Collected granted menu IDs:', Array.from(grantedMenuIds))
+
+      const menuIdList = Array.from(grantedMenuIds)
+      const invalidMenuIds = menuIdList.filter(menuId => !/^\d+$/.test(menuId))
+      if (invalidMenuIds.length > 0) {
+        throw new Error(`菜单ID异常，请刷新菜单树后重试：${invalidMenuIds.join(', ')}`)
+      }
+
+      // 构建权限项列表 - 包含 weight 字段以匹配后端 PermissionItem 格式
+      const permissions = menuIdList.map(menuId => ({
+        id: Number(menuId),
+        weight: 1
+      }))
+
+      console.log('[DEBUG] Request payload:', {
+        id: Number(state.value.selectedRoleId),
+        permissions
+      })
+
+      // 调用后端API保存
+      const result = await menuPerSaveApi({
+        id: Number(state.value.selectedRoleId),
+        permissions
+      })
+      console.log('[DEBUG] API response:', result)
 
       // 清空变更记录
       state.value.menuChanges = { grants: [], revokes: [] }
       state.value.cacheVersion++
 
-      console.log('菜单权限变更已保存')
+      ElMessage.success('菜单权限保存成功')
     } catch (error) {
       console.error('保存菜单权限变更失败:', error)
+      ElMessage.error('保存失败: ' + (error as Error).message)
       throw error
     }
   }
@@ -496,7 +726,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
   const applyPermissionTemplate = async (
     templateId: string,
     targetRoleId: string,
-    options: {
+    _options: {
       mode: 'replace' | 'merge' | 'append'
       scope: string[]
     }
@@ -516,7 +746,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
   }
 
   // 加载审计日志
-  const loadAuditLogs = async (params?: {
+  const loadAuditLogs = async (_params?: {
     startDate?: string
     endDate?: string
     operationType?: string
@@ -662,7 +892,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
     updateMenuPermission(id, checked)
   }
 
-  const savePermissionChanges = async (roleId: string) => {
+  const savePermissionChanges = async (_roleId: string) => {
     await saveMenuPermissionChanges()
   }
 
@@ -671,17 +901,27 @@ export const usePermissionStore = defineStore('permissionManager', () => {
   }
 
   const hasPermission = (id: string): boolean => {
-    const findNode = (nodes: MenuNode[]): boolean => {
+    const findNode = (nodes: MenuNode[]): boolean | undefined => {
       for (const node of nodes) {
-        if (node.id === id) return node.hasPermission
+        if (node.id === id) {
+          console.log(
+            '[DEBUG] hasPermission - found node:',
+            id,
+            'hasPermission:',
+            node.hasPermission
+          )
+          return node.hasPermission
+        }
         if (node.children?.length) {
           const found = findNode(node.children)
           if (found !== undefined) return found
         }
       }
-      return false
+      return undefined
     }
-    return findNode(state.value.menuTreeData)
+    const result = findNode(state.value.menuTreeData)
+    console.log('[DEBUG] hasPermission for', id, ':', result)
+    return result ?? false
   }
 
   const getCheckedKeys = (): string[] => {
@@ -700,7 +940,27 @@ export const usePermissionStore = defineStore('permissionManager', () => {
     return keys
   }
 
-  const getRelatedResources = (menuId: string): ResourceNode[] => {
+  // 获取资源树已选中的key（用于资源授权页面）
+  const getResourceCheckedKeys = (): string[] => {
+    const keys: string[] = []
+    // 遍历所有资源类型
+    Object.values(state.value.resourceTreeData).forEach(resources => {
+      const collectKeys = (nodes: ResourceNode[]) => {
+        nodes.forEach(node => {
+          if (node.hasPermission) {
+            keys.push(node.id)
+          }
+          if (node.children?.length) {
+            collectKeys(node.children)
+          }
+        })
+      }
+      collectKeys(resources)
+    })
+    return keys
+  }
+
+  const getRelatedResources = (_menuId: string): ResourceNode[] => {
     // TODO: 实现根据菜单ID查找关联资源的逻辑
     return []
   }
@@ -758,6 +1018,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
     selectRole,
     loadMenuPermissions,
     loadResourcePermissions,
+    loadResourceTree,
     updateMenuPermission,
     updateResourcePermission,
     saveMenuPermissionChanges,
@@ -780,6 +1041,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
     resetChanges,
     hasPermission,
     getCheckedKeys,
+    getResourceCheckedKeys,
     getRelatedResources,
     getNodePermissions,
     updateNodePermissions

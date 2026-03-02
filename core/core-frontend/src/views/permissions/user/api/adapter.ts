@@ -69,13 +69,15 @@ export const getUserList = async (params: UserListRequest): Promise<UserListResp
       data: requestBody
     })
 
-    // 适配响应格式：后端返回IPage<UserGridVO>
-    const backendRecords = response.records || []
+    // 适配响应格式：后端返回 { code: 0, data: { records: [...], total: N } }
+    // axios拦截器当code===0时返回response.data
+    const data = response.data || {}
+    const backendRecords = data.records || []
     const adaptedRecords = backendRecords.map(adaptUserGridVO)
 
     return {
       records: adaptedRecords,
-      total: response.total || 0
+      total: data.total || 0
     }
   } catch (error) {
     console.error('获取用户列表失败:', error)
@@ -94,9 +96,18 @@ export const getUserOptions = async (): Promise<UserOptionsResponse> => {
       data: {} // 后端需要POST请求体
     })
 
+    // 适配后端角色数据格式 (id, name, code) -> (roleId, roleName, roleCode)
+    // 后端可能返回包装对象 {code, data, msg} 或直接返回数组
+    const roleList = Array.isArray(roleResponse) ? roleResponse : roleResponse?.data || []
+    const adaptedRoles = roleList.map((role: any) => ({
+      roleId: String(role.id || ''),
+      roleName: role.name || '',
+      roleCode: role.code || ''
+    }))
+
     // 后端没有分组选项，返回空数组
     return {
-      roles: roleResponse || [],
+      roles: adaptedRoles,
       groups: []
     }
   } catch (error) {

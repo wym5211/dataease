@@ -1,0 +1,157 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - img [ref=e5] [cursor=pointer]
+      - menubar [ref=e23]:
+        - menuitem [ref=e24] [cursor=pointer]
+        - menuitem "权限管理" [ref=e25]:
+          - generic [ref=e26] [cursor=pointer]:
+            - generic [ref=e27]: 权限管理
+            - img [ref=e29]
+        - menuitem "工作台" [ref=e31] [cursor=pointer]:
+          - generic [ref=e32]: 工作台
+        - menuitem "仪表板" [ref=e33] [cursor=pointer]:
+          - generic [ref=e34]: 仪表板
+        - menuitem "数据大屏" [ref=e35] [cursor=pointer]:
+          - generic [ref=e36]: 数据大屏
+        - menuitem "数据准备" [ref=e37]:
+          - generic [ref=e38] [cursor=pointer]:
+            - generic [ref=e39]: 数据准备
+            - img [ref=e41]
+      - generic [ref=e43]:
+        - img [ref=e45] [cursor=pointer]
+        - img [ref=e54] [cursor=pointer]
+        - img [ref=e58] [cursor=pointer]
+        - img [ref=e62] [cursor=pointer]
+        - generic [ref=e64] [cursor=pointer]:
+          - img [ref=e66]
+          - generic [ref=e71]: 管理员
+          - img [ref=e73]
+        - generic:
+          - generic:
+            - img [ref=e76] [cursor=pointer]
+            - img [ref=e79] [cursor=pointer]
+            - iframe
+    - main [ref=e82]:
+      - generic [ref=e83]:
+        - generic [ref=e85]:
+          - generic [ref=e87]:
+            - generic [ref=e88]:
+              - generic [ref=e89]: 关键词
+              - generic [ref=e92]:
+                - img [ref=e95]
+                - textbox "关键词" [ref=e97]:
+                  - /placeholder: 搜索用户名/姓名/邮箱
+            - generic [ref=e98]:
+              - generic [ref=e99]: 状态
+              - generic [ref=e102] [cursor=pointer]:
+                - generic:
+                  - combobox "状态" [ref=e104]
+                  - generic [ref=e105]: 用户状态
+                - img [ref=e108]
+            - generic [ref=e110]:
+              - generic [ref=e111]: 角色
+              - generic [ref=e114] [cursor=pointer]:
+                - generic:
+                  - combobox "角色" [ref=e116]
+                  - generic [ref=e117]: 选择角色
+                - img [ref=e120]
+            - generic [ref=e123]:
+              - button "查询" [ref=e124] [cursor=pointer]:
+                - generic [ref=e125]: 查询
+              - button "重置" [ref=e126] [cursor=pointer]:
+                - generic [ref=e127]: 重置
+          - button "创建用户" [ref=e129] [cursor=pointer]:
+            - generic [ref=e130]:
+              - img [ref=e132]
+              - text: 创建用户
+          - generic [ref=e136]:
+            - table [ref=e138]:
+              - rowgroup [ref=e149]:
+                - row "用户名 姓名 邮箱 手机号 角色 用户组 状态 创建时间 操作" [ref=e150]:
+                  - columnheader "用户名" [ref=e151]:
+                    - generic [ref=e152]: 用户名
+                  - columnheader "姓名" [ref=e153]:
+                    - generic [ref=e154]: 姓名
+                  - columnheader "邮箱" [ref=e155]:
+                    - generic [ref=e156]: 邮箱
+                  - columnheader "手机号" [ref=e157]:
+                    - generic [ref=e158]: 手机号
+                  - columnheader "角色" [ref=e159]:
+                    - generic [ref=e160]: 角色
+                  - columnheader "用户组" [ref=e161]:
+                    - generic [ref=e162]: 用户组
+                  - columnheader "状态" [ref=e163]:
+                    - generic [ref=e164]: 状态
+                  - columnheader "创建时间" [ref=e165]:
+                    - generic [ref=e166]: 创建时间
+                  - columnheader "操作" [ref=e167]:
+                    - generic [ref=e168]: 操作
+            - generic [ref=e172]:
+              - table:
+                - rowgroup
+              - generic [ref=e174]: 暂无数据
+        - dialog "创建用户" [ref=e183]:
+          - generic [ref=e184]:
+            - generic [ref=e185]:
+              - heading "创建用户" [level=2] [ref=e186]
+              - button "关闭此对话框" [ref=e187] [cursor=pointer]:
+                - img [ref=e189]
+            - generic [ref=e192]:
+              - generic [ref=e193]:
+                - generic [ref=e194]: 用户名 *
+                - textbox "用户名 *" [ref=e198]:
+                  - /placeholder: 请输入用户名
+                  - text: testuser001
+              - generic [ref=e199]:
+                - generic [ref=e200]: 姓名 *
+                - textbox "姓名 *" [ref=e204]:
+                  - /placeholder: 请输入姓名
+                  - text: 测试用户001
+              - generic [ref=e205]:
+                - generic [ref=e206]: 邮箱 *
+                - textbox "邮箱 *" [ref=e210]:
+                  - /placeholder: 请输入邮箱
+                  - text: test001@example.com
+              - generic [ref=e211]:
+                - generic [ref=e212]: 手机号
+                - textbox "手机号" [ref=e216]:
+                  - /placeholder: 请输入手机号
+                  - text: "13800138001"
+              - generic [ref=e217]:
+                - generic [ref=e218]: 密码 *
+                - generic [ref=e221]:
+                  - textbox "密码 *" [ref=e222]:
+                    - /placeholder: 请输入密码
+                    - text: Test@123456
+                  - img [ref=e268] [cursor=pointer]
+              - generic [ref=e223]:
+                - generic [ref=e224]: 角色 *
+                - generic [ref=e227] [cursor=pointer]:
+                  - generic:
+                    - combobox "角色 *" [expanded] [active] [ref=e229]
+                    - generic [ref=e230]: 请选择角色
+                  - img [ref=e233]
+              - generic [ref=e235]:
+                - generic [ref=e236]: 用户组
+                - generic [ref=e239] [cursor=pointer]:
+                  - generic:
+                    - combobox "用户组" [ref=e241]
+                    - generic [ref=e242]: 请选择用户组
+                  - img [ref=e245]
+              - generic [ref=e247]:
+                - generic [ref=e248]: 状态
+                - radiogroup "状态" [ref=e250]:
+                  - generic [ref=e251] [cursor=pointer]:
+                    - radio "启用" [checked] [ref=e253]
+                    - generic [ref=e255]: 启用
+                  - generic [ref=e256] [cursor=pointer]:
+                    - radio "禁用" [ref=e258]
+                    - generic [ref=e260]: 禁用
+            - generic [ref=e261]:
+              - button "取消" [ref=e262] [cursor=pointer]:
+                - generic [ref=e263]: 取消
+              - button "确定" [ref=e264] [cursor=pointer]:
+                - generic [ref=e265]: 确定
+  - tooltip "无数据" [ref=e270]:
+    - generic [ref=e272]: 无数据

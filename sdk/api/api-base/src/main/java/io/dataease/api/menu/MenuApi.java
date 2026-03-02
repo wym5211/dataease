@@ -13,4 +13,8 @@ public interface MenuApi {
     @Operation(summary = "请求菜单")
     @GetMapping("/query")
     List<MenuVO> query();
+
+    @Operation(summary = "获取所有菜单树（用于权限管理）")
+    @GetMapping("/tree")
+    List<MenuVO> tree();
 }

@@ -204,7 +204,7 @@ const createScreen = () => {
 }
 const createDataset = () => {
   let routeData = router.resolve({
-    path: '/dataset-form'
+    path: '/dataset-embedded-form'
   })
   window.open(routeData.href, openType)
 }

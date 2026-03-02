@@ -2,6 +2,7 @@ package io.dataease.menu.server;
 
 import io.dataease.api.menu.MenuApi;
 import io.dataease.api.menu.vo.MenuVO;
+import io.dataease.license.utils.LicenseUtil;
 import io.dataease.menu.dao.auto.entity.CoreMenu;
 import io.dataease.menu.manage.MenuManage;
 import io.dataease.system.dao.auto.entity.SysRoleMenu;
@@ -37,6 +38,32 @@ public class MenuServer implements MenuApi {
     public List<MenuVO> query() {
         List<CoreMenu> coreMenus = menuManage.coreMenus();
         return menuManage.query(new ArrayList<>(filterMenus(coreMenus)));
+    }
+
+    @Override
+    public List<MenuVO> tree() {
+        // 权限管理场景：返回所有菜单，不进行权限过滤
+        // 非企业版过滤掉企业版菜单（数据填报等）
+        List<CoreMenu> coreMenus = menuManage.coreMenus();
+        if ("community".equals(LicenseUtil.getLicenseType())) {
+            coreMenus = filterXpackMenus(coreMenus);
+        }
+        return menuManage.query(coreMenus);
+    }
+
+    /**
+     * 过滤企业版菜单（非企业版使用）
+     */
+    private List<CoreMenu> filterXpackMenus(List<CoreMenu> coreMenus) {
+        // 企业版菜单ID列表（与 MenuManage.isXpackMenu 保持一致）
+        Set<Long> xpackMenuIds = Set.of(7L, 11L, 12L, 14L, 17L, 18L, 25L, 26L, 27L, 28L,
+                35L, 40L, 50L, 60L, 61L, 65L, 80L, 90L);
+        Set<Long> xpackPidIds = Set.of(7L, 21L, 70L);
+
+        return coreMenus.stream()
+                .filter(m -> !xpackMenuIds.contains(m.getId()))
+                .filter(m -> !xpackPidIds.contains(m.getPid()))
+                .collect(Collectors.toList());
     }
 
     private List<CoreMenu> filterMenus(List<CoreMenu> coreMenus) {

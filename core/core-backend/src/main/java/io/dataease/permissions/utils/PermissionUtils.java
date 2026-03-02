@@ -19,6 +19,7 @@ import io.dataease.system.dao.auto.mapper.SysUserRoleMapper;
 import io.dataease.utils.AuthUtils;
 import io.dataease.utils.CommonBeanFactory;
 import io.dataease.utils.ModelUtils;
+import io.dataease.utils.WhitelistUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -309,7 +310,7 @@ public class PermissionUtils {
     /**
      * 检查登录状态，不满足时抛出异常
      */
-    public void checkAuthentication() {
+    public void requireAuthentication() {
         if (!checkAuthentication()) {
             throwPermissionException("请先登录系统");
         }

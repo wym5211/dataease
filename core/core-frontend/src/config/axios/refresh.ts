@@ -52,8 +52,36 @@ export const configHandler = config => {
   if (isLink()) {
     return config
   }
-  if (wsCache.get('user.token')) {
-    config.headers['X-DE-TOKEN'] = wsCache.get('user.token')
+  // 直接从 localStorage 获取原始值
+  const rawToken = localStorage.getItem('user.token')
+  console.log('[DEBUG] Raw from localStorage:', rawToken?.substring(0, 100))
+  let token = null
+  if (rawToken) {
+    try {
+      const parsed = JSON.parse(rawToken)
+      console.log('[DEBUG] Parsed type:', typeof parsed, JSON.stringify(parsed)?.substring(0, 100))
+      // WebStorageCache 格式: {c: createTime, e: expireTime, v: value}
+      if (parsed && parsed.v) {
+        let innerToken = parsed.v
+        // 如果值还被引号包裹，去除引号
+        if (
+          typeof innerToken === 'string' &&
+          innerToken.startsWith('"') &&
+          innerToken.endsWith('"')
+        ) {
+          innerToken = innerToken.slice(1, -1)
+        }
+        token = innerToken
+      } else {
+        token = rawToken // 如果不是包装格式，直接使用
+      }
+    } catch (e) {
+      token = rawToken // 解析失败，直接使用原始值
+    }
+  }
+  console.log('[DEBUG] Final token:', token ? token.substring(0, 50) + '...' : 'null')
+  if (token) {
+    config.headers['X-DE-TOKEN'] = token
     const expired = isExpired()
     if (expired && !config.url.includes(refreshUrl)) {
       if (!getRefreshStatus()) {

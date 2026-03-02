@@ -1,0 +1,93 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - img [ref=e5] [cursor=pointer]
+    - menubar [ref=e23]:
+      - menuitem [ref=e24] [cursor=pointer]
+      - menuitem "权限管理" [ref=e25]:
+        - generic [ref=e26] [cursor=pointer]:
+          - generic [ref=e27]: 权限管理
+          - img [ref=e29]
+      - menuitem "工作台" [ref=e31] [cursor=pointer]:
+        - generic [ref=e32]: 工作台
+      - menuitem "仪表板" [ref=e33] [cursor=pointer]:
+        - generic [ref=e34]: 仪表板
+      - menuitem "数据大屏" [ref=e35] [cursor=pointer]:
+        - generic [ref=e36]: 数据大屏
+      - menuitem "数据准备" [ref=e37]:
+        - generic [ref=e38] [cursor=pointer]:
+          - generic [ref=e39]: 数据准备
+          - img [ref=e41]
+    - generic [ref=e43]:
+      - img [ref=e45] [cursor=pointer]
+      - img [ref=e54] [cursor=pointer]
+      - img [ref=e58] [cursor=pointer]
+      - img [ref=e62] [cursor=pointer]
+      - generic [ref=e64] [cursor=pointer]:
+        - img [ref=e66]
+        - generic [ref=e71]: 管理员
+        - img [ref=e73]
+      - generic:
+        - generic:
+          - img [ref=e76] [cursor=pointer]
+          - img [ref=e79] [cursor=pointer]
+          - iframe
+  - main [ref=e82]:
+    - generic [ref=e83]:
+      - generic [ref=e85]:
+        - generic [ref=e87]:
+          - generic [ref=e88]:
+            - generic [ref=e89]: 关键词
+            - generic [ref=e92]:
+              - img [ref=e95]
+              - textbox "关键词" [ref=e97]:
+                - /placeholder: 搜索用户名/姓名/邮箱
+          - generic [ref=e98]:
+            - generic [ref=e99]: 状态
+            - generic [ref=e102] [cursor=pointer]:
+              - generic:
+                - combobox "状态" [ref=e104]
+                - generic [ref=e105]: 用户状态
+              - img [ref=e108]
+          - generic [ref=e110]:
+            - generic [ref=e111]: 角色
+            - generic [ref=e114] [cursor=pointer]:
+              - generic:
+                - combobox "角色" [ref=e116]
+                - generic [ref=e117]: 选择角色
+              - img [ref=e120]
+          - generic [ref=e123]:
+            - button "查询" [ref=e124] [cursor=pointer]:
+              - generic [ref=e125]: 查询
+            - button "重置" [ref=e126] [cursor=pointer]:
+              - generic [ref=e127]: 重置
+        - button "创建用户" [active] [ref=e129] [cursor=pointer]:
+          - generic [ref=e130]:
+            - img [ref=e132]
+            - text: 创建用户
+        - generic [ref=e136]:
+          - table [ref=e138]:
+            - rowgroup [ref=e149]:
+              - row "用户名 姓名 邮箱 手机号 角色 用户组 状态 创建时间 操作" [ref=e150]:
+                - columnheader "用户名" [ref=e151]:
+                  - generic [ref=e152]: 用户名
+                - columnheader "姓名" [ref=e153]:
+                  - generic [ref=e154]: 姓名
+                - columnheader "邮箱" [ref=e155]:
+                  - generic [ref=e156]: 邮箱
+                - columnheader "手机号" [ref=e157]:
+                  - generic [ref=e158]: 手机号
+                - columnheader "角色" [ref=e159]:
+                  - generic [ref=e160]: 角色
+                - columnheader "用户组" [ref=e161]:
+                  - generic [ref=e162]: 用户组
+                - columnheader "状态" [ref=e163]:
+                  - generic [ref=e164]: 状态
+                - columnheader "创建时间" [ref=e165]:
+                  - generic [ref=e166]: 创建时间
+                - columnheader "操作" [ref=e167]:
+                  - generic [ref=e168]: 操作
+          - generic [ref=e172]:
+            - table:
+              - rowgroup
+            - generic [ref=e174]: 暂无数据
+      - dialog "创建用户" [ref=e177]

@@ -3,10 +3,19 @@
     <div class="header-bar">
       <el-form :inline="true" class="filter-form">
         <el-form-item label="角色">
-          <el-select v-model="selectedRole" placeholder="请选择角色" clearable style="width: 200px">
-            <el-option label="超级管理员" value="role_001" />
-            <el-option label="普通用户" value="role_002" />
-            <el-option label="数据分析师" value="role_003" />
+          <el-select
+            v-model="selectedRole"
+            placeholder="请选择角色"
+            clearable
+            style="width: 200px"
+            @change="handleRoleChange"
+          >
+            <el-option
+              v-for="role in roleList"
+              :key="role.id"
+              :label="role.name"
+              :value="role.id"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="搜索菜单">
@@ -43,13 +52,15 @@
         <div class="tree-wrapper">
           <el-tree
             ref="menuTreeRef"
+            v-model:expanded-keys="expandedKeys"
             :data="menuTree"
             :props="treeProps"
-            :default-expand-all="false"
             :expand-on-click-node="false"
+            :filter-node-method="filterNode"
             node-key="id"
             show-checkbox
             check-strictly
+            @check="handleTreeCheck"
           >
             <template #default="{ data }">
               <div class="tree-node">
@@ -141,71 +152,66 @@
 <script lang="ts" setup>
 import { ref, computed, nextTick, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus-secondary'
-import { Search, CircleCheck, CircleClose } from '@element-plus/icons-vue'
+import { Search } from '@element-plus/icons-vue'
 import type { TreeInstance } from 'element-plus-secondary'
 import { usePermissionStore } from '@/stores/permission'
+import { roleList as roleListApi } from '@/api/permissions/role'
 import type { MenuItem, RoleItem } from '@/stores/permission'
 
 const permissionStore = usePermissionStore()
 
+// 本地状态：从数据库加载的角色列表
+const roleOptions = ref<RoleItem[]>([])
 const selectedRole = ref<string>('')
 const searchKey = ref<string>('')
 const menuTreeRef = ref<TreeInstance>()
 const selectedNode = ref<MenuItem | null>(null)
 const selectedPermissions = ref<string[]>([])
 const expandedKeys = ref<string[]>([])
+// const checkedKeys = ref<string[]>([]) // 不再使用 v-model:checked-keys，改为手动管理
 
-// 使用计算属性从 store 获取数据
+// 节点过滤方法
+const filterNode = (value: string, data: MenuItem) => {
+  if (!value) return true
+  return data.name.includes(value)
+}
+
+// 使用计算属性从 store 或本地状态获取角色列表
 const roleList = computed<RoleItem[]>(() => {
-  try {
-    return permissionStore.roleList || []
-  } catch {
-    return []
-  }
+  return roleOptions.value.length > 0 ? roleOptions.value : permissionStore.roleList || []
 })
 
 const menuTree = computed<MenuItem[]>(() => {
-  try {
-    return permissionStore.menuTree || []
-  } catch {
-    return []
-  }
+  // 直接返回 store 中的数据以保持响应式
+  return permissionStore.menuTree || []
 })
 
 // 初始化数据
 onMounted(async () => {
+  // 加载角色数据
+  try {
+    const res = (await roleListApi({ page: 1, pageSize: 1000 })) as any
+
+    // 后端返回格式：{code: 0, data: [...]} 或直接是数组
+    // 优先检查 data 字段，其次是 records，最后是直接数组
+    const roles = Array.isArray(res) ? res : res?.records || res?.data || []
+
+    // 适配后端返回的数据格式，将 Long 类型的 id 转换为 string
+    roleOptions.value = roles.map((role: any) => ({
+      id: String(role.id),
+      name: role.name,
+      code: role.code || role.roleAlias,
+      description: role.description,
+      createTime: role.createTime
+    }))
+  } catch (error: any) {
+    console.error('加载角色列表失败:', error)
+    const errorMsg = error?.response?.data?.msg || error?.msg || error?.message || '未知错误'
+    ElMessage.error(`加载角色列表失败: ${errorMsg}`)
+  }
+
   // 加载菜单数据
   await permissionStore.loadMenuTree()
-  console.log('菜单数据加载完成:', menuTree.value)
-})
-
-const hasChanges = computed(() => {
-  try {
-    return permissionStore.hasChanges || false
-  } catch {
-    return false
-  }
-})
-
-const changeSummary = computed(() => {
-  try {
-    return permissionStore.changeSummary || []
-  } catch {
-    return []
-  }
-})
-
-const relatedResources = computed(() => {
-  if (!selectedNode.value) return []
-  try {
-    if (typeof permissionStore.getRelatedResources === 'function') {
-      return permissionStore.getRelatedResources(selectedNode.value.id) || []
-    }
-    return []
-  } catch (error) {
-    console.error('getRelatedResources error:', error)
-    return []
-  }
 })
 
 const treeProps = {
@@ -228,72 +234,46 @@ const handleSearch = () => {
   menuTreeRef.value?.filter(searchKey.value)
 }
 
-const filterNode = (value: string, data: MenuItem) => {
-  if (!value) return true
-  return data.name.toLowerCase().includes(value.toLowerCase())
-}
-
-const handleCheckChange = (data: MenuItem, checkedInfo: any) => {
-  const checked = checkedInfo.checkedKeys.includes(data.id)
-  permissionStore.updatePermission(data.id, checked)
-
-  if (checked) {
-    // 级联授权父节点
-    cascadeGrantParent(data)
-  } else {
-    // 级联取消子节点
-    cascadeRevokeChildren(data)
-  }
-}
-
-const cascadeGrantParent = (node: MenuItem) => {
-  if (node.parentId) {
-    permissionStore.updatePermission(node.parentId, true)
-    const parent = findNodeInTree(menuTree.value, node.parentId)
-    if (parent) cascadeGrantParent(parent)
-  }
-}
-
-const cascadeRevokeChildren = (node: MenuItem) => {
-  if (node.children?.length) {
-    node.children.forEach(child => {
-      permissionStore.updatePermission(child.id, false)
-      cascadeRevokeChildren(child)
-    })
-  }
-}
-
-const findNodeInTree = (tree: MenuItem[], id: string): MenuItem | null => {
-  for (const node of tree) {
-    if (node.id === id) return node
-    if (node.children?.length) {
-      const found = findNodeInTree(node.children, id)
-      if (found) return found
-    }
-  }
-  return null
-}
-
-const handleNodeExpand = (data: MenuItem) => {
-  if (!expandedKeys.value.includes(data.id)) {
-    expandedKeys.value.push(data.id)
-  }
-}
-
-const handleNodeCollapse = (data: MenuItem) => {
-  const index = expandedKeys.value.indexOf(data.id)
-  if (index > -1) {
-    expandedKeys.value.splice(index, 1)
-  }
+const handleTreeCheck = (data: MenuItem, checked: { checkedKeys: string[] }) => {
+  // 直接根据当前的选中状态更新 store，避免依赖 watch 导致过滤时状态丢失
+  const isChecked = checked.checkedKeys.includes(data.id)
+  console.log('[DEBUG] handleTreeCheck - id:', data.id, 'checked:', isChecked)
+  permissionStore.updatePermission(data.id, isChecked)
 }
 
 const expandAll = () => {
-  const allKeys = getAllNodeKeys(menuTree.value)
-  menuTreeRef.value?.setExpandedKeys(allKeys)
+  console.log('[DEBUG] expandAll called')
+  const keys = getAllNodeKeys(menuTree.value)
+  console.log('[DEBUG] Keys to expand:', keys)
+  expandedKeys.value = [...keys]
+  console.log('[DEBUG] expandedKeys after:', expandedKeys.value)
+  // 强制刷新 tree - 使用 Object.values 遍历
+  nextTick(() => {
+    const store = menuTreeRef.value?.store
+    if (store?.nodesMap) {
+      Object.values(store.nodesMap).forEach((node: any) => {
+        if (node && !node.isLeaf) {
+          node.expanded = true
+        }
+      })
+    }
+  })
 }
 
 const collapseAll = () => {
-  menuTreeRef.value?.setExpandedKeys([])
+  console.log('[DEBUG] collapseAll called')
+  expandedKeys.value = []
+  // 强制刷新 tree - 使用 Object.values 遍历
+  nextTick(() => {
+    const store = menuTreeRef.value?.store
+    if (store?.nodesMap) {
+      Object.values(store.nodesMap).forEach((node: any) => {
+        if (node) {
+          node.expanded = false
+        }
+      })
+    }
+  })
 }
 
 const getAllNodeKeys = (tree: MenuItem[]): string[] => {
@@ -311,30 +291,36 @@ const getAllNodeKeys = (tree: MenuItem[]): string[] => {
 }
 
 const updateTreeChecks = () => {
-  nextTick(() => {
-    const checkedKeys = permissionStore.getCheckedKeys()
-    menuTreeRef.value?.setCheckedKeys(checkedKeys)
-  })
+  // 从 store 中获取有权限的菜单 ID
+  const keys = permissionStore.getCheckedKeys()
+  // 手动设置树的选中状态，避免 v-model 在过滤时的问题
+  menuTreeRef.value?.setCheckedKeys(keys)
 }
 
 const getPermissionStatus = (data: MenuItem): string | null => {
   if (!selectedRole.value) return null
-  return permissionStore.hasPermission(data.id) ? 'granted' : 'revoked'
+  const hasPerm = permissionStore.hasPermission(data.id)
+  return hasPerm ? 'granted' : 'revoked'
 }
 
 const saveChanges = async () => {
-  if (!selectedRole.value) return
+  if (!selectedRole.value) {
+    ElMessage.warning('请先选择角色')
+    return
+  }
 
   try {
     await ElMessageBox.confirm('确定要保存权限变更吗？', '确认保存', {
       type: 'warning'
     })
 
+    console.log('[DEBUG] Saving changes for role:', selectedRole.value)
     await permissionStore.savePermissionChanges(selectedRole.value)
     ElMessage.success('权限保存成功')
-  } catch (error) {
+  } catch (error: any) {
+    console.error('[DEBUG] Save failed:', error)
     if (error !== 'cancel') {
-      ElMessage.error('权限保存失败')
+      ElMessage.error('权限保存失败: ' + (error.message || '未知错误'))
     }
   }
 }
@@ -343,19 +329,6 @@ const resetChanges = () => {
   permissionStore.resetChanges()
   updateTreeChecks()
   ElMessage.info('已重置为上次保存状态')
-}
-
-// 监听选中节点变化
-const handleNodeClick = (data: MenuItem) => {
-  selectedNode.value = data
-  selectedPermissions.value = permissionStore.getNodePermissions(data.id)
-}
-
-// 监听权限选择变化
-const handlePermissionChange = () => {
-  if (selectedNode.value) {
-    permissionStore.updateNodePermissions(selectedNode.value.id, selectedPermissions.value)
-  }
 }
 </script>
 

@@ -6,7 +6,7 @@ export const queryRoleApi = data => request.post({ url: '/role/byCurOrg', data }
 
 export const resourceTreeApi = (flag: string) => request.get({ url: '/auth/busiResource/' + flag })
 
-export const menuTreeApi = () => request.get({ url: '/auth/menuResource' })
+export const menuTreeApi = () => request.get({ url: '/menu/tree' })
 
 export const resourcePerApi = data => request.post({ url: '/auth/busiPermission', data })
 

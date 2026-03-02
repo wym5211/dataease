@@ -112,7 +112,7 @@ const preview = (id, disabled = false) => {
 
 const openDataset = id => {
   const routeUrl = resolve({
-    path: '/dataset-form',
+    path: '/dataset-embedded-form',
     query: { id: id }
   })
   window.open(routeUrl.href, openType)
