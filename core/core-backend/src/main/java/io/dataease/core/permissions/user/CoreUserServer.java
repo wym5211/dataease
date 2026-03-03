@@ -170,7 +170,9 @@ public class CoreUserServer implements UserApi {
         user.setEmail(creator.getEmail());
         user.setPhone(creator.getPhone());
         user.setStatus(creator.getEnable() != null && creator.getEnable() ? 1 : 0);
-        user.setPassword(passwordEncoder.encode("DataEase@123456")); // 默认密码
+        // 使用传入的密码或默认密码
+        String pwd = StringUtils.isNotBlank(creator.getPassword()) ? creator.getPassword() : "DataEase@123456";
+        user.setPassword(passwordEncoder.encode(pwd));
         user.setCreateTime(System.currentTimeMillis());
         user.setDeptId(AuthUtils.getUser() != null ? AuthUtils.getUser().getDefaultOid() : null);
 
