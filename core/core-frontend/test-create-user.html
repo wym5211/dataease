@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>创建用户测试</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/3.3.2/jsencrypt.min.js"></script>
+</head>
+<body>
+    <h2>创建用户测试</h2>
+    <button onclick="testCreateUser()">创建测试用户</button>
+    <button onclick="testLogin()">测试登录</button>
+    <pre id="result"></pre>
+
+    <script>
+        const API_BASE = 'http://localhost:8100/de2api';
+        let authToken = '';
+
+        // RSA加密
+        function encrypt(text, publicKey) {
+            const encrypt = new JSEncrypt();
+            encrypt.setPublicKey(publicKey);
+            return encrypt.encrypt(text);
+        }
+
+        // 获取公钥
+        async function getPublicKey() {
+            const res = await fetch(`${API_BASE}/dekey`);
+            const data = await res.json();
+            return data.data;
+        }
+
+        // Admin登录
+        async function adminLogin() {
+            const publicKey = await getPublicKey();
+            const encryptedName = encrypt('admin', publicKey);
+            const encryptedPwd = encrypt('DataEase@123456', publicKey);
+
+            const res = await fetch(`${API_BASE}/login/localLogin`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: encryptedName,
+                    pwd: encryptedPwd
+                })
+            });
+
+            const data = await res.json();
+            if (data.code === 0) {
+                authToken = data.data;
+                return true;
+            }
+            throw new Error(JSON.stringify(data));
+        }
+
+        // 创建用户
+        async function testCreateUser() {
+            try {
+                const result = document.getElementById('result');
+                result.textContent = '开始创建用户...';
+
+                // 先登录admin
+                await adminLogin();
+                result.textContent += '\nAdmin登录成功';
+
+                // 创建用户
+                const res = await fetch(`${API_BASE}/user/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-DE-TOKEN': authToken
+                    },
+                    body: JSON.stringify({
+                        account: 'testuser2026',
+                        name: '测试用户2026',
+                        email: 'testuser2026@test.com',
+                        phone: '13800138999',
+                        password: 'MyCustom@Pass123',
+                        roleIds: [2],
+                        enable: true
+                    })
+                });
+
+                const data = await res.json();
+                result.textContent += '\n创建用户响应:\n' + JSON.stringify(data, null, 2);
+
+                if (data.code === 0 || !data.code) {
+                    result.textContent += '\n\n用户创建成功! 用户ID: ' + data.data;
+                }
+            } catch (error) {
+                document.getElementById('result').textContent = '错误: ' + error.message;
+            }
+        }
+
+        // 测试新用户登录
+        async function testLogin() {
+            try {
+                const result = document.getElementById('result');
+                result.textContent = '测试用户登录...';
+
+                const publicKey = await getPublicKey();
+                const encryptedName = encrypt('testuser2026', publicKey);
+                const encryptedPwd = encrypt('MyCustom@Pass123', publicKey);
+
+                const res = await fetch(`${API_BASE}/login/localLogin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: encryptedName,
+                        pwd: encryptedPwd
+                    })
+                });
+
+                const data = await res.json();
+                result.textContent += '\n登录响应:\n' + JSON.stringify(data, null, 2);
+
+                if (data.code === 0 || (data.data && data.data.length > 50)) {
+                    result.textContent += '\n\n登录成功! Token: ' + data.data.substring(0, 50) + '...';
+                } else {
+                    result.textContent += '\n\n登录失败!';
+                }
+            } catch (error) {
+                document.getElementById('result').textContent = '错误: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

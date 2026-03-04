@@ -1,0 +1,129 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - img [ref=e5] [cursor=pointer]
+    - menubar [ref=e23]:
+      - menuitem [ref=e24] [cursor=pointer]
+      - menuitem "权限管理" [ref=e25]:
+        - generic [ref=e26] [cursor=pointer]:
+          - generic [ref=e27]: 权限管理
+          - img [ref=e29]
+      - menuitem "工作台" [ref=e31] [cursor=pointer]:
+        - generic [ref=e32]: 工作台
+      - menuitem "仪表板" [ref=e33] [cursor=pointer]:
+        - generic [ref=e34]: 仪表板
+      - menuitem "数据大屏" [ref=e35] [cursor=pointer]:
+        - generic [ref=e36]: 数据大屏
+      - menuitem "数据准备" [ref=e37]:
+        - generic [ref=e38] [cursor=pointer]:
+          - generic [ref=e39]: 数据准备
+          - img [ref=e41]
+      - menuitem "权限管理" [ref=e43]:
+        - generic [ref=e44] [cursor=pointer]:
+          - generic [ref=e45]: 权限管理
+          - img [ref=e47]
+    - generic [ref=e49]:
+      - img [ref=e51] [cursor=pointer]
+      - img [ref=e60] [cursor=pointer]
+      - img [ref=e64] [cursor=pointer]
+      - img [ref=e68] [cursor=pointer]
+      - generic [ref=e70] [cursor=pointer]:
+        - img [ref=e72]
+        - generic [ref=e77]: 管理员
+        - img [ref=e79]
+      - generic:
+        - generic:
+          - img [ref=e82] [cursor=pointer]
+          - img [ref=e85] [cursor=pointer]
+          - iframe
+  - main [ref=e88]:
+    - generic [ref=e89]:
+      - generic [ref=e90]:
+        - generic [ref=e91]:
+          - img [ref=e93]
+          - generic [ref=e98]:
+            - generic "管理员" [ref=e100]
+            - generic [ref=e102]: "ID: 1"
+          - generic [ref=e103]:
+            - generic [ref=e104]: 仪表板
+            - generic [ref=e105]: "1"
+          - generic [ref=e106]:
+            - generic [ref=e107]: 数据大屏
+            - generic [ref=e108]: "0"
+          - generic [ref=e109]:
+            - generic [ref=e110]: 数据集
+            - generic [ref=e111]: "2"
+        - generic [ref=e112]:
+          - text: 快速创建
+          - generic [ref=e113]:
+            - generic [ref=e114] [cursor=pointer]:
+              - img [ref=e116]
+              - generic [ref=e118]: 仪表板
+            - generic [ref=e119] [cursor=pointer]:
+              - img [ref=e121]
+              - generic [ref=e125]: 数据大屏
+            - generic [ref=e126] [cursor=pointer]:
+              - img [ref=e128]
+              - generic [ref=e130]: 数据集
+            - generic [ref=e131] [cursor=pointer]:
+              - img [ref=e133]
+              - generic [ref=e135]: 数据源
+            - generic [ref=e136] [cursor=pointer]:
+              - img [ref=e138]
+              - generic [ref=e144]: 使用模板新建
+      - generic [ref=e145]:
+        - generic [ref=e146]:
+          - generic [ref=e147]:
+            - text: 模板中心
+            - generic [ref=e148]:
+              - button "查看全部" [ref=e149] [cursor=pointer]
+              - separator [ref=e150]
+              - button "收起" [ref=e151] [cursor=pointer]
+          - generic [ref=e152]:
+            - generic [ref=e153] [cursor=pointer]: 推荐仪表板
+            - generic [ref=e154] [cursor=pointer]: 数据大屏
+          - generic [ref=e155]:
+            - generic "年度销售总结报表" [ref=e160]
+            - generic "某电商平台商品运营看板" [ref=e165]
+            - generic "连锁茶饮销售看板" [ref=e170]
+        - generic [ref=e171]:
+          - generic [ref=e172]:
+            - generic:
+              - tabpanel "我的收藏"
+            - tablist [ref=e176]:
+              - tab "我的收藏" [selected] [ref=e178]:
+                - generic [ref=e179]: 我的收藏
+              - tab "最近使用" [ref=e180]:
+                - generic [ref=e181]: 最近使用
+              - tab "我的分享" [ref=e182]:
+                - generic [ref=e183]: 我的分享
+          - generic [ref=e184]:
+            - generic [ref=e187] [cursor=pointer]:
+              - generic:
+                - combobox [ref=e189]
+                - generic [ref=e190]: 全部类型
+              - img [ref=e193]
+            - generic [ref=e197]:
+              - img [ref=e200]
+              - textbox "搜索关键词" [ref=e202]
+          - generic [ref=e206]:
+            - table [ref=e208]:
+              - rowgroup [ref=e216]:
+                - row "名称 类型 创建人 最近编辑人 最近编辑时间 操作" [ref=e217]:
+                  - columnheader "名称" [ref=e218]:
+                    - generic [ref=e219]: 名称
+                  - columnheader "类型" [ref=e220]:
+                    - generic [ref=e221]: 类型
+                  - columnheader "创建人" [ref=e222]:
+                    - generic [ref=e223]: 创建人
+                  - columnheader "最近编辑人" [ref=e224]:
+                    - generic [ref=e225]: 最近编辑人
+                  - columnheader "最近编辑时间" [ref=e226] [cursor=pointer]:
+                    - generic [ref=e227]: 最近编辑时间
+                  - columnheader "操作" [ref=e231]:
+                    - generic [ref=e232]: 操作
+            - generic [ref=e236]:
+              - table:
+                - rowgroup
+              - generic [ref=e239]:
+                - img [ref=e241]
+                - paragraph [ref=e243]: 暂无收藏

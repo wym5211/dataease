@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>快速密码测试</title>
+</head>
+<body>
+    <h2>🔐 密码功能测试（使用当前登录token）</h2>
+    <button onclick="runTest()">开始测试</button>
+    <pre id="log" style="background:#f5f5f5;padding:15px;margin-top:20px;white-space:pre-wrap;max-height:400px;overflow-y:auto;"></pre>
+
+    <script>
+        const logEl = document.getElementById('log');
+        const API_BASE = 'http://localhost:8100/de2api';
+
+        function log(msg) {
+            logEl.textContent += msg + '\n';
+            console.log(msg);
+        }
+
+        async function runTest() {
+            try {
+                // 获取当前token
+                const token = localStorage.getItem('DE-X-TOKEN');
+                if (!token) {
+                    log('❌ 未找到token，请先登录admin');
+                    return;
+                }
+                log('✅ 已获取admin token: ' + token.substring(0, 50) + '...');
+
+                // 创建用户
+                log('\n1️⃣ 创建测试用户...');
+                const userData = {
+                    account: 'quicktest2026',
+                    name: '快速测试用户',
+                    email: 'quicktest@test.com',
+                    phone: '13800138888',
+                    password: 'Test@Pass123', // 自定义密码
+                    roleIds: [2],
+                    enable: true
+                };
+
+                const createRes = await fetch(`${API_BASE}/user/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-DE-TOKEN': token
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                const createData = await createRes.json();
+                log('   响应: ' + JSON.stringify(createData));
+
+                if (createData.code === 0 || !createData.code) {
+                    log('   ✅ 用户创建成功! ID: ' + (createData.data || '未知'));
+                } else {
+                    log('   ❌ 创建失败');
+                    return;
+                }
+
+                // 等待2秒
+                log('\n⏳ 等待2秒...');
+                await new Promise(r => setTimeout(r, 2000));
+
+                // 测试登录
+                log('\n2️⃣ 测试新用户登录...');
+                const loginRes = await fetch(`${API_BASE}/login/localLogin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: 'quicktest2026',
+                        pwd: 'Test@Pass123'
+                    })
+                });
+
+                const loginData = await loginRes.json();
+                log('   响应: ' + JSON.stringify(loginData));
+
+                if (loginData.code === 0 && loginData.data) {
+                    log('   ✅ 登录成功!');
+                    log('   Token: ' + loginData.data.substring(0, 50) + '...');
+                    log('\n╔════════════════════════╗');
+                    log('║  ✅ 测试通过！密码功能正常 ║');
+                    log('╚════════════════════════╝');
+                } else {
+                    log('   ❌ 登录失败');
+                }
+
+            } catch (error) {
+                log('❌ 错误: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

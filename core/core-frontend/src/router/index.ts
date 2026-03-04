@@ -186,7 +186,6 @@ export const routes: AppRouteRecordRaw[] = [
     path: '/permissions',
     name: 'permissions',
     component: () => import('@/layout/index.vue'),
-    meta: { title: '权限管理' },
     redirect: { name: 'permissions-menu' },
     children: [
       {

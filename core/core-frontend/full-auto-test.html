@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>完整自动化测试</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsencrypt@3.3.2/bin/jsencrypt.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { background: white; padding: 20px; border-radius: 8px; max-width: 900px; margin: 0 auto; }
+        h1 { color: #333; }
+        #log { background: #1e1e1e; color: #00ff00; padding: 15px; border-radius: 5px; white-space: pre-wrap; font-family: 'Courier New', monospace; font-size: 13px; max-height: 600px; overflow-y: auto; margin-top: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 用户密码功能完整自动化测试</h1>
+        <button onclick="startTest()">▶️ 开始完整测试</button>
+        <div id="status"></div>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        const log = document.getElementById('log');
+        const status = document.getElementById('status');
+        const API_BASE = 'http://localhost:8100/de2api';
+        let testToken = '';
+
+        function addLog(msg) {
+            log.textContent += msg + '\n';
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function showStatus(msg, type = 'info') {
+            status.innerHTML = `<div class="status ${type}">${msg}</div>`;
+        }
+
+        // 获取公钥
+        async function getPublicKey() {
+            addLog('📡 获取RSA公钥...');
+            const res = await fetch(`${API_BASE}/dekey`);
+            const data = await res.json();
+            if (data.code === 0) {
+                addLog('   ✅ 公钥获取成功\n');
+                return data.data;
+            }
+            throw new Error('获取公钥失败');
+        }
+
+        // RSA加密
+        function encrypt(text, key) {
+            const rsa = new JSEncrypt();
+            rsa.setPublicKey(key);
+            return rsa.encrypt(text);
+        }
+
+        // 步骤1: Admin登录
+        async function adminLogin() {
+            addLog('\n╔════════════════════════════════════════╗');
+            addLog('║  步骤 1: Admin 登录                   ║');
+            addLog('╚════════════════════════════════════════╝\n');
+
+            try {
+                const publicKey = await getPublicKey();
+                const encryptedName = encrypt('admin', publicKey);
+                const encryptedPwd = encrypt('DataEase@123456', publicKey);
+
+                addLog('🔐 发送登录请求...');
+                const res = await fetch(`${API_BASE}/login/localLogin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: encryptedName,
+                        pwd: encryptedPwd
+                    })
+                });
+
+                const data = await res.json();
+                addLog('📥 响应: ' + JSON.stringify(data, null, 2));
+
+                if (data.code === 0 && data.data) {
+                    testToken = data.data;
+                    addLog('\n   ✅ Admin登录成功!');
+                    addLog('   Token: ' + testToken.substring(0, 60) + '...\n');
+                    showStatus('✅ 步骤1完成：Admin登录成功', 'success');
+                    return true;
+                } else {
+                    addLog('\n   ❌ Admin登录失败!\n');
+                    showStatus('❌ 步骤1失败：Admin登录失败', 'error');
+                    return false;
+                }
+            } catch (error) {
+                addLog('\n   ❌ 错误: ' + error.message + '\n');
+                showStatus('❌ 步骤1失败：' + error.message, 'error');
+                return false;
+            }
+        }
+
+        // 步骤2: 创建新用户（带自定义密码）
+        async function createUser() {
+            addLog('\n╔════════════════════════════════════════╗');
+            addLog('║  步骤 2: 创建测试用户（自定义密码）   ║');
+            addLog('╚════════════════════════════════════════╝\n');
+
+            try {
+                const userData = {
+                    account: 'mcpfinaltest',
+                    name: 'MCP最终测试用户',
+                    email: 'mcpfinal@test.com',
+                    phone: '13700137000',
+                    password: 'FinalTest@Pass789', // ⭐ 自定义密码
+                    roleIds: [2],
+                    enable: true
+                };
+
+                addLog('📝 用户数据:');
+                addLog('   账号: ' + userData.account);
+                addLog('   姓名: ' + userData.name);
+                addLog('   邮箱: ' + userData.email);
+                addLog('   手机: ' + userData.phone);
+                addLog('   密码: ' + userData.password + ' ⭐');
+                addLog('   角色: [2] (普通用户)\n');
+
+                addLog('🔤 发送创建请求...');
+                const res = await fetch(`${API_BASE}/user/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-DE-TOKEN': testToken
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                const data = await res.json();
+                addLog('📥 响应: ' + JSON.stringify(data, null, 2));
+
+                if (data.code === 0 || !data.code) {
+                    addLog('\n   ✅ 用户创建成功!');
+                    addLog('   用户ID: ' + (data.data || '未知') + '\n');
+                    showStatus('✅ 步骤2完成：用户创建成功', 'success');
+                    return true;
+                } else {
+                    addLog('\n   ❌ 用户创建失败!\n');
+                    showStatus('❌ 步骤2失败：用户创建失败', 'error');
+                    return false;
+                }
+            } catch (error) {
+                addLog('\n   ❌ 错误: ' + error.message + '\n');
+                showStatus('❌ 步骤2失败：' + error.message, 'error');
+                return false;
+            }
+        }
+
+        // 步骤3: 测试新用户登录（使用自定义密码）
+        async function testNewUserLogin() {
+            addLog('\n╔════════════════════════════════════════╗');
+            addLog('║  步骤 3: 测试新用户登录（自定义密码） ║');
+            addLog('╚════════════════════════════════════════╝\n');
+
+            try {
+                const publicKey = await getPublicKey();
+                const encryptedName = encrypt('mcpfinaltest', publicKey);
+                const encryptedPwd = encrypt('FinalTest@Pass789', publicKey);
+
+                addLog('🔐 使用创建时设置的密码登录...');
+                addLog('   账号: mcpfinaltest');
+                addLog('   密码: FinalTest@Pass789\n');
+
+                addLog('🔤 发送登录请求...');
+                const res = await fetch(`${API_BASE}/login/localLogin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: encryptedName,
+                        pwd: encryptedPwd
+                    })
+                });
+
+                const data = await res.json();
+                addLog('📥 响应: ' + JSON.stringify(data, null, 2));
+
+                if (data.code === 0 && data.data) {
+                    addLog('\n   ✅ 新用户登录成功!');
+                    addLog('   Token: ' + data.data.substring(0, 60) + '...\n');
+                    addLog('   ╔════════════════════════════════════════╗');
+                    addLog('   ║  ✅ 密码功能测试通过！                ║');
+                    addLog('   ║  新用户可以使用创建时设置的        ║');
+                    addLog('   ║  自定义密码成功登录                   ║');
+                    addLog('   ╚════════════════════════════════════════╝\n');
+                    showStatus('✅ 步骤3完成：密码功能正常！', 'success');
+                    return true;
+                } else {
+                    addLog('\n   ❌ 新用户登录失败!\n');
+                    addLog('   可能原因：');
+                    addLog('   1. 密码字段未正确传递到后端');
+                    addLog('   2. 后端未使用自定义密码创建用户\n');
+                    showStatus('❌ 步骤3失败：登录失败，密码可能未正确设置', 'error');
+                    return false;
+                }
+            } catch (error) {
+                addLog('\n   ❌ 错误: ' + error.message + '\n');
+                showStatus('❌ 步骤3失败：' + error.message, 'error');
+                return false;
+            }
+        }
+
+        // 步骤4: 测试错误密码（应该失败）
+        async function testWrongPassword() {
+            addLog('\n╔════════════════════════════════════════╗');
+            addLog('║  步骤 4: 测试错误密码（应被拒绝）      ║');
+            addLog('╚════════════════════════════════════════╝\n');
+
+            try {
+                const publicKey = await getPublicKey();
+                const encryptedName = encrypt('mcpfinaltest', publicKey);
+                const encryptedPwd = encrypt('WrongPassword123', publicKey);
+
+                addLog('🔐 使用错误密码尝试登录...');
+                addLog('   账号: mcpfinaltest');
+                addLog('   密码: WrongPassword123\n');
+
+                addLog('🔤 发送登录请求...');
+                const res = await fetch(`${API_BASE}/login/localLogin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: encryptedName,
+                        pwd: encryptedPwd
+                    })
+                });
+
+                const data = await res.json();
+                addLog('📥 响应: ' + JSON.stringify(data, null, 2));
+
+                if (data.code !== 0) {
+                    addLog('\n   ✅ 错误密码被正确拒绝!');
+                    addLog('   错误信息: ' + (data.msg || '密码错误') + '\n');
+                    showStatus('✅ 步骤4完成：错误密码正确拒绝', 'success');
+                    return true;
+                } else {
+                    addLog('\n   ❌ 错误密码不应该登录成功!\n');
+                    showStatus('❌ 步骤4失败：错误密码未被拒绝', 'error');
+                    return false;
+                }
+            } catch (error) {
+                addLog('\n   ❌ 错误: ' + error.message + '\n');
+                showStatus('❌ 步骤4失败：' + error.message, 'error');
+                return false;
+            }
+        }
+
+        // 完整测试流程
+        async function startTest() {
+            log.textContent = '';
+            addLog('╔════════════════════════════════════════╗\n');
+            addLog('║   🔐 用户密码功能完整自动化测试       ║\n');
+            addLog('║   测试时间: ' + new Date().toLocaleString() + '       ║\n');
+            addLog('╚════════════════════════════════════════╝\n');
+
+            showStatus('⏳ 测试进行中...', 'info');
+
+            // 步骤1
+            const step1 = await adminLogin();
+            if (!step1) {
+                addLog('\n⛔ 测试终止：Admin登录失败\n');
+                return;
+            }
+
+            await new Promise(r => setTimeout(r, 1000));
+
+            // 步骤2
+            const step2 = await createUser();
+            if (!step2) {
+                addLog('\n⛔ 测试终止：用户创建失败\n');
+                return;
+            }
+
+            await new Promise(r => setTimeout(r, 3000));
+
+            // 步骤3
+            const step3 = await testNewUserLogin();
+
+            await new Promise(r => setTimeout(r, 1000));
+
+            // 步骤4
+            const step4 = await testWrongPassword();
+
+            // 总结
+            addLog('\n╔════════════════════════════════════════╗');
+            addLog('║            测试总结                    ║');
+            addLog('╠════════════════════════════════════════╣');
+            addLog('║  步骤1 (Admin登录):      ' + (step1 ? '✅ 通过' : '❌ 失败') + '           ║');
+            addLog('║  步骤2 (创建用户):       ' + (step2 ? '✅ 通过' : '❌ 失败') + '           ║');
+            addLog('║  步骤3 (新用户登录):     ' + (step3 ? '✅ 通过' : '❌ 失败') + '           ║');
+            addLog('║  步骤4 (错误密码拒绝):   ' + (step4 ? '✅ 通过' : '❌ 失败') + '           ║');
+            addLog('╠════════════════════════════════════════╣');
+
+            if (step1 && step2 && step3 && step4) {
+                addLog('║  🎉 所有测试通过！密码功能正常！       ║');
+                showStatus('🎉 所有测试通过！', 'success');
+            } else {
+                addLog('║  ⚠️  部分测试失败，请检查错误信息     ║');
+                showStatus('⚠️ 部分测试失败', 'error');
+            }
+
+            addLog('╚════════════════════════════════════════╝\n');
+            addLog('✨ 测试完成\n');
+        }
+    </script>
+</body>
+</html>

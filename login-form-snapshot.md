@@ -1,0 +1,15 @@
+- generic [ref=e12]:
+  - generic [ref=e13]:
+    - img [ref=e16]
+    - generic [ref=e19]:
+      - img [ref=e21]
+      - generic [ref=e37]: 人人可用的开源 BI 工具
+      - generic [ref=e39]:
+        - generic [ref=e40]: 账号登录
+        - textbox "账号/邮箱" [ref=e45]: "999"
+        - generic [ref=e49]:
+          - textbox "密码" [ref=e50]: "123456"
+          - img [ref=e56] [cursor=pointer]
+        - button "登录" [disabled] [ref=e52]:
+          - generic [ref=e53]: 登录
+  - img [ref=e60]

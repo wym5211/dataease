@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>密码测试</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsencrypt@3.3.2/bin/jsencrypt.min.js"></script>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        #log { background: #f0f0f0; padding: 15px; white-space: pre-wrap; font-family: monospace; }
+        button { padding: 10px 20px; margin: 5px; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <h2>🔐 密码功能测试</h2>
+    <button onclick="step1()">1.登录Admin</button>
+    <button onclick="step2()">2.创建用户</button>
+    <button onclick="step3()">3.测试登录</button>
+    <button onclick="runAll()">▶️全部执行</button>
+    <div id="log"></div>
+
+    <script>
+        const log = document.getElementById('log');
+        const API_BASE = 'http://localhost:8100/de2api';
+        let token = '';
+
+        function addLog(msg) { log.textContent += msg + '\n'; }
+
+        async function getPublicKey() {
+            const res = await fetch(API_BASE + '/dekey');
+            const data = await res.json();
+            return data.data;
+        }
+
+        function encrypt(text, key) {
+            const rsa = new JSEncrypt();
+            rsa.setPublicKey(key);
+            return rsa.encrypt(text);
+        }
+
+        async function step1() {
+            addLog('\n=== 步骤1: Admin登录 ===\n');
+            const key = await getPublicKey();
+            const res = await fetch(API_BASE + '/login/localLogin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: encrypt('admin', key),
+                    pwd: encrypt('DataEase@123456', key)
+                })
+            });
+            const data = await res.json();
+            addLog('响应: ' + JSON.stringify(data));
+            if (data.code === 0) {
+                token = data.data;
+                addLog('✅ 登录成功\n');
+            } else {
+                addLog('❌ 登录失败\n');
+            }
+        }
+
+        async function step2() {
+            addLog('\n=== 步骤2: 创建用户 ===\n');
+            const userData = {
+                account: 'simpletest2026',
+                name: '简单测试',
+                email: 'simple@test.com',
+                phone: '13500135000',
+                password: 'SimpleTest@Pass123',
+                roleIds: [2],
+                enable: true
+            };
+            addLog('数据: ' + JSON.stringify(userData));
+
+            const res = await fetch(API_BASE + '/user/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-DE-TOKEN': token
+                },
+                body: JSON.stringify(userData)
+            });
+            const data = await res.json();
+            addLog('响应: ' + JSON.stringify(data));
+            if (data.code === 0 || !data.code) {
+                addLog('✅ 创建成功\n');
+            } else {
+                addLog('❌ 创建失败\n');
+            }
+        }
+
+        async function step3() {
+            addLog('\n=== 步骤3: 测试登录 ===\n');
+            const key = await getPublicKey();
+            const res = await fetch(API_BASE + '/login/localLogin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: encrypt('simpletest2026', key),
+                    pwd: encrypt('SimpleTest@Pass123', key)
+                })
+            });
+            const data = await res.json();
+            addLog('响应: ' + JSON.stringify(data));
+            if (data.code === 0 && data.data) {
+                addLog('✅ 登录成功！密码功能正常！\n');
+            } else {
+                addLog('❌ 登录失败\n');
+            }
+        }
+
+        async function runAll() {
+            log.textContent = '';
+            await step1();
+            await new Promise(r => setTimeout(r, 1000));
+            await step2();
+            await new Promise(r => setTimeout(r, 3000));
+            await step3();
+        }
+
+        // 显示说明
+        addLog('请按顺序点击按钮执行测试\n');
+        addLog('或点击"全部执行"自动完成所有步骤\n');
+    </script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>自动测试</title>
+</head>
+<body>
+    <h2>🚀 自动密码测试</h2>
+    <pre id="log" style="background:#f5f5f5;padding:15px;font-family:monospace;font-size:12px;max-height:500px;overflow-y:auto;"></pre>
+
+    <script>
+        const log = document.getElementById('log');
+        const API_BASE = 'http://localhost:8100/de2api';
+
+        function addLog(msg) {
+            log.textContent += msg + '\n';
+        }
+
+        async function autoTest() {
+            addLog('╔════════════════════════════════╗\n');
+            addLog('║   密码功能自动测试            ║\n');
+            addLog('╚════════════════════════════════╝\n');
+
+            try {
+                // 获取token
+                const token = localStorage.getItem('DE-X-TOKEN');
+                if (!token) {
+                    addLog('❌ 未找到token，请先登录admin\n');
+                    return;
+                }
+                addLog('✅ Admin Token: ' + token.substring(0, 60) + '...\n');
+
+                // 创建用户
+                addLog('1️⃣ 创建测试用户...\n');
+                const userData = {
+                    account: 'autotest2026',
+                    name: '自动测试用户',
+                    email: 'autotest@test.com',
+                    phone: '13900139999',
+                    password: 'AutoTest@Pass999', // 自定义密码
+                    roleIds: [2],
+                    enable: true
+                };
+
+                addLog('   数据: ' + JSON.stringify(userData, null, 2) + '\n');
+
+                const createRes = await fetch(`${API_BASE}/user/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-DE-TOKEN': token
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                const createData = await createRes.json();
+                addLog('   响应: ' + JSON.stringify(createData, null, 2) + '\n');
+
+                if (createData.code === 0 || !createData.code) {
+                    addLog('   ✅ 用户创建成功!\n');
+                } else {
+                    addLog('   ❌ 创建失败，终止测试\n');
+                    return;
+                }
+
+                // 等待
+                addLog('\n⏳ 等待3秒...\n');
+                await new Promise(r => setTimeout(r, 3000));
+
+                // 测试登录（使用自定义密码）
+                addLog('2️⃣ 测试新用户登录（使用自定义密码）...\n');
+                const loginRes = await fetch(`${API_BASE}/login/localLogin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: 'autotest2026',
+                        pwd: 'AutoTest@Pass999'
+                    })
+                });
+
+                const loginData = await loginRes.json();
+                addLog('   响应: ' + JSON.stringify(loginData, null, 2).substring(0, 200) + '...\n');
+
+                if (loginData.code === 0 && loginData.data) {
+                    addLog('   ✅ 登录成功!\n');
+                    addLog('   ╔════════════════════════════════════╗\n');
+                    addLog('   ║  ✅ 密码功能测试通过！             ║\n');
+                    addLog('   ║  新用户可以使用自定义密码登录     ║\n');
+                    addLog('   ╚════════════════════════════════════╝\n');
+                } else {
+                    addLog('   ❌ 登录失败\n');
+                }
+
+            } catch (error) {
+                addLog('❌ 错误: ' + error.message + '\n');
+            }
+
+            addLog('\n✨ 测试完成\n');
+        }
+
+        // 页面加载后自动执行
+        setTimeout(autoTest, 500);
+    </script>
+</body>
+</html>

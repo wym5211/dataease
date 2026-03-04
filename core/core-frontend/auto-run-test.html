@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>自动执行测试</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsencrypt@3.3.2/bin/jsencrypt.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { background: white; padding: 20px; border-radius: 8px; max-width: 900px; margin: 0 auto; }
+        #log { background: #1e1e1e; color: #00ff00; padding: 15px; border-radius: 5px; white-space: pre-wrap; font-family: 'Courier New', monospace; font-size: 13px; max-height: 600px; overflow-y: auto; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 自动测试执行中...</h1>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        const log = document.getElementById('log');
+        const API_BASE = 'http://localhost:8100/de2api';
+        let testToken = '';
+
+        function addLog(msg) {
+            log.textContent += msg + '\n';
+            log.scrollTop = log.scrollHeight;
+        }
+
+        async function getPublicKey() {
+            const res = await fetch(`${API_BASE}/dekey`);
+            const data = await res.json();
+            return data.code === 0 ? data.data : null;
+        }
+
+        function encrypt(text, key) {
+            const rsa = new JSEncrypt();
+            rsa.setPublicKey(key);
+            return rsa.encrypt(text);
+        }
+
+        async function runAllSteps() {
+            addLog('╔════════════════════════════════════════╗\n');
+            addLog('║   完整自动化测试开始                   ║\n');
+            addLog('╚════════════════════════════════════════╝\n\n');
+
+            // Step 1: Admin Login
+            addLog('【步骤1】Admin登录\n');
+            try {
+                const publicKey = await getPublicKey();
+                const res = await fetch(`${API_BASE}/login/localLogin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: encrypt('admin', publicKey),
+                        pwd: encrypt('DataEase@123456', publicKey)
+                    })
+                });
+                const data = await res.json();
+                if (data.code === 0) {
+                    testToken = data.data;
+                    addLog('✅ Admin登录成功\n');
+                } else {
+                    addLog('❌ Admin登录失败: ' + JSON.stringify(data) + '\n');
+                    return;
+                }
+            } catch (e) {
+                addLog('❌ Admin登录错误: ' + e.message + '\n');
+                return;
+            }
+
+            await new Promise(r => setTimeout(r, 1000));
+
+            // Step 2: Create User
+            addLog('【步骤2】创建测试用户（带自定义密码）\n');
+            try {
+                const userData = {
+                    account: 'mcpautotest',
+                    name: 'MCP自动测试',
+                    email: 'mcpauto@test.com',
+                    phone: '13600136000',
+                    password: 'AutoTest@Pass999',
+                    roleIds: [2],
+                    enable: true
+                };
+                addLog('账号: mcpautotest\n密码: AutoTest@Pass999\n');
+
+                const res = await fetch(`${API_BASE}/user/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-DE-TOKEN': testToken
+                    },
+                    body: JSON.stringify(userData)
+                });
+                const data = await res.json();
+                if (data.code === 0 || !data.code) {
+                    addLog('✅ 用户创建成功，ID: ' + (data.data || '未知') + '\n');
+                } else {
+                    addLog('❌ 用户创建失败: ' + JSON.stringify(data) + '\n');
+                    return;
+                }
+            } catch (e) {
+                addLog('❌ 创建用户错误: ' + e.message + '\n');
+                return;
+            }
+
+            await new Promise(r => setTimeout(r, 3000));
+
+            // Step 3: Test Login with Custom Password
+            addLog('【步骤3】测试新用户登录（使用自定义密码）\n');
+            try {
+                const publicKey = await getPublicKey();
+                const res = await fetch(`${API_BASE}/login/localLogin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: encrypt('mcpautotest', publicKey),
+                        pwd: encrypt('AutoTest@Pass999', publicKey)
+                    })
+                });
+                const data = await res.json();
+                addLog('响应: ' + JSON.stringify(data).substring(0, 150) + '...\n');
+
+                if (data.code === 0 && data.data) {
+                    addLog('\n✅ 新用户登录成功！\n');
+                    addLog('╔════════════════════════════════════════╗\n');
+                    addLog('║  🎉 密码功能测试通过！               ║\n');
+                    addLog('║  新用户可以使用创建时设置的           ║\n');
+                    addLog('║  自定义密码成功登录                  ║\n');
+                    addLog('╚════════════════════════════════════════╝\n');
+                } else {
+                    addLog('❌ 新用户登录失败\n');
+                }
+            } catch (e) {
+                addLog('❌ 测试登录错误: ' + e.message + '\n');
+            }
+
+            addLog('\n✨ 测试完成\n');
+        }
+
+        // Auto start
+        setTimeout(runAllSteps, 500);
+    </script>
+</body>
+</html>

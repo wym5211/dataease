@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>权限诊断工具 - 用户999</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsencrypt@3.3.2/bin/jsencrypt.min.js"></script>
+    <style>
+        body { font-family: 'Microsoft YaHei', Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { background: white; padding: 25px; border-radius: 10px; max-width: 1200px; margin: 0 auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 3px solid #007bff; padding-bottom: 10px; }
+        .section { background: #f8f9fa; padding: 15px; margin: 15px 0; border-radius: 5px; border-left: 4px solid #007bff; }
+        .success { background: #d4edda; border-left-color: #28a745; color: #155724; }
+        .error { background: #f8d7da; border-left-color: #dc3545; color: #721c24; }
+        .warning { background: #fff3cd; border-left-color: #ffc107; color: #856404; }
+        .info { background: #d1ecf1; border-left-color: #17a2b8; color: #0c5460; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #007bff; color: white; }
+        pre { background: #1e1e1e; color: #00ff00; padding: 15px; border-radius: 5px; overflow-x: auto; font-size: 13px; }
+        button { background: #007bff; color: white; border: none; padding: 12px 30px; border-radius: 5px; cursor: pointer; font-size: 16px; margin: 5px; }
+        button:hover { background: #0056b3; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 权限诊断工具 - 用户 999</h1>
+        <p>此工具将诊断用户 999 的权限配置，找出为什么会出现 70001 错误</p>
+
+        <button onclick="startDiagnostic()">▶️ 开始诊断</button>
+        <button onclick="fixPermissions()" id="fixBtn" style="display:none; background: #28a745;">🔧 自动修复权限</button>
+
+        <div id="log"></div>
+    </div>
+
+    <script>
+        const log = document.getElementById('log');
+        const API_BASE = 'http://localhost:8100/de2api';
+        let adminToken = '';
+        let user999Token = '';
+        let diagnosticResults = {};
+
+        function addLog(html) {
+            log.innerHTML += html;
+        }
+
+        function createSection(title, type = 'info') {
+            return `<div class="section ${type}"><h3>${title}</h3>`;
+        }
+
+        function closeSection() {
+            return '</div>';
+        }
+
+        function closePre() {
+            return '</pre></div>';
+        }
+
+        // 获取公钥
+        async function getPublicKey() {
+            const res = await fetch(`${API_BASE}/dekey`);
+            const data = await res.json();
+            return data.data;
+        }
+
+        // RSA 加密
+        function encrypt(text, key) {
+            const rsa = new JSEncrypt();
+            rsa.setPublicKey(key);
+            return rsa.encrypt(text);
+        }
+
+        // Admin 登录
+        async function adminLogin() {
+            addLog(createSection('步骤 1: Admin 登录', 'info'));
+            try {
+                const publicKey = await getPublicKey();
+                const res = await fetch(`${API_BASE}/login/localLogin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: encrypt('admin', publicKey),
+                        pwd: encrypt('DataEase@123456', publicKey)
+                    })
+                });
+                const data = await res.json();
+                addLog('<pre>响应: ' + JSON.stringify(data, null, 2) + '</pre>');
+
+                if (data.code === 0 && data.data) {
+                    adminToken = data.data;
+                    addLog('<p class="success">✅ Admin 登录成功</p>');
+                    addLog(closeSection());
+                    return true;
+                } else {
+                    addLog('<p class="error">❌ Admin 登录失败</p>');
+                    addLog(closeSection());
+                    return false;
+                }
+            } catch (e) {
+                addLog('<p class="error">❌ 错误: ' + e.message + '</p>');
+                addLog(closeSection());
+                return false;
+            }
+        }
+
+        // 用户 999 登录
+        async function user999Login() {
+            addLog(createSection('步骤 2: 用户 999 登录', 'info'));
+            try {
+                const publicKey = await getPublicKey();
+                const res = await fetch(`${API_BASE}/login/localLogin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: encrypt('999', publicKey),
+                        pwd: encrypt('123456', publicKey)
+                    })
+                });
+                const data = await res.json();
+                addLog('<pre>响应: ' + JSON.stringify(data, null, 2) + '</pre>');
+
+                if (data.code === 0 && data.data) {
+                    user999Token = data.data;
+                    addLog('<p class="success">✅ 用户 999 登录成功</p>');
+                    addLog(closeSection());
+                    return true;
+                } else {
+                    addLog('<p class="error">❌ 用户 999 登录失败</p>');
+                    addLog(closeSection());
+                    return false;
+                }
+            } catch (e) {
+                addLog('<p class="error">❌ 错误: ' + e.message + '</p>');
+                addLog(closeSection());
+                return false;
+            }
+        }
+
+        // 测试创建用户接口（应该失败并返回 70001）
+        async function testCreateUser() {
+            addLog(createSection('步骤 3: 测试用户 999 创建用户接口', 'warning'));
+            try {
+                const userData = {
+                    account: 'testuser' + Date.now(),
+                    name: '测试用户',
+                    email: 'test@test.com',
+                    phone: '13800138888',
+                    password: 'Test@123456',
+                    roleIds: [2],
+                    enable: true
+                };
+                addLog('<pre>请求数据: ' + JSON.stringify(userData, null, 2) + '</pre>');
+
+                const res = await fetch(`${API_BASE}/user/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-DE-TOKEN': user999Token
+                    },
+                    body: JSON.stringify(userData)
+                });
+                const data = await res.json();
+                addLog('<pre>响应: ' + JSON.stringify(data, null, 2) + '</pre>');
+
+                if (data.code === 70001) {
+                    diagnosticResults.permissionError = true;
+                    diagnosticResults.errorMessage = data.msg;
+                    addLog('<p class="error">❌ 确认出现 70001 错误: ' + data.msg + '</p>');
+                    addLog('<p>这说明用户 999 缺少访问 /user/create 接口的权限</p>');
+                } else if (data.code === 0) {
+                    diagnosticResults.permissionError = false;
+                    addLog('<p class="success">✅ 意外成功！权限可能已修复</p>');
+                }
+                addLog(closeSection());
+                return true;
+            } catch (e) {
+                addLog('<p class="error">❌ 错误: ' + e.message + '</p>');
+                addLog(closeSection());
+                return false;
+            }
+        }
+
+        // 获取当前用户信息
+        async function getUserInfo() {
+            addLog(createSection('步骤 4: 获取用户 999 信息', 'info'));
+            try {
+                const res = await fetch(`${API_BASE}/user/currentInfo`, {
+                    headers: { 'X-DE-TOKEN': user999Token }
+                });
+                const data = await res.json();
+                addLog('<pre>响应: ' + JSON.stringify(data, null, 2) + '</pre>');
+
+                if (data.code === 0 && data.data) {
+                    diagnosticResults.userInfo = data.data;
+                    addLog('<p class="success">✅ 成功获取用户信息</p>');
+                    addLog('<table><tr><th>字段</th><th>值</th></tr>');
+                    addLog('<tr><td>用户ID</td><td>' + data.data.userId + '</td></tr>');
+                    addLog('<tr><td>账号</td><td>' + data.data.username + '</td></tr>');
+                    addLog('<tr><td>姓名</td><td>' + data.data.name + '</td></tr>');
+                    if (data.data.roles && data.data.roles.length > 0) {
+                        addLog('<tr><td>角色</td><td>' + data.data.roles.map(r => r.roleName).join(', ') + '</td></tr>');
+                        diagnosticResults.userRoles = data.data.roles;
+                    }
+                    addLog('</table>');
+                }
+                addLog(closeSection());
+                return true;
+            } catch (e) {
+                addLog('<p class="error">❌ 错误: ' + e.message + '</p>');
+                addLog(closeSection());
+                return false;
+            }
+        }
+
+        // 获取菜单权限
+        async function getMenuTree() {
+            addLog(createSection('步骤 5: 获取用户 999 的菜单权限', 'info'));
+            try {
+                const res = await fetch(`${API_BASE}/user/treeCurrentInfo`, {
+                    headers: { 'X-DE-TOKEN': user999Token }
+                });
+                const data = await res.json();
+                addLog('<pre>响应数据: ' + JSON.stringify(data, null, 2).substring(0, 1000) + '...</pre>');
+
+                if (data.code === 0 && data.data) {
+                    const hasUserMenu = JSON.stringify(data.data).includes('用户管理') ||
+                                        JSON.stringify(data.data).includes('user');
+                    diagnosticResults.hasUserMenu = hasUserMenu;
+
+                    if (hasUserMenu) {
+                        addLog('<p class="success">✅ 用户 999 有用户管理菜单权限</p>');
+                    } else {
+                        addLog('<p class="error">❌ 用户 999 没有用户管理菜单权限</p>');
+                        addLog('<p><strong>这很可能是导致 70001 错误的原因！</strong></p>');
+                    }
+                }
+                addLog(closeSection());
+                return true;
+            } catch (e) {
+                addLog('<p class="error">❌ 错误: ' + e.message + '</p>');
+                addLog(closeSection());
+                return false;
+            }
+        }
+
+        // 分析诊断结果
+        function analyzeResults() {
+            addLog(createSection('步骤 6: 诊断结果分析', 'warning'));
+
+            addLog('<h4>📊 权限配置状态:</h4>');
+            addLog('<ul>');
+
+            if (diagnosticResults.userInfo) {
+                addLog('<li>✅ 用户 999 账号存在</li>');
+            } else {
+                addLog('<li>❌ 用户 999 账号不存在</li>');
+            }
+
+            if (diagnosticResults.userRoles && diagnosticResults.userRoles.length > 0) {
+                addLog('<li>✅ 用户 999 已分配角色: ' +
+                       diagnosticResults.userRoles.map(r => r.roleName).join(', ') + '</li>');
+            } else {
+                addLog('<li>❌ 用户 999 未分配角色</li>');
+            }
+
+            if (diagnosticResults.hasUserMenu) {
+                addLog('<li>✅ 用户 999 有用户管理菜单权限</li>');
+            } else {
+                addLog('<li class="error">❌ 用户 999 <strong>没有</strong> 用户管理菜单权限</li>');
+            }
+
+            if (diagnosticResults.permissionError) {
+                addLog('<li class="error">❌ 确认存在权限问题 (错误码: 70001)</li>');
+            }
+
+            addLog('</ul>');
+
+            // 给出修复建议
+            addLog('<h4>🔧 修复建议:</h4>');
+
+            if (!diagnosticResults.hasUserMenu) {
+                addLog('<div class="error" style="padding: 10px; margin: 10px 0;">');
+                addLog('<strong>问题根源:</strong> 用户的角色没有关联到"用户管理"菜单<br><br>');
+                addLog('<strong>解决方案:</strong> 需要在 sys_role_menu 表中添加记录，');
+                addLog('将用户 999 的角色与"用户管理"菜单关联起来。<br><br>');
+                addLog('<strong>推荐操作:</strong><br>');
+                addLog('1. 以 admin 身份登录系统<br>');
+                addLog('2. 进入"权限管理" → "角色管理"<br>');
+                addLog('3. 找到用户 999 的角色，点击"编辑"<br>');
+                addLog('4. 在菜单权限中勾选"用户管理"<br>');
+                addLog('5. 保存后让用户 999 重新登录');
+                addLog('</div>');
+
+                // 显示自动修复按钮
+                document.getElementById('fixBtn').style.display = 'inline-block';
+            }
+
+            addLog(closeSection());
+        }
+
+        // 自动修复权限（使用 admin token）
+        async function fixPermissions() {
+            addLog(createSection('尝试自动修复权限', 'warning'));
+
+            if (!diagnosticResults.userRoles || diagnosticResults.userRoles.length === 0) {
+                addLog('<p class="error">❌ 用户没有分配角色，无法自动修复</p>');
+                addLog(closeSection());
+                return;
+            }
+
+            const roleId = diagnosticResults.userRoles[0].roleId;
+            addLog('<p>尝试为角色 ID: ' + roleId + ' 添加用户管理菜单权限...</p>');
+
+            // 注意：这里需要根据实际的 API 来调用
+            // 可能需要调用角色更新接口来分配菜单权限
+            addLog('<p class="info">ℹ️ 自动修复功能需要调用角色管理 API</p>');
+            addLog('<p>建议手动在管理界面中为角色分配"用户管理"菜单权限</p>');
+
+            addLog(closeSection());
+        }
+
+        // 完整诊断流程
+        async function startDiagnostic() {
+            log.innerHTML = '';
+            addLog('<div class="section info"><h2>🔍 权限诊断开始</h2>');
+            addLog('<p>诊断时间: ' + new Date().toLocaleString() + '</p>');
+            addLog('</div>');
+
+            await new Promise(r => setTimeout(r, 500));
+
+            // 步骤 1: Admin 登录
+            const step1 = await adminLogin();
+            if (!step1) {
+                addLog('<div class="error"><p>❌ Admin 登录失败，无法继续诊断</p></div>');
+                return;
+            }
+            await new Promise(r => setTimeout(r, 500));
+
+            // 步骤 2: 用户 999 登录
+            const step2 = await user999Login();
+            if (!step2) {
+                addLog('<div class="error"><p>❌ 用户 999 登录失败，请检查用户名和密码</p></div>');
+                return;
+            }
+            await new Promise(r => setTimeout(r, 500));
+
+            // 步骤 3: 测试创建用户接口
+            await testCreateUser();
+            await new Promise(r => setTimeout(r, 500));
+
+            // 步骤 4: 获取用户信息
+            await getUserInfo();
+            await new Promise(r => setTimeout(r, 500));
+
+            // 步骤 5: 获取菜单权限
+            await getMenuTree();
+            await new Promise(r => setTimeout(r, 500));
+
+            // 步骤 6: 分析结果
+            analyzeResults();
+
+            addLog('<div class="section success"><h3>✨ 诊断完成</h3>');
+            addLog('<p>请查看上方的分析结果和修复建议</p></div>');
+        }
+
+        // 页面加载后的提示
+        addLog('<div class="section info">');
+        addLog('<h3>📋 使用说明</h3>');
+        addLog('<p>点击"开始诊断"按钮，系统将自动执行以下步骤:</p>');
+        addLog('<ol>');
+        addLog('<li>使用 admin 账号登录</li>');
+        addLog('<li>使用用户 999 登录</li>');
+        addLog('<li>测试创建用户接口（预期会失败）</li>');
+        addLog('<li>获取用户 999 的信息和角色</li>');
+        addLog('<li>检查用户 999 的菜单权限</li>');
+        addLog('<li>分析诊断结果并给出修复建议</li>');
+        addLog('</ol>');
+        addLog('</div>');
+    </script>
+</body>
+</html>

@@ -1,0 +1,302 @@
+- generic [ref=e1780]:
+  - banner [ref=e1781]:
+    - img [ref=e1782] [cursor=pointer]
+    - menubar [ref=e1800]:
+      - menuitem [ref=e1801] [cursor=pointer]
+      - menuitem "权限管理" [ref=e1802]:
+        - generic [ref=e1803] [cursor=pointer]:
+          - generic [ref=e1804]: 权限管理
+          - img [ref=e1806]
+      - menuitem "工作台" [ref=e1808] [cursor=pointer]:
+        - generic [ref=e1809]: 工作台
+      - menuitem "仪表板" [ref=e1810] [cursor=pointer]:
+        - generic [ref=e1811]: 仪表板
+      - menuitem "数据大屏" [ref=e1812] [cursor=pointer]:
+        - generic [ref=e1813]: 数据大屏
+      - menuitem "数据准备" [ref=e1814]:
+        - generic [ref=e1815] [cursor=pointer]:
+          - generic [ref=e1816]: 数据准备
+          - img [ref=e1818]
+    - generic [ref=e1820]:
+      - img [ref=e1822] [cursor=pointer]
+      - img [ref=e1831] [cursor=pointer]
+      - img [ref=e1835] [cursor=pointer]
+      - img [ref=e1839] [cursor=pointer]
+      - generic [ref=e1841] [cursor=pointer]:
+        - img [ref=e1843]
+        - generic [ref=e1848]: 管理员
+        - img [ref=e1850]
+      - generic:
+        - generic:
+          - img [ref=e1853] [cursor=pointer]
+          - img [ref=e1856] [cursor=pointer]
+          - iframe
+  - main [ref=e1859]:
+    - generic [ref=e1860]:
+      - generic [ref=e1862]:
+        - generic [ref=e1864]:
+          - generic [ref=e1865]:
+            - generic [ref=e1866]: 关键词
+            - generic [ref=e1869]:
+              - img [ref=e1872]
+              - textbox "关键词" [ref=e1874]:
+                - /placeholder: 搜索用户名/姓名/邮箱
+          - generic [ref=e1875]:
+            - generic [ref=e1876]: 状态
+            - generic [ref=e1879] [cursor=pointer]:
+              - generic:
+                - combobox "状态" [ref=e1881]
+                - generic [ref=e1882]: 用户状态
+              - img [ref=e1885]
+          - generic [ref=e1887]:
+            - generic [ref=e1888]: 角色
+            - generic [ref=e1891] [cursor=pointer]:
+              - generic:
+                - combobox "角色" [ref=e1893]
+                - generic [ref=e1894]: 选择角色
+              - img [ref=e1897]
+          - generic [ref=e1900]:
+            - button "查询" [ref=e1901] [cursor=pointer]:
+              - generic [ref=e1902]: 查询
+            - button "重置" [ref=e1903] [cursor=pointer]:
+              - generic [ref=e1904]: 重置
+        - button "创建用户" [ref=e1906] [cursor=pointer]:
+          - generic [ref=e1907]:
+            - img [ref=e1909]
+            - text: 创建用户
+        - generic [ref=e1911]:
+          - generic [ref=e1913]:
+            - table [ref=e1915]:
+              - rowgroup [ref=e1926]:
+                - row "用户名 姓名 邮箱 手机号 角色 用户组 状态 创建时间 操作" [ref=e1927]:
+                  - columnheader "用户名" [ref=e1928]:
+                    - generic [ref=e1929]: 用户名
+                  - columnheader "姓名" [ref=e1930]:
+                    - generic [ref=e1931]: 姓名
+                  - columnheader "邮箱" [ref=e1932]:
+                    - generic [ref=e1933]: 邮箱
+                  - columnheader "手机号" [ref=e1934]:
+                    - generic [ref=e1935]: 手机号
+                  - columnheader "角色" [ref=e1936]:
+                    - generic [ref=e1937]: 角色
+                  - columnheader "用户组" [ref=e1938]:
+                    - generic [ref=e1939]: 用户组
+                  - columnheader "状态" [ref=e1940]:
+                    - generic [ref=e1941]: 状态
+                  - columnheader "创建时间" [ref=e1942]:
+                    - generic [ref=e1943]: 创建时间
+                  - columnheader "操作" [ref=e1944]:
+                    - generic [ref=e1945]: 操作
+            - table [ref=e1950]:
+              - rowgroup [ref=e1961]:
+                - row "admin 管理员 admin@dataease.io - 管理员 - 启用 2026-03-02T04:21:42.000Z 编辑 重置密码 删除" [ref=e1962]:
+                  - cell "admin" [ref=e1963]:
+                    - generic [ref=e1964]: admin
+                  - cell "管理员" [ref=e1965]:
+                    - generic [ref=e1966]: 管理员
+                  - cell "admin@dataease.io" [ref=e1967]:
+                    - generic [ref=e1968]: admin@dataease.io
+                  - cell "-" [ref=e1969]:
+                    - generic [ref=e1970]: "-"
+                  - cell "管理员" [ref=e1971]:
+                    - generic [ref=e1974]: 管理员
+                  - cell "-" [ref=e1975]:
+                    - generic [ref=e1976]: "-"
+                  - cell "启用" [ref=e1977]:
+                    - generic [ref=e1980]: 启用
+                  - cell "2026-03-02T04:21:42.000Z" [ref=e1981]:
+                    - generic [ref=e1982]: 2026-03-02T04:21:42.000Z
+                  - cell "编辑 重置密码 删除" [ref=e1983]:
+                    - generic [ref=e1985]:
+                      - button "编辑" [ref=e1986] [cursor=pointer]:
+                        - generic [ref=e1987]: 编辑
+                      - button "重置密码" [ref=e1988] [cursor=pointer]:
+                        - generic [ref=e1989]: 重置密码
+                      - button "删除" [ref=e1990] [cursor=pointer]:
+                        - generic [ref=e1991]: 删除
+                - row "001 001 wyming@163.net - 管理员 普通用户 数据分析师 - 启用 2026-03-01T13:21:04.122Z 编辑 重置密码 删除" [ref=e1992]:
+                  - cell "001" [ref=e1993]:
+                    - generic [ref=e1994]: "001"
+                  - cell "001" [ref=e1995]:
+                    - generic [ref=e1996]: "001"
+                  - cell "wyming@163.net" [ref=e1997]:
+                    - generic [ref=e1998]: wyming@163.net
+                  - cell "-" [ref=e1999]:
+                    - generic [ref=e2000]: "-"
+                  - cell "管理员 普通用户 数据分析师" [ref=e2001]:
+                    - generic [ref=e2002]:
+                      - generic [ref=e2004]: 管理员
+                      - generic [ref=e2006]: 普通用户
+                      - generic [ref=e2008]: 数据分析师
+                  - cell "-" [ref=e2009]:
+                    - generic [ref=e2010]: "-"
+                  - cell "启用" [ref=e2011]:
+                    - generic [ref=e2014]: 启用
+                  - cell "2026-03-01T13:21:04.122Z" [ref=e2015]:
+                    - generic [ref=e2016]: 2026-03-01T13:21:04.122Z
+                  - cell "编辑 重置密码 删除" [ref=e2017]:
+                    - generic [ref=e2019]:
+                      - button "编辑" [ref=e2020] [cursor=pointer]:
+                        - generic [ref=e2021]: 编辑
+                      - button "重置密码" [ref=e2022] [cursor=pointer]:
+                        - generic [ref=e2023]: 重置密码
+                      - button "删除" [ref=e2024] [cursor=pointer]:
+                        - generic [ref=e2025]: 删除
+                - row "002 002 wymwlcn@gmail.com - 管理员 - 启用 2026-03-01T13:25:48.703Z 编辑 重置密码 删除" [ref=e2026]:
+                  - cell "002" [ref=e2027]:
+                    - generic [ref=e2028]: "002"
+                  - cell "002" [ref=e2029]:
+                    - generic [ref=e2030]: "002"
+                  - cell "wymwlcn@gmail.com" [ref=e2031]:
+                    - generic [ref=e2032]: wymwlcn@gmail.com
+                  - cell "-" [ref=e2033]:
+                    - generic [ref=e2034]: "-"
+                  - cell "管理员" [ref=e2035]:
+                    - generic [ref=e2038]: 管理员
+                  - cell "-" [ref=e2039]:
+                    - generic [ref=e2040]: "-"
+                  - cell "启用" [ref=e2041]:
+                    - generic [ref=e2044]: 启用
+                  - cell "2026-03-01T13:25:48.703Z" [ref=e2045]:
+                    - generic [ref=e2046]: 2026-03-01T13:25:48.703Z
+                  - cell "编辑 重置密码 删除" [ref=e2047]:
+                    - generic [ref=e2049]:
+                      - button "编辑" [ref=e2050] [cursor=pointer]:
+                        - generic [ref=e2051]: 编辑
+                      - button "重置密码" [ref=e2052] [cursor=pointer]:
+                        - generic [ref=e2053]: 重置密码
+                      - button "删除" [ref=e2054] [cursor=pointer]:
+                        - generic [ref=e2055]: 删除
+                - row "user_admin 测试管理员 useradmin@test.com 13800138001 管理员 - 启用 2026-03-03T07:39:09.755Z 编辑 重置密码 删除" [ref=e2184]:
+                  - cell "user_admin" [ref=e2185]:
+                    - generic [ref=e2186]: user_admin
+                  - cell "测试管理员" [ref=e2187]:
+                    - generic [ref=e2188]: 测试管理员
+                  - cell "useradmin@test.com" [ref=e2189]:
+                    - generic [ref=e2190]: useradmin@test.com
+                  - cell "13800138001" [ref=e2191]:
+                    - generic [ref=e2192]: "13800138001"
+                  - cell "管理员" [ref=e2193]:
+                    - generic [ref=e2196]: 管理员
+                  - cell "-" [ref=e2197]:
+                    - generic [ref=e2198]: "-"
+                  - cell "启用" [ref=e2199]:
+                    - generic [ref=e2202]: 启用
+                  - cell "2026-03-03T07:39:09.755Z" [ref=e2203]:
+                    - generic [ref=e2204]: 2026-03-03T07:39:09.755Z
+                  - cell "编辑 重置密码 删除" [ref=e2205]:
+                    - generic [ref=e2207]:
+                      - button "编辑" [ref=e2208] [cursor=pointer]:
+                        - generic [ref=e2209]: 编辑
+                      - button "重置密码" [ref=e2210] [cursor=pointer]:
+                        - generic [ref=e2211]: 重置密码
+                      - button "删除" [ref=e2212] [cursor=pointer]:
+                        - generic [ref=e2213]: 删除
+                - row "user_normal 测试普通用户 usernormal@test.com 13800138002 管理员 - 启用 2026-03-03T07:39:45.695Z 编辑 重置密码 删除" [ref=e2232]:
+                  - cell "user_normal" [ref=e2233]:
+                    - generic [ref=e2234]: user_normal
+                  - cell "测试普通用户" [ref=e2235]:
+                    - generic [ref=e2236]: 测试普通用户
+                  - cell "usernormal@test.com" [ref=e2237]:
+                    - generic [ref=e2238]: usernormal@test.com
+                  - cell "13800138002" [ref=e2239]:
+                    - generic [ref=e2240]: "13800138002"
+                  - cell "管理员" [ref=e2241]:
+                    - generic [ref=e2244]: 管理员
+                  - cell "-" [ref=e2245]:
+                    - generic [ref=e2246]: "-"
+                  - cell "启用" [ref=e2247]:
+                    - generic [ref=e2250]: 启用
+                  - cell "2026-03-03T07:39:45.695Z" [ref=e2251]:
+                    - generic [ref=e2252]: 2026-03-03T07:39:45.695Z
+                  - cell "编辑 重置密码 删除" [ref=e2253]:
+                    - generic [ref=e2255]:
+                      - button "编辑" [ref=e2256] [cursor=pointer]:
+                        - generic [ref=e2257]: 编辑
+                      - button "重置密码" [ref=e2258] [cursor=pointer]:
+                        - generic [ref=e2259]: 重置密码
+                      - button "删除" [ref=e2260] [cursor=pointer]:
+                        - generic [ref=e2261]: 删除
+          - generic [ref=e2058]:
+            - generic [ref=e2059]: 共 5 条
+            - generic [ref=e2062] [cursor=pointer]:
+              - generic:
+                - combobox [ref=e2064]
+                - generic [ref=e2065]: 10条/页
+              - img [ref=e2068]
+            - button "上一页" [disabled] [ref=e2070]:
+              - generic:
+                - img
+            - list [ref=e2071]:
+              - listitem "第 1 页" [ref=e2072]: "1"
+            - button "下一页" [disabled] [ref=e2073]:
+              - generic:
+                - img
+            - generic [ref=e2074]:
+              - generic [ref=e2075]: 前往
+              - spinbutton "页" [ref=e2078]: "1"
+              - generic [ref=e2079]: 页
+      - dialog "创建用户" [ref=e2081]:
+        - generic [active] [ref=e2082]:
+          - generic [ref=e2083]:
+            - heading "创建用户" [level=2] [ref=e2084]
+            - button "关闭此对话框" [ref=e2085] [cursor=pointer]:
+              - img [ref=e2087]
+          - generic [ref=e2090]:
+            - generic [ref=e2091]:
+              - generic [ref=e2092]: 用户名 *
+              - textbox "用户名 *" [ref=e2096]:
+                - /placeholder: 请输入用户名
+                - text: user_limited
+            - generic [ref=e2097]:
+              - generic [ref=e2098]: 姓名 *
+              - textbox "姓名 *" [ref=e2102]:
+                - /placeholder: 请输入姓名
+                - text: 测试受限用户
+            - generic [ref=e2103]:
+              - generic [ref=e2104]: 邮箱 *
+              - textbox "邮箱 *" [ref=e2108]:
+                - /placeholder: 请输入邮箱
+                - text: userlimited@test.com
+            - generic [ref=e2109]:
+              - generic [ref=e2110]: 手机号
+              - textbox "手机号" [ref=e2114]:
+                - /placeholder: 请输入手机号
+                - text: "13800138003"
+            - generic [ref=e2115]:
+              - generic [ref=e2116]: 密码 *
+              - generic [ref=e2119]:
+                - textbox "密码 *" [ref=e2120]:
+                  - /placeholder: 请输入密码
+                  - text: Test@123456
+                - img [ref=e2271] [cursor=pointer]
+            - generic [ref=e2121]:
+              - generic [ref=e2122]: 角色 *
+              - generic [ref=e2125] [cursor=pointer]:
+                - generic [ref=e2168]:
+                  - generic [ref=e2275]:
+                    - generic [ref=e2277]: "002"
+                    - img [ref=e2279]
+                  - combobox "角色 *" [ref=e2127]
+                - img [ref=e2131]
+            - generic [ref=e2133]:
+              - generic [ref=e2134]: 用户组
+              - generic [ref=e2137] [cursor=pointer]:
+                - generic:
+                  - combobox "用户组" [ref=e2139]
+                  - generic [ref=e2140]: 请选择用户组
+                - img [ref=e2143]
+            - generic [ref=e2145]:
+              - generic [ref=e2146]: 状态
+              - radiogroup "状态" [ref=e2148]:
+                - generic [ref=e2149] [cursor=pointer]:
+                  - radio "启用" [checked] [ref=e2151]
+                  - generic [ref=e2153]: 启用
+                - generic [ref=e2154] [cursor=pointer]:
+                  - radio "禁用" [ref=e2156]
+                  - generic [ref=e2158]: 禁用
+          - generic [ref=e2159]:
+            - button "取消" [ref=e2160] [cursor=pointer]:
+              - generic [ref=e2161]: 取消
+            - button "确定" [ref=e2162] [cursor=pointer]:
+              - generic [ref=e2163]: 确定
