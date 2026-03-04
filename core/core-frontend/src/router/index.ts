@@ -180,20 +180,16 @@ export const routes: AppRouteRecordRaw[] = [
   },
   {
     path: '/permissions/',
+    hidden: true,
     redirect: { name: 'permissions-menu' }
   },
   {
     path: '/permissions',
     name: 'permissions',
+    hidden: true,
     component: () => import('@/layout/index.vue'),
     redirect: { name: 'permissions-menu' },
     children: [
-      {
-        path: '',
-        name: 'permissions-index',
-        component: () => import('@/views/permissions/index.vue'),
-        meta: { title: '权限中心' }
-      },
       {
         path: 'menu',
         name: 'permissions-menu',
