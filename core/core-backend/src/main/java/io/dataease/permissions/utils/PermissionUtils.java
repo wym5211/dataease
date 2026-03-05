@@ -164,6 +164,9 @@ public class PermissionUtils {
         if (cleanUri.startsWith("/datasource/")) {
             return true;
         }
+        if (cleanUri.equals("/engine/supportSetKey")) {
+            return true;
+        }
 
         // 导出中心相关公共API
         if (cleanUri.startsWith("/exportCenter/")) {
@@ -304,6 +307,12 @@ public class PermissionUtils {
         // 移除API前缀
         if (cleanUri.startsWith(AuthConstant.DE_API_PREFIX)) {
             cleanUri = cleanUri.substring(AuthConstant.DE_API_PREFIX.length());
+        }
+        if (cleanUri.startsWith(AuthConstant.DE_CASAPI_PREFIX)) {
+            cleanUri = cleanUri.substring(AuthConstant.DE_CASAPI_PREFIX.length());
+        }
+        if (cleanUri.startsWith(AuthConstant.DE_OIDCAPI_PREFIX)) {
+            cleanUri = cleanUri.substring(AuthConstant.DE_OIDCAPI_PREFIX.length());
         }
         
         return cleanUri;
