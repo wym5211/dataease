@@ -50,7 +50,20 @@ public class WhitelistUtils {
             "/embedded/initIframe",
             "/sysParameter/i18nOptions",
             "/login/modifyInvalidPwd",
-            "/");
+            "/",
+            // 公共API - 不需要特定菜单权限的接口
+            "/templateMarket/searchRecommend",
+            "/templateMarket/existTemplate",
+            "/share/queryShareBaseApi",
+            "/interactive/init",
+            "/sysParameter/shareBase",
+            "/sysParameter/sqlbot",
+            "/license/version",
+            "/license/validate",
+            "/msg-center/count",
+            "/store/query",
+            "/aiBase/findTargetUrl",
+            "/dataVisualization/interactive");
 
     public static boolean match(String requestURI) {
         invalidUrl(requestURI);

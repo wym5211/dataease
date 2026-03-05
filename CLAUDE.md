@@ -134,20 +134,6 @@ cd core/core-backend
 java -jar target/CoreApplication.jar --spring.profiles.active=desktop
 ```
 
-### Development Mode (Frontend + Backend separately)
-
-```bash
-# Terminal 1: Backend
-cd core/core-backend
-java -jar target/CoreApplication.jar --spring.profiles.active=standalone
-
-# Terminal 2: Frontend
-cd core/core-frontend
-npm run dev:win
-# Frontend: http://localhost:8081
-# Backend: http://localhost:8100
-```
-
 ## Default Credentials
 
 - Username: `admin`
@@ -243,14 +229,4 @@ npm run lint
 npm run lint:stylelint
 ```
 
-## Important Notes
 
-1. **Maven Profile Activation**: The `standalone` profile is active by default. To build enterprise edition, explicitly activate `distributed` profile.
-
-2. **Frontend Integration**: The `standalone` profile copies frontend `dist/` folder to `src/main/resources/static/` during build.
-
-3. **Token Validation**: In desktop mode, `TokenFilter` detects via `ModelUtils.isDesktop()` and bypasses full JWT validation.
-
-4. **Database Migrations**: Flyway manages schema migrations. Desktop and standalone modes have separate migration locations:
-   - Desktop: `classpath:db/desktop`
-   - Standalone: `classpath:db/migration`

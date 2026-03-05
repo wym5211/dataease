@@ -133,7 +133,43 @@ public class PermissionUtils {
 
         // 移除context path和API前缀
         String cleanUri = cleanRequestURI(requestURI);
-        
+
+        // 登出API，只要是登录用户就可以访问
+        if (cleanUri.equals("/logout") || cleanUri.equals("/login/logout")) {
+            return true;
+        }
+
+        // 个人信息相关API，只要是登录用户就可以访问
+        if (cleanUri.equals("/user/info") || cleanUri.equals("/user/personInfo") ||
+            cleanUri.equals("/user/modifyPwd") || cleanUri.equals("/user/personEdit")) {
+            return true;
+        }
+
+        // 菜单查询API，只要是登录用户就可以访问
+        if (cleanUri.equals("/menu/query")) {
+            return true;
+        }
+
+        // 可视化相关公共API，只要是登录用户就可以访问
+        if (cleanUri.startsWith("/dataVisualization/")) {
+            return true;
+        }
+
+        // 数据集相关公共API
+        if (cleanUri.startsWith("/datasetTree/") || cleanUri.startsWith("/dataset/")) {
+            return true;
+        }
+
+        // 数据源相关公共API
+        if (cleanUri.startsWith("/datasource/")) {
+            return true;
+        }
+
+        // 导出中心相关公共API
+        if (cleanUri.startsWith("/exportCenter/")) {
+            return true;
+        }
+
         // 检查菜单权限
         return hasMenuPermission(cleanUri, user.getUserId());
     }

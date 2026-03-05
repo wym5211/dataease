@@ -193,46 +193,50 @@ export const routes: AppRouteRecordRaw[] = [
       {
         path: 'menu',
         name: 'permissions-menu',
+        hidden: true,
         component: () => import('@/views/permissions/menu/index.vue'),
         meta: { title: '菜单授权' }
       },
       {
         path: 'resource',
         name: 'permissions-resource',
+        hidden: true,
         component: () => import('@/views/permissions/resource/index.vue'),
         meta: { title: '资源授权' }
       },
       {
         path: 'templates',
         name: 'permissions-templates',
+        hidden: true,
         component: () => import('@/views/permissions/template/index.vue'),
         meta: { title: '权限模板' }
       },
       {
         path: 'audit',
         name: 'permissions-audit',
+        hidden: true,
         component: () => import('@/views/permissions/audit/index.vue'),
         meta: { title: '权限审计' }
       },
       {
         path: 'user',
         name: 'permissions-user',
+        hidden: true,
         component: () => import('@/views/permissions/user/index.vue'),
         meta: {
           title: '用户管理',
           roles: ['admin']
         }
-        // 用户管理页面 - 仅管理员可访问
       },
       {
         path: 'role',
         name: 'permissions-role',
+        hidden: true,
         component: () => import('@/views/permissions/role/index.vue'),
         meta: {
           title: '角色管理',
           roles: ['admin']
         }
-        // 角色管理页面 - 仅管理员可访问
       }
     ]
   },
