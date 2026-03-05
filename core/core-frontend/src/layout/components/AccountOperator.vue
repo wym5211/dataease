@@ -98,11 +98,11 @@ const openPopover = () => {
 
 if (uid.value === '1') {
   linkLoaded([{ id: 4, link: '/sys-setting/parameter', label: t('commons.system_setting') }])
-  const desktop = wsCache.get('app.desktop')
-  if (!desktop) {
-    linkLoaded([{ id: 2, link: '/modify-pwd/index', label: t('user.change_password') }])
-    linkLoaded([{ id: 3, link: '/user-setting/index', label: t('user.user_setting') }])
-  }
+}
+const desktop = wsCache.get('app.desktop')
+if (!desktop) {
+  linkLoaded([{ id: 2, link: '/modify-pwd/index', label: t('user.change_password') }])
+  linkLoaded([{ id: 3, link: '/user-setting/index', label: t('user.user_setting') }])
 }
 </script>
 

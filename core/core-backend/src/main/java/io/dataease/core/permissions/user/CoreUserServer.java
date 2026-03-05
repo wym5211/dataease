@@ -22,6 +22,7 @@ import io.dataease.system.dao.auto.mapper.SysUserRoleMapper;
 import io.dataease.system.dao.auto.mapper.SysRoleMapper;
 import io.dataease.utils.BeanUtils;
 import io.dataease.utils.IPUtils;
+import io.dataease.utils.RsaUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -510,17 +511,34 @@ public class CoreUserServer implements UserApi {
         if (user == null) {
             DEException.throwException("User not found");
         }
-        
-        // Verify old password (if stored as BCrypt)
-        // If legacy (MD5), we might need to handle migration or just support BCrypt from now on.
-        // Assuming we start fresh or migrated.
-        if (!passwordEncoder.matches(request.getPwd(), user.getPassword())) {
-             // Fallback to MD5 check if migration is needed?
-             // For now, strict BCrypt.
-             DEException.throwException("Old password incorrect");
+
+        String oldPwd = request.getPwd();
+        String newPwd = request.getNewPwd();
+
+        try {
+            if (oldPwd != null && oldPwd.length() > 20) {
+                oldPwd = RsaUtils.decryptStr(oldPwd);
+            }
+        } catch (Exception e) {
         }
-        
-        user.setPassword(passwordEncoder.encode(request.getNewPwd()));
+        try {
+            if (newPwd != null && newPwd.length() > 20) {
+                newPwd = RsaUtils.decryptStr(newPwd);
+            }
+        } catch (Exception e) {
+        }
+
+        boolean matches = false;
+        if (user.getPassword() != null && (user.getPassword().startsWith("$2a$") || user.getPassword().startsWith("$2b$"))) {
+            matches = passwordEncoder.matches(oldPwd, user.getPassword());
+        } else if (oldPwd != null && oldPwd.equals(user.getPassword())) {
+            matches = true;
+        }
+        if (!matches) {
+            DEException.throwException("Old password incorrect");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPwd));
         sysUserMapper.updateById(user);
     }
 
