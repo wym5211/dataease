@@ -62,6 +62,9 @@ public class CoreOptRecentManage {
     }
 
     public Map<String, Long> findTemplateRecentUseTime() {
+        if (AuthUtils.getUser() == null) {
+            return new HashMap<>();
+        }
         Long uid = AuthUtils.getUser().getUserId();
         QueryWrapper<CoreOptRecent> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("resource_type", OptConstants.OPT_RESOURCE_TYPE.TEMPLATE);

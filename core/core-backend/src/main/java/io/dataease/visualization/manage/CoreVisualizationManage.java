@@ -251,9 +251,12 @@ public class CoreVisualizationManage {
 
     @XpackInteract(value = "perFilterManage", recursion = true, invalid = true)
     public IPage<VisualizationResourceVO> query(int pageNum, int pageSize, VisualizationWorkbranchQueryRequest request) {
+        if (AuthUtils.getUser() == null) {
+            return new Page<>(pageNum, pageSize);
+        }
         IPage<VisualizationResourcePO> visualizationResourcePOPageIPage = proxy().queryVisualizationPage(pageNum, pageSize, request);
         if (ObjectUtils.isEmpty(visualizationResourcePOPageIPage)) {
-            return null;
+            return new Page<>(pageNum, pageSize);
         }
         List<VisualizationResourceVO> vos = proxy().formatResult(visualizationResourcePOPageIPage.getRecords());
         IPage<VisualizationResourceVO> iPage = new Page<>();
@@ -277,6 +280,9 @@ public class CoreVisualizationManage {
     }
 
     public IPage<VisualizationResourcePO> queryVisualizationPage(int goPage, int pageSize, VisualizationWorkbranchQueryRequest request) {
+        if (AuthUtils.getUser() == null) {
+            return new Page<>(goPage, pageSize);
+        }
         Long uid = AuthUtils.getUser().getUserId();
         Map<String, Object> params = new HashMap<>();
         if (StringUtils.isNotBlank(request.getType())) {

@@ -132,7 +132,13 @@ public class TemplateCenterManage {
     private List<TemplateMarketDTO> searchTemplateFromManage() {
         try {
             List<TemplateManageDTO> manageResult = templateManageMapper.findBaseTemplateList();
+            if(manageResult == null){
+                manageResult = new ArrayList<>();
+            }
             List<TemplateManageDTO> categories = templateManageMapper.findCategories(null);
+            if(categories == null){
+                categories = new ArrayList<>();
+            }
             Map<String, String> categoryMap = categories.stream()
                     .collect(Collectors.toMap(TemplateManageDTO::getId, TemplateManageDTO::getName));
             return baseManage2MarketTrans(manageResult, categoryMap);
@@ -145,7 +151,9 @@ public class TemplateCenterManage {
     private List<TemplateMarketDTO> baseManage2MarketTrans(List<TemplateManageDTO> manageResult, Map<String, String> categoryMap) {
         List<TemplateMarketDTO> result = new ArrayList<>();
         manageResult.stream().forEach(templateManageDTO -> {
-            templateManageDTO.setCategoryName(categoryMap.get(templateManageDTO.getPid()));
+            if(templateManageDTO.getPid() != null && categoryMap.containsKey(templateManageDTO.getPid())){
+                templateManageDTO.setCategoryName(categoryMap.get(templateManageDTO.getPid()));
+            }
             List<String> categories = templateManageDTO.getCategories();
             if (!CollectionUtils.isEmpty(categories)) {
                 List<String> categoryNames = categories.stream().map(categoryId -> categoryMap.get(categoryId)).collect(Collectors.toList());
@@ -164,10 +172,13 @@ public class TemplateCenterManage {
         try {
             v2BaseResponse = templateQuery(templateParams);
         } catch (Exception e) {
-            DEException.throwException(e);
+            LogUtil.error(e);
         }
         // 模版管理使用次数推荐
         List<TemplateMarketDTO> manage = searchTemplateFromManage();
+        if(manage == null){
+            manage = new ArrayList<>();
+        }
         return baseResponseV2TransRecommend(v2BaseResponse, manage, templateParams.get("template.url"));
     }
 
@@ -203,7 +214,8 @@ public class TemplateCenterManage {
     }
 
     private MarketBaseResponse baseResponseV2TransRecommend(MarketTemplateV2BaseResponse v2BaseResponse, List<TemplateMarketDTO> templateManages, String url) {
-        Map<String, Long> useTime = coreOptRecentManage.findTemplateRecentUseTime();
+        Map<String, Long> useTimeTemp = coreOptRecentManage.findTemplateRecentUseTime();
+        final Map<String, Long> useTime = useTimeTemp != null ? useTimeTemp : new HashMap<>();
         List<MarketMetaDataVO> categoryVO = getCategoriesV2().stream().filter(node -> !"全部".equalsIgnoreCase(node.getLabel())).collect(Collectors.toList());
         Map<String, String> categoriesMap = categoryVO.stream()
                 .collect(Collectors.toMap(MarketMetaDataVO::getSlug, MarketMetaDataVO::getLabel));
@@ -239,7 +251,8 @@ public class TemplateCenterManage {
     }
 
     private MarketBaseResponse baseResponseV2Trans(MarketTemplateV2BaseResponse v2BaseResponse, List<TemplateMarketDTO> contents, String url) {
-        Map<String, Long> useTime = coreOptRecentManage.findTemplateRecentUseTime();
+        Map<String, Long> useTimeTemp = coreOptRecentManage.findTemplateRecentUseTime();
+        final Map<String, Long> useTime = useTimeTemp != null ? useTimeTemp : new HashMap<>();
         List<MarketMetaDataVO> categoryVO = getCategoriesObject().stream().filter(node -> !"全部".equalsIgnoreCase(node.getLabel())).collect(Collectors.toList());
         Map<String, String> categoriesMap = categoryVO.stream()
                 .collect(Collectors.toMap(MarketMetaDataVO::getValue, MarketMetaDataVO::getLabel));

@@ -36,6 +36,9 @@ public class VisualizationStoreManage {
     private CoreStoreExtMapper coreStoreExtMapper;
 
     public void execute(VisualizationStoreRequest request) {
+        if (AuthUtils.getUser() == null) {
+            return;
+        }
         Long resourceId = request.getId();
         Long uid = AuthUtils.getUser().getUserId();
         if (favorited(resourceId)) {
@@ -60,6 +63,9 @@ public class VisualizationStoreManage {
     }
 
     public Boolean favorited(Long resourceId) {
+        if (AuthUtils.getUser() == null) {
+            return false;
+        }
         QueryWrapper<CoreStore> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("resource_id", resourceId);
         queryWrapper.eq("uid", AuthUtils.getUser().getUserId());
@@ -68,6 +74,9 @@ public class VisualizationStoreManage {
 
     @XpackInteract(value = "perFilterManage", recursion = true, invalid = true)
     public IPage<VisualizationStoreVO> query(int pageNum, int pageSize, VisualizationWorkbranchQueryRequest request) {
+        if (AuthUtils.getUser() == null) {
+            return new Page<>(pageNum, pageSize);
+        }
         IPage<StorePO> storePOIPage = proxy().queryStorePage(pageNum, pageSize, request);
         if (ObjectUtils.isEmpty(storePOIPage)) return null;
         List<VisualizationStoreVO> vos = proxy().formatResult(storePOIPage.getRecords());
@@ -94,6 +103,9 @@ public class VisualizationStoreManage {
     }
 
     public IPage<StorePO> queryStorePage(int goPage, int pageSize, VisualizationWorkbranchQueryRequest request) {
+        if (AuthUtils.getUser() == null) {
+            return new Page<>(goPage, pageSize);
+        }
         Long uid = AuthUtils.getUser().getUserId();
         QueryWrapper<Object> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("s.uid", uid);

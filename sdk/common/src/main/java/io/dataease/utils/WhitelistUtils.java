@@ -60,8 +60,6 @@ public class WhitelistUtils {
             "/sysParameter/sqlbot",
             "/license/version",
             "/license/validate",
-            "/msg-center/count",
-            "/store/query",
             "/aiBase/findTargetUrl",
             "/dataVisualization/interactive");
 
