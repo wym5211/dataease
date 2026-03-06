@@ -135,7 +135,8 @@ const getPathway = (tree, nodePathArray) => {
         return true
       }
     }
-    if (!tree[index].children?.length && !tree[index].hidden) {
+    const isHidden = tree[index].hidden || tree[index].meta?.hidden
+    if (!tree[index].children?.length && !isHidden) {
       nodePathArray.push(tree[index].path)
       return true
     }

@@ -195,6 +195,13 @@ export const routes: AppRouteRecordRaw[] = [
         name: 'permissions-menu',
         hidden: true,
         component: () => import('@/views/permissions/menu/index.vue'),
+        meta: { title: '权限中心' }
+      },
+      {
+        path: 'menu-auth',
+        name: 'permissions-menu-auth',
+        hidden: true,
+        component: () => import('@/views/permissions/menu/index.vue'),
         meta: { title: '菜单授权' }
       },
       {

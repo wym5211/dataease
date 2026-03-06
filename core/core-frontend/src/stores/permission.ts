@@ -102,12 +102,15 @@ interface BackendMenuItem {
   plugin: boolean
 }
 
+// 需要过滤掉的菜单名称列表
+const EXCLUDED_MENUS = ['sys-setting', 'permissions', 'template-market', 'toolbox']
+
 // 转换后端菜单数据到前端格式
 const transformMenuData = (backendMenus: BackendMenuItem[]): MenuNode[] => {
   if (!Array.isArray(backendMenus)) return []
 
   return backendMenus
-    .filter(menu => menu && menu.name) // 过滤掉空菜单
+    .filter(menu => menu && menu.name && !EXCLUDED_MENUS.includes(menu.name)) // 过滤掉空菜单和排除的菜单
     .map(menu => {
       // 检查是否有非空的子节点数组
       const hasChildren = menu.children && Array.isArray(menu.children) && menu.children.length > 0

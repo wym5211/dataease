@@ -142,10 +142,6 @@ router.beforeEach(async (to, from, next) => {
         router.addRoute(route as unknown as RouteRecordRaw) // 动态添加可访问路由表
       })
 
-      const redirectPath = from.query.redirect || to.path
-      const redirect = decodeURIComponent(redirectPath as string)
-      const nextData = to.path === redirect ? { ...to, replace: true } : { path: redirect }
-
       permissionStore.setIsAddRouters(true)
       await interactiveStore.initInteractive(true)
 
@@ -154,7 +150,15 @@ router.beforeEach(async (to, from, next) => {
         next({ path: firstPath || '/404' })
         return
       }
-      next(nextData)
+
+      // 从登录页跳转时，跳转到第一个有权限的页面
+      if (from.path === '/login') {
+        const firstPath = getFirstAuthMenu()
+        next({ path: firstPath || '/workbranch/index' })
+        return
+      }
+
+      next({ ...to, replace: true })
     }
   } else {
     const embeddedStore = useEmbedded()
