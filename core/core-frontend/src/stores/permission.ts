@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, readonly } from 'vue'
 import { ElMessage } from 'element-plus-secondary'
-import { menuTreeApi, menuPerSaveApi, menuPerApi } from '@/api/auth'
+import { menuTreeApi, menuPerSaveApi, menuPerApi, busiPerSaveApi, resourcePerApi } from '@/api/auth'
 import { getRoleList } from '@/views/permissions/role/api'
 import { getDatasetTree, getDatasourceList } from '@/api/dataset'
 import { queryTreeApi } from '@/api/visualization/dataVisualization'
@@ -325,8 +325,10 @@ export const usePermissionStore = defineStore('permissionManager', () => {
         ]
       }
 
-      state.value.resourceTreeData[resourceType] =
-        mockData[resourceType as keyof typeof mockData] || []
+      state.value.resourceTreeData = {
+        ...state.value.resourceTreeData,
+        [resourceType]: mockData[resourceType as keyof typeof mockData] || []
+      }
     } catch (error) {
       console.error(`加载${resourceType}权限失败:`, error)
       throw error
@@ -418,13 +420,94 @@ export const usePermissionStore = defineStore('permissionManager', () => {
         treeData = []
       }
 
-      state.value.resourceTreeData[resourceType] = treeData
+      // 如果有选择角色，加载该角色的资源权限
+      if (state.value.selectedRoleId) {
+        try {
+          // 使用与后端数据库一致的资源类型标识（小写）
+          const flagMap: Record<string, string> = {
+            dashboard: 'dashboard',
+            screen: 'dataV',
+            chart: 'dashboard',
+            dataset: 'dataset',
+            datasource: 'datasource'
+          }
+          const flag = flagMap[resourceType]
+
+          if (flag) {
+            const requestParams = {
+              id: state.value.selectedRoleId,
+              type: 1,
+              flag: flag
+            }
+            console.log('[Permission Store] 查询资源权限请求:', requestParams)
+            const perResponse = await resourcePerApi(requestParams)
+            console.log('[Permission Store] 资源权限响应:', perResponse)
+            console.log('[Permission Store] 响应 data:', perResponse?.data)
+            console.log('[Permission Store] 响应 permissions:', perResponse?.permissions)
+
+            // 获取有权限的资源ID列表
+            const grantedResourceIds = new Set<string>()
+            // 后端可能直接返回 permissions 或在 data.permissions 中
+            const permissionList = perResponse?.permissions || perResponse?.data?.permissions || []
+            console.log('[Permission Store] 权限列表:', permissionList)
+            if (permissionList.length > 0) {
+              permissionList.forEach((r: any) => {
+                console.log('[Permission Store] 权限项:', r, 'id:', r.id, 'type:', typeof r.id)
+                if (r.id) {
+                  grantedResourceIds.add(String(r.id))
+                }
+              })
+            } else {
+              console.log('[Permission Store] 权限列表为空，检查数据库是否有记录')
+            }
+            console.log('[Permission Store] 有权限的资源IDs:', Array.from(grantedResourceIds))
+
+            // 应用权限到资源树
+            console.log(
+              '[Permission Store] 树节点IDs:',
+              treeData.map((n: any) => ({ id: n.id, name: n.name }))
+            )
+            const applyPermissions = (nodes: ResourceNode[]) => {
+              nodes.forEach(node => {
+                const hasGrant = grantedResourceIds.has(node.id)
+                console.log(
+                  '[Permission Store] 检查节点:',
+                  node.id,
+                  node.name,
+                  '是否有权限:',
+                  hasGrant
+                )
+                if (hasGrant) {
+                  node.hasPermission = true
+                  node.permissions = ['view']
+                }
+                if (node.children?.length) {
+                  applyPermissions(node.children)
+                }
+              })
+            }
+            applyPermissions(treeData)
+            console.log('[Permission Store] 权限应用完成')
+          }
+        } catch (error) {
+          console.error('[Permission Store] 加载资源权限失败:', error)
+        }
+      }
+
+      // 使用展开运算符创建新对象以触发响应式更新
+      state.value.resourceTreeData = {
+        ...state.value.resourceTreeData,
+        [resourceType]: treeData
+      }
       console.log('[Permission Store] 资源树加载完成，数量:', treeData.length)
     } catch (error) {
       console.error('加载资源树失败:', error)
       ElMessage.error(`加载${resourceType}资源树失败`)
       // 失败时使用空数组
-      state.value.resourceTreeData[resourceType] = []
+      state.value.resourceTreeData = {
+        ...state.value.resourceTreeData,
+        [resourceType]: []
+      }
       throw error
     }
   }
@@ -617,25 +700,97 @@ export const usePermissionStore = defineStore('permissionManager', () => {
     if (!hasResourceChanges.value) return
 
     try {
-      // TODO: 调用API保存资源权限变更
-      // await saveResourcePermissions({
-      //   roleId: state.value.selectedRoleId,
-      //   changes: {
-      //     grants: state.value.resourceChanges.grants,
-      //     revokes: state.value.resourceChanges.revokes
-      //   }
-      // })
+      // 按资源类型分组收集当前有权限的资源ID
+      const permissionsByType: Record<string, Set<string>> = {}
 
-      // 模拟API调用
-      await new Promise(resolve => setTimeout(resolve, 500))
+      // 初始化所有资源类型的空集合
+      Object.keys(state.value.resourceTreeData).forEach(type => {
+        permissionsByType[type] = new Set()
+      })
+
+      // 从资源树中收集所有当前有权限的资源
+      Object.entries(state.value.resourceTreeData).forEach(([type, resources]) => {
+        const collectGranted = (nodes: ResourceNode[]) => {
+          nodes.forEach(node => {
+            if (node.hasPermission) {
+              permissionsByType[type].add(node.id)
+            }
+            if (node.children?.length) {
+              collectGranted(node.children)
+            }
+          })
+        }
+        collectGranted(resources)
+      })
+
+      // 应用变更记录
+      state.value.resourceChanges.grants.forEach(node => {
+        if (permissionsByType[node.type]) {
+          permissionsByType[node.type].add(node.id)
+        }
+      })
+      state.value.resourceChanges.revokes.forEach(node => {
+        if (permissionsByType[node.type]) {
+          permissionsByType[node.type].delete(node.id)
+        }
+      })
+
+      // 只保存有变更的资源类型（避免清空其他类型的权限）
+      const savePromises: Promise<any>[] = []
+
+      // 资源类型映射（与查询时保持一致）
+      const saveFlagMap: Record<string, string> = {
+        dashboard: 'dashboard',
+        screen: 'dataV',
+        chart: 'dashboard',
+        dataset: 'dataset',
+        datasource: 'datasource'
+      }
+
+      // 收集有变更的资源类型
+      const changedTypes = new Set<string>()
+      state.value.resourceChanges.grants.forEach(node => changedTypes.add(node.type))
+      state.value.resourceChanges.revokes.forEach(node => changedTypes.add(node.type))
+
+      // 只保存有变更的资源类型
+      changedTypes.forEach(type => {
+        const idSet = permissionsByType[type] || new Set<string>()
+        const flag = saveFlagMap[type] || type
+        const permissions = Array.from(idSet).map(id => ({
+          id: id,
+          weight: 1
+        }))
+
+        console.log('[DEBUG] 保存资源权限:', {
+          id: state.value.selectedRoleId,
+          type: 1, // 1=角色
+          flag,
+          permissions
+        })
+
+        savePromises.push(
+          busiPerSaveApi({
+            id: state.value.selectedRoleId,
+            type: 1, // 1 表示角色
+            flag,
+            permissions
+          })
+        )
+      })
+
+      // 串行保存避免数据库死锁
+      for (const promise of savePromises) {
+        await promise
+      }
 
       // 清空变更记录
       state.value.resourceChanges = { grants: [], revokes: [] }
       state.value.cacheVersion++
 
-      console.log('资源权限变更已保存')
+      ElMessage.success('资源权限保存成功')
     } catch (error) {
       console.error('保存资源权限变更失败:', error)
+      ElMessage.error('保存资源权限失败')
       throw error
     }
   }
@@ -968,6 +1123,51 @@ export const usePermissionStore = defineStore('permissionManager', () => {
     return []
   }
 
+  // 检查资源是否有权限
+  const hasResourcePermission = (resourceId: string): boolean => {
+    // 遍历所有资源类型查找该资源
+    for (const resourceType in state.value.resourceTreeData) {
+      const resources = state.value.resourceTreeData[resourceType]
+      const findNode = (nodes: ResourceNode[]): boolean => {
+        for (const node of nodes) {
+          if (node.id === resourceId) {
+            return node.hasPermission
+          }
+          if (node.children?.length) {
+            const found = findNode(node.children)
+            if (found) return true
+          }
+        }
+        return false
+      }
+      if (findNode(resources)) return true
+    }
+    return false
+  }
+
+  // 获取资源权限列表（用于资源授权页面）
+  const getResourcePermissions = (resourceId: string): string[] => {
+    // 遍历所有资源类型查找该资源
+    for (const resourceType in state.value.resourceTreeData) {
+      const resources = state.value.resourceTreeData[resourceType]
+      const findNode = (nodes: ResourceNode[]): string[] | null => {
+        for (const node of nodes) {
+          if (node.id === resourceId) {
+            return node.permissions || []
+          }
+          if (node.children?.length) {
+            const found = findNode(node.children)
+            if (found !== null) return found
+          }
+        }
+        return null
+      }
+      const result = findNode(resources)
+      if (result !== null) return result
+    }
+    return []
+  }
+
   const getNodePermissions = (nodeId: string): string[] => {
     const node = findNodeInTree(state.value.menuTreeData, nodeId)
     if (node) {
@@ -1047,6 +1247,8 @@ export const usePermissionStore = defineStore('permissionManager', () => {
     getResourceCheckedKeys,
     getRelatedResources,
     getNodePermissions,
-    updateNodePermissions
+    updateNodePermissions,
+    hasResourcePermission,
+    getResourcePermissions
   }
 })

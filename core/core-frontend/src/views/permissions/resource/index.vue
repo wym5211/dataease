@@ -250,7 +250,8 @@ const batchPermissions = ref<string[]>(['view'])
 
 // resourceTree 需要动态获取，因为依赖 selectedResourceType
 const resourceTree = computed(() => {
-  const treeData = permissionStore.resourceTree
+  // 直接访问 state 以确保响应式更新
+  const treeData = permissionStore.state.resourceTreeData
   if (!treeData) return []
   return treeData[selectedResourceType.value] || []
 })
@@ -283,7 +284,7 @@ const handleRoleChange = async (roleId: string) => {
     permissionStore.selectRole(roleId)
     // 加载资源树
     await permissionStore.loadResourceTree(selectedResourceType.value)
-    updateTreeChecks()
+    await updateTreeChecks()
   } catch (error) {
     ElMessage.error('加载角色权限失败')
   }
@@ -295,7 +296,7 @@ const handleResourceTypeChange = async (type: string) => {
   selectedResources.value = []
   try {
     await permissionStore.loadResourceTree(type)
-    updateTreeChecks()
+    await updateTreeChecks()
   } catch (error) {
     ElMessage.error('加载资源树失败')
   }
@@ -312,7 +313,8 @@ const filterNode = (value: string, data: ResourceItem) => {
 
 const handleCheckChange = (data: ResourceItem, checkedInfo: any) => {
   const checked = checkedInfo.checkedKeys.includes(data.id)
-  permissionStore.updateResourcePermission(data.id, checked)
+  const permissions = checked ? ['view'] : []
+  permissionStore.updateResourcePermission(selectedResourceType.value, data.id, permissions)
 }
 
 const handleNodeClick = (data: ResourceItem) => {
@@ -327,7 +329,11 @@ const handleSelectionChange = () => {
 
 const handlePermissionChange = () => {
   if (selectedNode.value) {
-    permissionStore.updateResourceNodePermissions(selectedNode.value.id, selectedPermissions.value)
+    permissionStore.updateResourcePermission(
+      selectedResourceType.value,
+      selectedNode.value.id,
+      selectedPermissions.value
+    )
   }
 }
 
@@ -385,11 +391,23 @@ const getAllNodeKeys = (tree: ResourceItem[]): string[] => {
   return keys
 }
 
-const updateTreeChecks = () => {
-  nextTick(() => {
-    const checkedKeys = permissionStore.getResourceCheckedKeys()
-    resourceTreeRef.value?.setCheckedKeys(checkedKeys)
-  })
+const updateTreeChecks = async () => {
+  // 延迟确保树渲染完成
+  await new Promise(resolve => setTimeout(resolve, 100))
+  await nextTick()
+  const checkedKeys = permissionStore.getResourceCheckedKeys()
+  console.log('[Resource Index] updateTreeChecks - checkedKeys:', checkedKeys)
+  console.log('[Resource Index] resourceTreeRef:', resourceTreeRef.value)
+  if (resourceTreeRef.value) {
+    // 先清空所有勾选
+    resourceTreeRef.value.setCheckedKeys([])
+    // 逐个设置勾选
+    checkedKeys.forEach(key => {
+      console.log('[Resource Index] 设置勾选:', key)
+      resourceTreeRef.value?.setChecked(key, true, false)
+    })
+    console.log('[Resource Index] setChecked 完成')
+  }
 }
 
 const batchGrant = () => {
@@ -415,12 +433,16 @@ const batchRevoke = () => {
 const confirmBatchAction = () => {
   if (batchAction.value === 'grant') {
     selectedResources.value.forEach(resourceId => {
-      permissionStore.updateResourcePermissions(resourceId, batchPermissions.value)
+      permissionStore.updateResourcePermission(
+        selectedResourceType.value,
+        resourceId,
+        batchPermissions.value
+      )
     })
     ElMessage.success(`批量授权 ${selectedResources.value.length} 个资源成功`)
   } else {
     selectedResources.value.forEach(resourceId => {
-      permissionStore.revokeResourcePermissions(resourceId)
+      permissionStore.updateResourcePermission(selectedResourceType.value, resourceId, [])
     })
     ElMessage.success(`批量取消授权 ${selectedResources.value.length} 个资源成功`)
   }
@@ -429,13 +451,15 @@ const confirmBatchAction = () => {
 
 const quickGrant = () => {
   if (!selectedNode.value || !selectedRole.value) return
-  permissionStore.updateResourcePermission(selectedNode.value.id, true)
+  permissionStore.updateResourcePermission(selectedResourceType.value, selectedNode.value.id, [
+    'view'
+  ])
   ElMessage.success('快速授权成功')
 }
 
 const quickRevoke = () => {
   if (!selectedNode.value || !selectedRole.value) return
-  permissionStore.updateResourcePermission(selectedNode.value.id, false)
+  permissionStore.updateResourcePermission(selectedResourceType.value, selectedNode.value.id, [])
   ElMessage.success('取消授权成功')
 }
 
@@ -453,10 +477,7 @@ const saveChanges = async () => {
       type: 'warning'
     })
 
-    await permissionStore.saveResourcePermissionChanges(
-      selectedRole.value,
-      selectedResourceType.value
-    )
+    await permissionStore.saveResourcePermissionChanges()
     ElMessage.success('权限保存成功')
   } catch (error) {
     if (error !== 'cancel') {
