@@ -25,5 +25,5 @@ INSERT INTO core_menu (id, pid, type, name, component, menu_sort, icon, path, hi
 (107, 100, 2, 'permissions-audit', 'permissions/audit', 7, NULL, 'audit', 0, 1, 1);
 
 -- 为管理员角色(角色ID=1)分配所有权限菜单
-MERGE INTO sys_role_menu (role_id, menu_id) VALUES
+INSERT IGNORE INTO sys_role_menu (role_id, menu_id) VALUES
 (1, 100), (1, 101), (1, 102), (1, 103), (1, 104), (1, 105), (1, 106), (1, 107);
