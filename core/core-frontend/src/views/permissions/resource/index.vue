@@ -392,22 +392,9 @@ const getAllNodeKeys = (tree: ResourceItem[]): string[] => {
 }
 
 const updateTreeChecks = async () => {
-  // 延迟确保树渲染完成
-  await new Promise(resolve => setTimeout(resolve, 100))
   await nextTick()
   const checkedKeys = permissionStore.getResourceCheckedKeys()
-  console.log('[Resource Index] updateTreeChecks - checkedKeys:', checkedKeys)
-  console.log('[Resource Index] resourceTreeRef:', resourceTreeRef.value)
-  if (resourceTreeRef.value) {
-    // 先清空所有勾选
-    resourceTreeRef.value.setCheckedKeys([])
-    // 逐个设置勾选
-    checkedKeys.forEach(key => {
-      console.log('[Resource Index] 设置勾选:', key)
-      resourceTreeRef.value?.setChecked(key, true, false)
-    })
-    console.log('[Resource Index] setChecked 完成')
-  }
+  resourceTreeRef.value?.setCheckedKeys(checkedKeys, false)
 }
 
 const batchGrant = () => {
@@ -495,18 +482,9 @@ const resetChanges = () => {
 // 初始化
 onMounted(async () => {
   try {
-    console.log('[资源授权页面] 开始加载角色列表...')
     await permissionStore.loadRoles()
-    console.log('[资源授权页面] loadRoles 完成')
-    console.log('[资源授权页面] permissionStore.state.roles:', permissionStore.state.roles)
-    console.log('[资源授权页面] roleList 长度:', roleList.value?.length || 0)
-    console.log('[资源授权页面] roleList 值:', roleList.value)
-    console.log('[资源授权页面] permissionStore.roleList:', permissionStore.roleList)
-
     // 加载默认的资源树
-    console.log('[资源授权页面] 加载默认资源树:', selectedResourceType.value)
     await permissionStore.loadResourceTree(selectedResourceType.value)
-    console.log('[资源授权页面] 资源树加载完成')
   } catch (error) {
     console.error('初始化失败:', error)
   }

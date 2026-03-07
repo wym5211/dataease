@@ -105,6 +105,21 @@ interface BackendMenuItem {
 // 需要过滤掉的菜单名称列表
 const EXCLUDED_MENUS = ['sys-setting', 'permissions', 'template-market', 'toolbox']
 
+// 资源类型到后端标识的映射
+const RESOURCE_TYPE_FLAG_MAP: Record<string, string> = {
+  dashboard: 'dashboard',
+  screen: 'dataV',
+  chart: 'dashboard',
+  dataset: 'dataset',
+  datasource: 'datasource'
+}
+
+// 权限目标类型
+const PERMISSION_TARGET_TYPE = {
+  ROLE: 1,
+  USER: 2
+} as const
+
 // 转换后端菜单数据到前端格式
 const transformMenuData = (backendMenus: BackendMenuItem[]): MenuNode[] => {
   if (!Array.isArray(backendMenus)) return []
@@ -206,17 +221,12 @@ export const usePermissionStore = defineStore('permissionManager', () => {
   // 获取角色列表
   const loadRoles = async () => {
     try {
-      console.log('[Permission Store] 开始加载角色列表...')
       const response = await getRoleList({
         page: 1,
         pageSize: 1000,
         keyword: ''
       })
-      console.log('[Permission Store] 角色列表响应:', response)
-      console.log('[Permission Store] 角色数量:', response.records?.length || 0)
-      console.log('[Permission Store] 角色数据:', response.records)
       state.value.roles = response.records || []
-      console.log('[Permission Store] 更新后的 state.value.roles:', state.value.roles)
     } catch (error) {
       console.error('[Permission Store] 加载角色列表失败:', error)
       ElMessage.error('加载角色列表失败')
@@ -238,11 +248,8 @@ export const usePermissionStore = defineStore('permissionManager', () => {
   // 加载菜单权限
   const loadMenuPermissions = async () => {
     try {
-      console.log('加载菜单数据...')
-
       // 调用后端 API 获取菜单树
       const response = await menuTreeApi()
-      console.log('后端返回的菜单数据:', response.data)
 
       // 转换后端数据格式到前端期望的格式
       const transformedMenus = transformMenuData(response.data || [])
@@ -251,27 +258,19 @@ export const usePermissionStore = defineStore('permissionManager', () => {
       if (state.value.selectedRoleId) {
         try {
           const permResponse = await menuPerApi({ id: Number(state.value.selectedRoleId) })
-          console.log('角色菜单权限响应:', permResponse)
           const permissionItems = Array.isArray(permResponse?.permissions)
             ? permResponse.permissions
             : Array.isArray(permResponse?.data?.permissions)
             ? permResponse.data.permissions
             : []
-          console.log('角色菜单权限 permissions:', permissionItems)
           const isRoot = Boolean(permResponse?.root ?? permResponse?.data?.root)
 
           const grantedMenuIds = new Set<string>()
           if (permissionItems.length) {
             permissionItems.forEach((p: any) => {
-              console.log('Permission item:', p, 'id:', p.id, 'type:', typeof p.id)
               grantedMenuIds.add(String(p.id))
             })
           }
-          console.log('有权限的菜单 IDs:', Array.from(grantedMenuIds))
-          console.log(
-            '菜单节点 IDs:',
-            transformedMenus.map((m: MenuNode) => ({ id: m.id, name: m.name }))
-          )
 
           applyMenuPermissions(transformedMenus, grantedMenuIds, isRoot)
         } catch (error) {
@@ -280,7 +279,6 @@ export const usePermissionStore = defineStore('permissionManager', () => {
         }
       }
 
-      console.log('最终菜单数据:', transformedMenus)
       state.value.menuTreeData = transformedMenus
     } catch (error) {
       console.error('加载菜单权限失败:', error)
@@ -338,7 +336,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
   // 加载资源树（资源授权页面使用）
   const loadResourceTree = async (resourceType: string) => {
     try {
-      console.log('[Permission Store] 加载资源树:', resourceType)
+      // 加载资源树
 
       let treeData: ResourceNode[] = []
 
@@ -353,7 +351,6 @@ export const usePermissionStore = defineStore('permissionManager', () => {
           leaf: false,
           withLeaf: true
         })
-        console.log('[Permission Store] 可视化资源响应:', response)
 
         // 转换数据格式
         const transformVisualizationNode = (node: any): ResourceNode => {
@@ -377,7 +374,6 @@ export const usePermissionStore = defineStore('permissionManager', () => {
           leaf: false,
           withLeaf: true
         })
-        console.log('[Permission Store] 数据集资源响应:', response)
 
         // 转换数据格式
         const transformDatasetNode = (node: any): ResourceNode => {
@@ -397,7 +393,6 @@ export const usePermissionStore = defineStore('permissionManager', () => {
       } else if (resourceType === 'datasource') {
         // 数据源 - 使用数据源API
         const response = await getDatasourceList()
-        console.log('[Permission Store] 数据源资源响应:', response)
 
         // 转换数据格式
         const transformDatasourceNode = (node: any): ResourceNode => {
@@ -416,68 +411,37 @@ export const usePermissionStore = defineStore('permissionManager', () => {
         treeData = (response || []).map(transformDatasourceNode)
       } else {
         // 其他类型暂时使用空数组
-        console.log('[Permission Store] 资源类型暂未实现:', resourceType)
+        // 资源类型暂未实现
         treeData = []
       }
 
       // 如果有选择角色，加载该角色的资源权限
       if (state.value.selectedRoleId) {
         try {
-          // 使用与后端数据库一致的资源类型标识（小写）
-          const flagMap: Record<string, string> = {
-            dashboard: 'dashboard',
-            screen: 'dataV',
-            chart: 'dashboard',
-            dataset: 'dataset',
-            datasource: 'datasource'
-          }
-          const flag = flagMap[resourceType]
+          const flag = RESOURCE_TYPE_FLAG_MAP[resourceType]
 
           if (flag) {
             const requestParams = {
               id: state.value.selectedRoleId,
-              type: 1,
+              type: PERMISSION_TARGET_TYPE.ROLE,
               flag: flag
             }
-            console.log('[Permission Store] 查询资源权限请求:', requestParams)
             const perResponse = await resourcePerApi(requestParams)
-            console.log('[Permission Store] 资源权限响应:', perResponse)
-            console.log('[Permission Store] 响应 data:', perResponse?.data)
-            console.log('[Permission Store] 响应 permissions:', perResponse?.permissions)
 
             // 获取有权限的资源ID列表
             const grantedResourceIds = new Set<string>()
             // 后端可能直接返回 permissions 或在 data.permissions 中
             const permissionList = perResponse?.permissions || perResponse?.data?.permissions || []
-            console.log('[Permission Store] 权限列表:', permissionList)
-            if (permissionList.length > 0) {
-              permissionList.forEach((r: any) => {
-                console.log('[Permission Store] 权限项:', r, 'id:', r.id, 'type:', typeof r.id)
-                if (r.id) {
-                  grantedResourceIds.add(String(r.id))
-                }
-              })
-            } else {
-              console.log('[Permission Store] 权限列表为空，检查数据库是否有记录')
-            }
-            console.log('[Permission Store] 有权限的资源IDs:', Array.from(grantedResourceIds))
+            permissionList.forEach((r: any) => {
+              if (r.id) {
+                grantedResourceIds.add(String(r.id))
+              }
+            })
 
             // 应用权限到资源树
-            console.log(
-              '[Permission Store] 树节点IDs:',
-              treeData.map((n: any) => ({ id: n.id, name: n.name }))
-            )
             const applyPermissions = (nodes: ResourceNode[]) => {
               nodes.forEach(node => {
-                const hasGrant = grantedResourceIds.has(node.id)
-                console.log(
-                  '[Permission Store] 检查节点:',
-                  node.id,
-                  node.name,
-                  '是否有权限:',
-                  hasGrant
-                )
-                if (hasGrant) {
+                if (grantedResourceIds.has(node.id)) {
                   node.hasPermission = true
                   node.permissions = ['view']
                 }
@@ -487,7 +451,6 @@ export const usePermissionStore = defineStore('permissionManager', () => {
               })
             }
             applyPermissions(treeData)
-            console.log('[Permission Store] 权限应用完成')
           }
         } catch (error) {
           console.error('[Permission Store] 加载资源权限失败:', error)
@@ -499,7 +462,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
         ...state.value.resourceTreeData,
         [resourceType]: treeData
       }
-      console.log('[Permission Store] 资源树加载完成，数量:', treeData.length)
+      // 资源树加载完成
     } catch (error) {
       console.error('加载资源树失败:', error)
       ElMessage.error(`加载${resourceType}资源树失败`)
@@ -514,19 +477,11 @@ export const usePermissionStore = defineStore('permissionManager', () => {
 
   // 更新菜单权限
   const updateMenuPermission = (menuId: string, hasPermission: boolean) => {
-    console.log('[DEBUG] updateMenuPermission - menuId:', menuId, 'hasPermission:', hasPermission)
     const updateNodePermission = (nodes: MenuNode[]): boolean => {
       for (const node of nodes) {
         if (node.id === menuId) {
           const oldPermission = node.hasPermission
           node.hasPermission = hasPermission
-          console.log(
-            '[DEBUG] Updated node hasPermission:',
-            menuId,
-            oldPermission,
-            '->',
-            hasPermission
-          )
 
           // 记录变更
           if (oldPermission !== hasPermission) {
@@ -631,11 +586,6 @@ export const usePermissionStore = defineStore('permissionManager', () => {
 
   // 保存菜单权限变更
   const saveMenuPermissionChanges = async () => {
-    console.log('[DEBUG] saveMenuPermissionChanges called')
-    console.log('[DEBUG] selectedRoleId:', state.value.selectedRoleId)
-    console.log('[DEBUG] hasMenuChanges:', hasMenuChanges.value)
-    console.log('[DEBUG] menuTreeData length:', state.value.menuTreeData.length)
-
     if (!state.value.selectedRoleId) {
       throw new Error('未选择角色')
     }
@@ -657,8 +607,6 @@ export const usePermissionStore = defineStore('permissionManager', () => {
       }
       collectGrantedIds(state.value.menuTreeData)
 
-      console.log('[DEBUG] Collected granted menu IDs:', Array.from(grantedMenuIds))
-
       const menuIdList = Array.from(grantedMenuIds)
       const invalidMenuIds = menuIdList.filter(menuId => !/^\d+$/.test(menuId))
       if (invalidMenuIds.length > 0) {
@@ -671,17 +619,11 @@ export const usePermissionStore = defineStore('permissionManager', () => {
         weight: 1
       }))
 
-      console.log('[DEBUG] Request payload:', {
-        id: Number(state.value.selectedRoleId),
-        permissions
-      })
-
       // 调用后端API保存
-      const result = await menuPerSaveApi({
+      await menuPerSaveApi({
         id: Number(state.value.selectedRoleId),
         permissions
       })
-      console.log('[DEBUG] API response:', result)
 
       // 清空变更记录
       state.value.menuChanges = { grants: [], revokes: [] }
@@ -738,15 +680,6 @@ export const usePermissionStore = defineStore('permissionManager', () => {
       // 只保存有变更的资源类型（避免清空其他类型的权限）
       const savePromises: Promise<any>[] = []
 
-      // 资源类型映射（与查询时保持一致）
-      const saveFlagMap: Record<string, string> = {
-        dashboard: 'dashboard',
-        screen: 'dataV',
-        chart: 'dashboard',
-        dataset: 'dataset',
-        datasource: 'datasource'
-      }
-
       // 收集有变更的资源类型
       const changedTypes = new Set<string>()
       state.value.resourceChanges.grants.forEach(node => changedTypes.add(node.type))
@@ -755,23 +688,16 @@ export const usePermissionStore = defineStore('permissionManager', () => {
       // 只保存有变更的资源类型
       changedTypes.forEach(type => {
         const idSet = permissionsByType[type] || new Set<string>()
-        const flag = saveFlagMap[type] || type
+        const flag = RESOURCE_TYPE_FLAG_MAP[type] || type
         const permissions = Array.from(idSet).map(id => ({
           id: id,
           weight: 1
         }))
 
-        console.log('[DEBUG] 保存资源权限:', {
-          id: state.value.selectedRoleId,
-          type: 1, // 1=角色
-          flag,
-          permissions
-        })
-
         savePromises.push(
           busiPerSaveApi({
             id: state.value.selectedRoleId,
-            type: 1, // 1 表示角色
+            type: PERMISSION_TARGET_TYPE.ROLE,
             flag,
             permissions
           })
@@ -825,7 +751,6 @@ export const usePermissionStore = defineStore('permissionManager', () => {
 
     // TODO: 根据菜单ID查找关联的资源
     // 这里可以实现具体的联动逻辑
-    console.log(`菜单权限变更联动: ${menuId} -> ${hasPermission ? '授权' : '撤销'}`)
   }
 
   // 联动机制：资源权限变更时同步相关菜单权限
@@ -838,7 +763,6 @@ export const usePermissionStore = defineStore('permissionManager', () => {
 
     // TODO: 根据资源ID查找关联的菜单
     // 这里可以实现具体的联动逻辑
-    console.log(`资源权限变更联动: ${resourceType}/${resourceId} -> ${permissions.join(',')}`)
   }
 
   // 加载权限模板
@@ -895,8 +819,6 @@ export const usePermissionStore = defineStore('permissionManager', () => {
 
       // 模拟API调用
       await new Promise(resolve => setTimeout(resolve, 1000))
-
-      console.log(`权限模板已应用: ${templateId} -> ${targetRoleId}`)
     } catch (error) {
       console.error('应用权限模板失败:', error)
       throw error
@@ -949,8 +871,6 @@ export const usePermissionStore = defineStore('permissionManager', () => {
 
       // 模拟API调用
       await new Promise(resolve => setTimeout(resolve, 500))
-
-      console.log(`权限变更已回滚: ${auditId}`)
     } catch (error) {
       console.error('回滚权限变更失败:', error)
       throw error
@@ -1062,12 +982,6 @@ export const usePermissionStore = defineStore('permissionManager', () => {
     const findNode = (nodes: MenuNode[]): boolean | undefined => {
       for (const node of nodes) {
         if (node.id === id) {
-          console.log(
-            '[DEBUG] hasPermission - found node:',
-            id,
-            'hasPermission:',
-            node.hasPermission
-          )
           return node.hasPermission
         }
         if (node.children?.length) {
@@ -1077,9 +991,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
       }
       return undefined
     }
-    const result = findNode(state.value.menuTreeData)
-    console.log('[DEBUG] hasPermission for', id, ':', result)
-    return result ?? false
+    return findNode(state.value.menuTreeData) ?? false
   }
 
   const getCheckedKeys = (): string[] => {
@@ -1177,9 +1089,8 @@ export const usePermissionStore = defineStore('permissionManager', () => {
     return []
   }
 
-  const updateNodePermissions = (nodeId: string, permissions: string[]) => {
+  const updateNodePermissions = (_nodeId: string, _permissions: string[]) => {
     // TODO: 实现更新节点权限的逻辑
-    console.log(`更新节点权限: ${nodeId}`, permissions)
   }
 
   const findNodeInTree = (tree: MenuNode[], id: string): MenuNode | null => {
