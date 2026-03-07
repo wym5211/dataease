@@ -1,7 +1,6 @@
 package io.dataease.api.visualization;
 
 import com.github.xiaoymin.knife4j.annotations.ApiSupport;
-import io.dataease.api.visualization.request.VisualizationBackgroundRequest;
 import io.dataease.api.visualization.vo.VisualizationBackgroundVO;
 import io.dataease.i18n.I18n;
 import io.swagger.v3.oas.annotations.Operation;

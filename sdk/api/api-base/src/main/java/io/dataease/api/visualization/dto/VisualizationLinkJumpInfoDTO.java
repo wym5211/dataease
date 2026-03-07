@@ -3,6 +3,7 @@ package io.dataease.api.visualization.dto;
 import io.dataease.api.visualization.vo.VisualizationLinkJumpInfoVO;
 import io.dataease.api.visualization.vo.VisualizationLinkJumpTargetViewInfoVO;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.List;
  * @date : 2023/7/18 14:20
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class VisualizationLinkJumpInfoDTO extends VisualizationLinkJumpInfoVO {
     private String sourceFieldName;
 

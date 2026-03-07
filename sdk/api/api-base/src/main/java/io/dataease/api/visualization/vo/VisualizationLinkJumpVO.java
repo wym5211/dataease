@@ -10,7 +10,6 @@ import lombok.Data;
  */
 @Data
 public class VisualizationLinkJumpVO {
-    private static final long serialVersionUID = 1L;
     @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 

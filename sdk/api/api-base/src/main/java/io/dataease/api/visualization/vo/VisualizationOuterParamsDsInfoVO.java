@@ -12,8 +12,8 @@ public class VisualizationOuterParamsDsInfoVO {
 
     private String dsId;
 
-    private List targetFieldInfo;
+    private List<?> targetFieldInfo;
 
-    private Map<String,Boolean> viewCheckedInfo;
+    private Map<String, Boolean> viewCheckedInfo;
 
 }

@@ -2,7 +2,6 @@ package io.dataease.api.ds.vo;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
-import io.dataease.extensions.datasource.dto.TaskDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 

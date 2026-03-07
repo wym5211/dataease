@@ -3,15 +3,15 @@ package io.dataease.api.visualization.request;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import io.dataease.api.visualization.vo.DataVisualizationVO;
-import io.dataease.api.visualization.vo.VisualizationExport2AppVO;
-import io.dataease.constant.LogOT;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
 @NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class DataVisualizationBaseRequest extends DataVisualizationVO {
 
     private String opt;

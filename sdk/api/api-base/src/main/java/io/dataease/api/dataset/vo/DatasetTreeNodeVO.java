@@ -3,12 +3,12 @@ package io.dataease.api.dataset.vo;
 import io.dataease.api.dataset.dto.DatasetNodeDTO;
 import io.dataease.model.ITreeBase;
 import lombok.Data;
-
-import java.io.Serializable;
+import lombok.EqualsAndHashCode;
 import java.util.List;
 
 @Data
-public class DatasetTreeNodeVO extends DatasetNodeDTO implements Serializable, ITreeBase<DatasetTreeNodeVO> {
+@EqualsAndHashCode(callSuper = true)
+public class DatasetTreeNodeVO extends DatasetNodeDTO implements ITreeBase<DatasetTreeNodeVO> {
 
     private List<DatasetTreeNodeVO> children;
 

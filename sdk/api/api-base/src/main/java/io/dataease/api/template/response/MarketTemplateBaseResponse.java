@@ -1,9 +1,6 @@
 package io.dataease.api.template.response;
 
-import io.dataease.api.template.dto.TemplateMarketDTO;
 import lombok.Data;
-
-import java.util.List;
 
 /**
  * @author : WangJiaHao

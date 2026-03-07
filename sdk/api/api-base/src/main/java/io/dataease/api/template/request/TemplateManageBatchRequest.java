@@ -1,6 +1,5 @@
 package io.dataease.api.template.request;
 
-import io.dataease.api.template.vo.VisualizationTemplateVO;
 import lombok.Data;
 
 import java.util.List;

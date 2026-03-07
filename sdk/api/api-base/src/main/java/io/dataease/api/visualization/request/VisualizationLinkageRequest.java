@@ -6,17 +6,17 @@ import io.dataease.api.visualization.dto.VisualizationLinkageDTO;
 import io.dataease.api.visualization.vo.VisualizationLinkageVO;
 import io.dataease.constant.CommonConstants;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author : WangJiaHao
  * @date : 2023/7/13
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class VisualizationLinkageRequest extends VisualizationLinkageVO {
 
     /**

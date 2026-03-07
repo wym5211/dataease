@@ -5,12 +5,14 @@ import io.dataease.api.visualization.vo.VisualizationOuterParamsFilterInfoVO;
 import io.dataease.api.visualization.vo.VisualizationOuterParamsInfoVO;
 import io.dataease.api.visualization.vo.VisualizationOuterParamsTargetViewInfoVO;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.List;
 
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class VisualizationOuterParamsInfoDTO extends VisualizationOuterParamsInfoVO {
     private String dvId;
 

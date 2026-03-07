@@ -25,6 +25,7 @@ public class AreaNode implements Serializable {
     @Schema(description = "上级ID")
     private String pid;
     @Schema(description = "是否自定义节点")
+    @Builder.Default
     private boolean custom = false;
     /**
      * 国家代码

@@ -4,6 +4,7 @@ import io.dataease.api.chart.dto.DeSortField;
 import io.dataease.api.dataset.dto.DatasetNodeDTO;
 import io.dataease.extensions.datasource.dto.DatasetTableFieldDTO;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 import java.util.Map;
@@ -12,12 +13,13 @@ import java.util.Map;
  * @Author Junjun
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class DatasetGroupInfoDTO extends DatasetNodeDTO {
     private List<UnionDTO> union;// 关联数据集
 
     private List<DeSortField> sortFields;// 自定义排序（如仪表板查询组件）
 
-    private Map<String, List> data;
+    private Map<String, List<?>> data;
 
     private List<DatasetTableFieldDTO> allFields;
 

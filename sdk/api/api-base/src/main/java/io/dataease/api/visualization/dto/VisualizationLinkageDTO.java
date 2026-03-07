@@ -6,6 +6,7 @@ import io.dataease.api.visualization.vo.VisualizationLinkageFieldVO;
 import io.dataease.api.visualization.vo.VisualizationLinkageVO;
 import io.dataease.extensions.datasource.dto.DatasetTableFieldDTO;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.List;
  * @date : 2023/7/13
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class VisualizationLinkageDTO extends VisualizationLinkageVO {
 
     /**

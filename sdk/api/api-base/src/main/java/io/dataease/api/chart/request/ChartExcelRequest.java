@@ -2,6 +2,7 @@ package io.dataease.api.chart.request;
 
 import io.dataease.extensions.view.dto.ChartViewDTO;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.Map;
  * @Author wangjiahao
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class ChartExcelRequest extends ChartExcelRequestInner {
     @Serial
     private static final long serialVersionUID = 3829386417457449431L;

@@ -3,11 +3,11 @@ package io.dataease.api.template.dto;
 
 import io.dataease.api.template.vo.VisualizationTemplateVO;
 import lombok.Data;
-
-import java.util.List;
+import lombok.EqualsAndHashCode;
 
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class TemplateManageFileDTO extends VisualizationTemplateVO {
 
     /**

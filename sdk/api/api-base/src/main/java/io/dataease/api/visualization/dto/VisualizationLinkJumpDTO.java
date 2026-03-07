@@ -2,6 +2,7 @@ package io.dataease.api.visualization.dto;
 
 import io.dataease.api.visualization.vo.VisualizationLinkJumpVO;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,6 +14,7 @@ import java.util.Map;
  * @date : 2023/7/18 14:21
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class VisualizationLinkJumpDTO extends VisualizationLinkJumpVO {
     //仪表板可以跳转图表信息 sourceViewId#
     private String sourceInfo;

@@ -7,11 +7,10 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
-import java.io.Serializable;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class ThresholdCreator extends BaseReciDTO implements Serializable {
+public class ThresholdCreator extends BaseReciDTO {
     @Serial
     private static final long serialVersionUID = -4085895087749460947L;
 

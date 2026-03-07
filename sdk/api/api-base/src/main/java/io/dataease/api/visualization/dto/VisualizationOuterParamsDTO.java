@@ -2,6 +2,7 @@ package io.dataease.api.visualization.dto;
 
 import io.dataease.api.visualization.vo.VisualizationOuterParamsVO;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,6 +11,7 @@ import java.util.Map;
 
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class VisualizationOuterParamsDTO extends VisualizationOuterParamsVO {
 
     private List<String> targetInfoList;

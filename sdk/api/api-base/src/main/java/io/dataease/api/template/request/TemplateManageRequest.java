@@ -2,6 +2,7 @@ package io.dataease.api.template.request;
 
 import io.dataease.api.template.vo.VisualizationTemplateVO;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
@@ -11,6 +12,7 @@ import java.util.List;
  * Description:
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class TemplateManageRequest extends VisualizationTemplateVO {
     private String sort;
     private String withBlobs="N";
