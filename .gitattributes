@@ -1,3 +1,4 @@
+# GitHub 语言检测配置
 *.sql linguist-language=java
 *.yml linguist-language=Java
 *.html linguist-language=Java
@@ -5,3 +6,43 @@
 *.xml linguist-language=Java
 *.css linguist-language=Java
 *.ts linguist-language=Java
+
+# ========== 换行符配置 ==========
+# 自动处理换行符，确保使用 LF
+* text=auto eol=lf
+
+# 前端源码文件强制使用 LF
+*.js text eol=lf
+*.vue text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.less text eol=lf
+*.html text eol=lf
+*.xml text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.sh text eol=lf
+
+# Java 源码文件
+*.java text eol=lf
+*.gradle text eol=lf
+*.properties text eol=lf
+
+# 二进制文件不处理换行符
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.jar binary
+*.war binary
+*.exe binary
+*.dll binary
+*.so binary
+*.dylib binary
