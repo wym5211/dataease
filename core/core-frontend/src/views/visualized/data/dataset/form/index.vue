@@ -258,6 +258,15 @@ const getDsName = (id: string) => {
   return dfsName(state.dataSourceList, id)
 }
 
+const redirectDataset = routeName => {
+  push({
+    name: routeName,
+    params: {
+      id: nodeInfo.id
+    }
+  })
+}
+
 const pushDataset = () => {
   wsCache.set(`dataset-info-id`, nodeInfo.id)
   if (appStore.isDataEaseBi) {
@@ -268,13 +277,13 @@ const pushDataset = () => {
   const routeName = embeddedStore.getToken && appStore.getIsIframe ? 'dataset-embedded' : 'dataset'
   if (!!history.state.back && !appStore.getIsIframe) {
     history.back()
-  } else {
-    push({
-      name: routeName,
-      params: {
-        id: nodeInfo.id
+    setTimeout(() => {
+      if (route.path.includes('dataset-form')) {
+        redirectDataset(routeName)
       }
-    })
+    }, 150)
+  } else {
+    redirectDataset(routeName)
   }
 }
 
