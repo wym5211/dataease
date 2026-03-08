@@ -2,14 +2,14 @@ package io.dataease.extensions.view.dto;
 
 import io.dataease.extensions.datasource.dto.DatasetTableFieldDTO;
 import lombok.Data;
-
-import java.io.Serializable;
+import lombok.EqualsAndHashCode;
 
 /**
  * 图表字段base类，与数据集字段表基本一致
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class ChartViewFieldBaseDTO extends DatasetTableFieldDTO implements Serializable {
+public class ChartViewFieldBaseDTO extends DatasetTableFieldDTO {
 
     private String summary;
 

@@ -12,15 +12,16 @@ import java.util.function.Consumer;
 
 public class CacheUtils {
 
-    private static DECacheService deCacheService;
+    private static DECacheService<Object> deCacheService;
 
     static {
         getService();
     }
 
-    private static DECacheService getService() {
+    @SuppressWarnings("unchecked")
+    private static DECacheService<Object> getService() {
         if (ObjectUtils.isEmpty(deCacheService)) {
-            deCacheService = (DECacheService) CommonBeanFactory.getBean("dECacheService");
+            deCacheService = CommonBeanFactory.getBean(DECacheService.class);
         }
         return deCacheService;
     }

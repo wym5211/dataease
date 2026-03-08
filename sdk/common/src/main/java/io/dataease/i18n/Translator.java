@@ -94,6 +94,7 @@ public class Translator {
                 }
             }
             if (javaObject instanceof Map) {
+                @SuppressWarnings("unchecked")
                 Map<Object, Object> map = (Map<Object, Object>) javaObject;
                 for (Map.Entry<Object, Object> entry : map.entrySet()) {
                     if (entry.getValue() != null) {
@@ -112,13 +113,13 @@ public class Translator {
             }
 
             if (javaObject instanceof Collection) {
-                Collection<Object> collection = (Collection<Object>) javaObject;
+                Collection<?> collection = (Collection<?>) javaObject;
                 for (Object item : collection) {
                     translateObject(item);
                 }
             }
             if (javaObject instanceof IPage) {
-                IPage iPage = (IPage) javaObject;
+                IPage<?> iPage = (IPage<?>) javaObject;
                 translateObject(iPage.getRecords());
             }
 

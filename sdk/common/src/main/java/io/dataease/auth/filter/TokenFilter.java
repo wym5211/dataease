@@ -3,7 +3,6 @@ package io.dataease.auth.filter;
 import io.dataease.auth.bo.TokenUserBO;
 import io.dataease.constant.AuthConstant;
 import io.dataease.exception.DEException;
-import io.dataease.license.utils.LicenseUtil;
 import io.dataease.result.ResultMessage;
 import io.dataease.utils.*;
 import jakarta.servlet.*;
@@ -17,13 +16,10 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 public class TokenFilter implements Filter {
-    private static final String headName = "DE-GATEWAY-FLAG";
-
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest;

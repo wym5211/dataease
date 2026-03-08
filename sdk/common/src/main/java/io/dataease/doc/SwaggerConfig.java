@@ -3,7 +3,6 @@ package io.dataease.doc;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
-import org.apache.commons.lang3.RandomUtils;
 import org.springdoc.core.customizers.GlobalOpenApiCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Configuration
 public class SwaggerConfig {
@@ -25,7 +25,7 @@ public class SwaggerConfig {
             if (openApi.getTags() != null) {
                 openApi.getTags().forEach(tag -> {
                     Map<String, Object> map = new HashMap<>();
-                    map.put("x-order", RandomUtils.nextInt(0, 100));
+                    map.put("x-order", ThreadLocalRandom.current().nextInt(0, 100));
                     tag.setExtensions(map);
                 });
             }

@@ -1,5 +1,6 @@
 package io.dataease.auth.config;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.dataease.utils.CommonBeanFactory;
 import io.dataease.utils.LogUtil;
@@ -38,18 +39,18 @@ public class SubstituleLoginConfig {
             pwd = CommonBeanFactory.getBean(Environment.class).getProperty("dataease.default-pwd", "DataEase@123456");
             modifyPwd(pwd);
         }
-        return objectMapper.readValue(jsonFile, Map.class);
+        return objectMapper.readValue(jsonFile, new TypeReference<Map<String, Object>>() {});
     }
 
     public static String getPwd() {
         if (!ready) {
             ready = true;
             Object substituleLoginDataObject = CommonBeanFactory.getBean("substituleLoginData");
-            if (substituleLoginDataObject != null) {
-                Map<String, Object> substituleLoginData = (Map<String, Object>) substituleLoginDataObject;
-                if (ObjectUtils.isNotEmpty(substituleLoginData.get("pwd"))) {
-                    pwd = substituleLoginData.get("pwd").toString();
-                    return substituleLoginData.get("pwd").toString();
+            if (substituleLoginDataObject instanceof Map<?, ?> substituleLoginData) {
+                Object pwdValue = substituleLoginData.get("pwd");
+                if (ObjectUtils.isNotEmpty(pwdValue)) {
+                    pwd = pwdValue.toString();
+                    return pwd;
                 }
             }
         }

@@ -22,13 +22,13 @@ import java.util.Map;
 
 public class CommonExcelUtils {
 
-    public static void writeExcel(HttpServletResponse response, List objects, Class clazz,List<Map<Integer, String>> errMsgList, String fileName) throws IOException {
+    public static <T> void writeExcel(HttpServletResponse response, List<T> objects, Class<T> clazz, List<Map<Integer, String>> errMsgList, String fileName) throws IOException {
         String sheetName = fileName;
         writeExcel(response, objects, clazz, errMsgList, fileName, sheetName);
     }
 
 
-    public static void writeExcel(HttpServletResponse response, List objects, Class clazz, List<Map<Integer, String>> errMsgList, String fileName, String sheetName) throws IOException {
+    public static <T> void writeExcel(HttpServletResponse response, List<T> objects, Class<T> clazz, List<Map<Integer, String>> errMsgList, String fileName, String sheetName) throws IOException {
         response.addHeader("responseType", "blob");
         response.setContentType("application/vnd.ms-excel");
         response.setCharacterEncoding("utf-8");
@@ -42,7 +42,7 @@ public class CommonExcelUtils {
         }
     }
 
-    public static void writeOutputStream(OutputStream outputStream, Class clazz, List objects, List<Map<Integer, String>> errMsgList, String sheetName) {
+    public static <T> void writeOutputStream(OutputStream outputStream, Class<T> clazz, List<T> objects, List<Map<Integer, String>> errMsgList, String sheetName) {
         WriteCellStyle headCellStyle = new WriteCellStyle();
         headCellStyle.setFillForegroundColor(Short.valueOf(IndexedColors.WHITE.getIndex()));
         WriteFont headFont = new WriteFont();
@@ -66,7 +66,7 @@ public class CommonExcelUtils {
         }
     }
 
-    public static void importExcel(InputStream inputStream, Class clazsz, AnalysisEventListener analysisEventListener) throws Exception {
+    public static <T> void importExcel(InputStream inputStream, Class<T> clazsz, AnalysisEventListener<T> analysisEventListener) throws Exception {
         EasyExcel.read(inputStream, clazsz, analysisEventListener).sheet().headRowNumber(0).doRead();
     }
 

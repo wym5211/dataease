@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -375,7 +376,7 @@ public class HttpClientUtil {
         if (!url.contains("%")) {
             String[] http = url.split("://");
             String[] server = http[1].split("/");
-            encodeUIl = http[0] + "://" + server[0] + "/" + URLEncoder.encode(http[1].substring(server[0].length() + 1, http[1].length()));
+            encodeUIl = http[0] + "://" + server[0] + "/" + URLEncoder.encode(http[1].substring(server[0].length() + 1, http[1].length()), StandardCharsets.UTF_8);
         }
         try (CloseableHttpClient httpClient = buildHttpClient(encodeUIl.replace("+", "%20"))) {
             HttpGet httpGet = new HttpGet(encodeUIl.replace("+", "%20"));
@@ -413,7 +414,7 @@ public class HttpClientUtil {
     }
 
     private static String extractFileName(HttpResponse response, String url) {
-        url = URLDecoder.decode(url);
+        url = URLDecoder.decode(url, StandardCharsets.UTF_8);
         String fileName = "";
         String disposition = response.getHeaders("Content-Disposition").toString();
         if (disposition != null) {
@@ -479,11 +480,8 @@ public class HttpClientUtil {
         postRequest.setConfig(config.buildRequestConfig());
         Map<String, String> header = config.getHeader();
         if (MapUtils.isNotEmpty(header)) {
-            Iterator var8 = header.keySet().iterator();
-
-            while (var8.hasNext()) {
-                String key = (String) var8.next();
-                postRequest.addHeader(key, (String) header.get(key));
+            for (Map.Entry<String, String> entry : header.entrySet()) {
+                postRequest.addHeader(entry.getKey(), entry.getValue());
             }
         }
 
@@ -491,10 +489,8 @@ public class HttpClientUtil {
         builder.setCharset(StandardCharsets.UTF_8);
         builder.addBinaryBody("image", bytes, ContentType.DEFAULT_BINARY, fileName);
         if (param != null) {
-            Iterator var13 = param.entrySet().iterator();
-            while (var13.hasNext()) {
-                Map.Entry<String, String> entry = (Map.Entry) var13.next();
-                builder.addTextBody((String) entry.getKey(), (String) entry.getValue());
+            for (Map.Entry<String, String> entry : param.entrySet()) {
+                builder.addTextBody(entry.getKey(), entry.getValue());
             }
         }
         try {
@@ -596,7 +592,7 @@ public class HttpClientUtil {
 
     public static boolean isURLReachable(String urlString, Map<String, String> head) {
         try {
-            URL url = new URL(urlString);
+            URL url = URI.create(urlString).toURL();
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             connection.setConnectTimeout(5000); // 设置连接超时时间，单位为毫秒

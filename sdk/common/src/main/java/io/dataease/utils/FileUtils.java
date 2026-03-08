@@ -147,15 +147,11 @@ public class FileUtils {
     }
 
     private static void copyFileUsingFileChannels(File source, File dest) throws IOException {
-        FileChannel inputChannel = null;
-        FileChannel outputChannel = null;
-        try {
-            inputChannel = new FileInputStream(source).getChannel();
-            outputChannel = new FileOutputStream(dest).getChannel();
+        try (FileInputStream inputStream = new FileInputStream(source);
+             FileOutputStream outputStream = new FileOutputStream(dest);
+             FileChannel inputChannel = inputStream.getChannel();
+             FileChannel outputChannel = outputStream.getChannel()) {
             outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
-        } finally {
-            inputChannel.close();
-            outputChannel.close();
         }
     }
 
@@ -283,7 +279,7 @@ public class FileUtils {
                 if (file.isDirectory()) {
                     deleteDirectoryRecursively(file.getAbsolutePath());
                 } else {
-                    boolean deletionSuccess = file.delete();
+                    file.delete();
                 }
             }
         }

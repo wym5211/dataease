@@ -5,12 +5,7 @@ import java.util.Deque;
 
 public class DynamicContextHolder {
 
-    private static final ThreadLocal<Deque<String>> CONTEXT_HOLDER = new ThreadLocal() {
-        @Override
-        protected Object initialValue() {
-            return new ArrayDeque();
-        }
-    };
+    private static final ThreadLocal<Deque<String>> CONTEXT_HOLDER = ThreadLocal.withInitial(ArrayDeque::new);
 
 
     public static String peek() {

@@ -16,12 +16,12 @@ import java.util.concurrent.TimeUnit;
 
 @ConditionalOnExpression("'${spring.cache.type}'.equals('redis')")
 @Component("dECacheService")
-public class RedisCacheImpl implements DECacheService {
+public class RedisCacheImpl implements DECacheService<Object> {
 
     private static final String SEPARATOR = "::";
 
     @Resource
-    private RedisTemplate redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     private static CacheManager cacheManager;
 
@@ -33,14 +33,13 @@ public class RedisCacheImpl implements DECacheService {
     }
 
 
-    private ValueOperations ops() {
-        ValueOperations valueOperations = redisTemplate.opsForValue();
-        return valueOperations;
+    private ValueOperations<String, Object> ops() {
+        return redisTemplate.opsForValue();
     }
 
     @Override
     public void put(String cacheName, String key, Object value, Long expTime, TimeUnit unit) {
-        ValueOperations ops = ops();
+        ValueOperations<String, Object> ops = ops();
         String realKey = cacheName + SEPARATOR + key;
         if (expTime <= 0) {
             ops.set(realKey, value);
@@ -54,7 +53,7 @@ public class RedisCacheImpl implements DECacheService {
 
     @Override
     public Object get(String cacheName, String key) {
-        ValueOperations ops = ops();
+        ValueOperations<String, Object> ops = ops();
         return ops.get(cacheName + SEPARATOR + key);
     }
 

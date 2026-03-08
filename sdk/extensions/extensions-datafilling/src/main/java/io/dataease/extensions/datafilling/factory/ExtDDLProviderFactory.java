@@ -6,7 +6,6 @@ import io.dataease.extensions.datafilling.provider.ExtDDLProvider;
 import io.dataease.extensions.datafilling.vo.XpackPluginsDfVO;
 import io.dataease.extensions.datasource.utils.SpringContextUtil;
 import io.dataease.extensions.datasource.vo.DatasourceConfiguration;
-import io.dataease.license.utils.LicenseUtil;
 import io.dataease.license.utils.LogUtil;
 import io.dataease.plugins.factory.DataEasePluginFactory;
 
@@ -20,10 +19,8 @@ public class ExtDDLProviderFactory {
 
     public static ExtDDLProvider getExtDDLProvider(String type) {
         DatasourceConfiguration.DatasourceType datasourceType = DatasourceConfiguration.DatasourceType.valueOf(type);
-        switch (datasourceType) {
-            case mysql, mariadb -> {
-                return SpringContextUtil.getApplicationContext().getBean("mysqlExtDDLProvider", ExtDDLProvider.class);
-            }
+        if (datasourceType == DatasourceConfiguration.DatasourceType.mysql || datasourceType == DatasourceConfiguration.DatasourceType.mariadb) {
+            return SpringContextUtil.getApplicationContext().getBean("mysqlExtDDLProvider", ExtDDLProvider.class);
         }
         ExtDDLProvider instance = getInstance(type);
         if (instance == null) {

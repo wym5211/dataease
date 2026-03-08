@@ -1,6 +1,5 @@
 package io.dataease.model;
 
-import io.dataease.constant.CommonConstants;
 import lombok.Data;
 
 import java.io.Serial;

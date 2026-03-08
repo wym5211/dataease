@@ -1,5 +1,6 @@
 package io.dataease.auth.filter;
 
+import jakarta.servlet.Filter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,8 +9,8 @@ import org.springframework.context.annotation.Configuration;
 public class FilterConfig {
 
     @Bean
-    public FilterRegistrationBean orderFilter() {
-        FilterRegistrationBean filter = new FilterRegistrationBean<>();
+    public FilterRegistrationBean<Filter> orderFilter() {
+        FilterRegistrationBean<Filter> filter = new FilterRegistrationBean<>();
         filter.setName("tokenFilter");
         filter.setFilter(new TokenFilter());
         filter.addUrlPatterns("/*");
@@ -18,8 +19,8 @@ public class FilterConfig {
     }
 
     @Bean
-    public FilterRegistrationBean communityFilter() {
-        FilterRegistrationBean filter = new FilterRegistrationBean<>();
+    public FilterRegistrationBean<Filter> communityFilter() {
+        FilterRegistrationBean<Filter> filter = new FilterRegistrationBean<>();
         filter.setName("communityTokenFilter");
         filter.setFilter(new CommunityTokenFilter());
         filter.addUrlPatterns("/*");

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"C:\\\\Program Files\",:*)",
+      "Bash(\"/c/Program Files/JetBrains/IntelliJ IDEA 2023.2.1/plugins/maven/lib/maven3/bin/mvn\" compile:*)"
+    ]
+  }
+}

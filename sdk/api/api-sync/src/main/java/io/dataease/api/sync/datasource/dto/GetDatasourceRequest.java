@@ -1,7 +1,9 @@
 package io.dataease.api.sync.datasource.dto;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class GetDatasourceRequest extends SyncDatasourceDTO {
 

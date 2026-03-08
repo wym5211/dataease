@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 @ConditionalOnExpression("'${spring.cache.type}'.equals('jcache')")
 @Component("dECacheService")
-public class DefaultCacheImpl implements DECacheService {
+public class DefaultCacheImpl implements DECacheService<Object> {
 
 
     private CacheManager cacheManager;

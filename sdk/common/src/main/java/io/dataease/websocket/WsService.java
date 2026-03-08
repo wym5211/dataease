@@ -4,7 +4,6 @@ package io.dataease.websocket;
 
 public interface WsService {
 
-    void releaseMessage(WsMessage wsMessage);
-
+    <T> void releaseMessage(WsMessage<T> wsMessage);
 
 }

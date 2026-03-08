@@ -3,6 +3,7 @@ package io.dataease.extensions.view.dto;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,7 @@ import java.util.Map;
 /**
  * @Author gin
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class ChartViewDTO extends ChartViewBaseDTO {
     private Map<String, Object> data;

@@ -1,18 +1,18 @@
 package io.dataease.extensions.view.dto;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
  * 维度、指标、过滤器
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class ChartViewFieldDTO extends ChartViewFieldBaseDTO implements Serializable {
+public class ChartViewFieldDTO extends ChartViewFieldBaseDTO {
     /**
      * 过滤
      */

@@ -19,20 +19,20 @@ public class TreeUtils {
 
     private final static String I18N_PREFIX = "i18n_auth_menu.";
 
-    public static <T extends TreeResultModel, R extends TreeBaseModel> List<T> mergeTree(List<R> list, Class<T> tClass, boolean appendI18nPrefix) {
+    public static <T extends TreeResultModel<T>, R extends TreeBaseModel<?>> List<T> mergeTree(List<R> list, Class<T> tClass, boolean appendI18nPrefix) {
         AtomicBoolean rootExist = new AtomicBoolean(false);
-        List<TreeModel> modelList = list.stream().map(item -> {
-            TreeModel treeModel = new TreeModel(item);
+        List<TreeModel<R>> modelList = list.stream().map(item -> {
+            TreeModel<R> treeModel = new TreeModel<>(item);
             if (isRoot(treeModel)) {
                 rootExist.set(true);
             }
             return treeModel;
         }).toList();
-        List<TreeModel> modelResult = new ArrayList<>();
-        Map<Long, List<TreeModel>> childMap = modelList.stream().collect(Collectors.groupingBy(TreeModel::getPid));
+        List<TreeModel<R>> modelResult = new ArrayList<>();
+        Map<Long, List<TreeModel<R>>> childMap = modelList.stream().collect(Collectors.groupingBy(TreeModel::getPid));
         List<Long> existedList = new ArrayList<>();
         modelList.forEach(po -> {
-            List<TreeModel> children = null;
+            List<TreeModel<R>> children = null;
             if (CollectionUtils.isNotEmpty(children = childMap.get(po.getId()))) {
                 po.setChildren(children);
                 existedList.addAll(children.stream().map(TreeModel::getId).toList());
@@ -41,7 +41,7 @@ public class TreeUtils {
         if (CollectionUtils.isEmpty(modelList)) {
             return null;
         }
-        List<TreeModel> floatingList = modelList.stream().filter(node -> !isRoot(node) && !existedList.contains(node.getId())).toList();
+        List<TreeModel<R>> floatingList = modelList.stream().filter(node -> !isRoot(node) && !existedList.contains(node.getId())).toList();
         if (CollectionUtils.isNotEmpty(existedList)) {
             modelResult = modelList.stream().filter(node -> !existedList.contains(node.getId())).toList();
         } else {
@@ -49,7 +49,7 @@ public class TreeUtils {
         }
         if (rootExist.get() && CollectionUtils.isNotEmpty(floatingList)) {
             modelResult = modelResult.stream().filter(TreeUtils::isRoot).collect(Collectors.toList());
-            TreeModel root = modelResult.get(0);
+            TreeModel<R> root = modelResult.get(0);
             if (root.getChildren() == null) {
                 root.setChildren(new ArrayList<>());
             }
@@ -59,28 +59,26 @@ public class TreeUtils {
         return convertTree(modelResult, tClass, appendI18nPrefix);
     }
 
-    private static boolean isRoot(TreeModel node) {
+    private static boolean isRoot(TreeModel<? extends TreeBaseModel<?>> node) {
         return node.getId().equals(0L) && (ObjectUtils.isEmpty(node.getPid()) || node.getPid().equals(-1L));
     }
 
-    public static <T extends TreeResultModel> List<T> convertTree(List<TreeModel> roots, Class<T> tClass, boolean appendI18nPrefix) {
+    public static <T extends TreeResultModel<T>, R extends TreeBaseModel<?>> List<T> convertTree(List<TreeModel<R>> roots, Class<T> tClass, boolean appendI18nPrefix) {
         List<T> result = new ArrayList<>();
         for (int i = 0; i < roots.size(); i++) {
-            TreeModel node = roots.get(i);
+            TreeModel<R> node = roots.get(i);
             if (appendI18nPrefix) {
                 node.getData().setName(I18N_PREFIX + node.getName());
             }
             T instance = null;
             try {
-                instance = tClass.newInstance();
-            } catch (InstantiationException e) {
-                throw new RuntimeException(e);
-            } catch (IllegalAccessException e) {
+                instance = tClass.getDeclaredConstructor().newInstance();
+            } catch (ReflectiveOperationException e) {
                 throw new RuntimeException(e);
             }
             T vo = BeanUtils.copyBean(instance, node.getData(), "children");
             result.add(vo);
-            List<TreeModel> children = null;
+            List<TreeModel<R>> children = null;
             if (!CollectionUtils.isEmpty(children = node.getChildren())) {
                 vo.setChildren(convertTree(children, tClass, appendI18nPrefix));
             }
@@ -91,7 +89,7 @@ public class TreeUtils {
     /**
      * Description: rootPid 是根节点PID
      */
-    public static <T extends ITreeBase> List<T> mergeTree(List<T> tree, Long... rootPid) {
+    public static <T extends ITreeBase<T>> List<T> mergeTree(List<T> tree, Long... rootPid) {
         Assert.notNull(rootPid, "Root Pid cannot be null");
         if (CollectionUtils.isEmpty(tree)) {
             return null;
@@ -111,7 +109,7 @@ public class TreeUtils {
                     return;
                 }
                 if (parentNode.getChildren() == null) {
-                    parentNode.setChildren(new ArrayList());
+                    parentNode.setChildren(new ArrayList<>());
                 }
                 parentNode.getChildren().add(node);
             }
@@ -123,12 +121,12 @@ public class TreeUtils {
     /**
      * Description: rootPid 是根节点PID 档期那默认是0
      */
-    public static <T extends ITreeBase> List<T> mergeTree(List<T> tree) {
+    public static <T extends ITreeBase<T>> List<T> mergeTree(List<T> tree) {
         return mergeTree(tree, 0L);
     }
 
 
-    public static <T extends ITreeBase> List<T> mergeDuplicateTree(List<T> tree, Long... rootPid) {
+    public static <T extends ITreeBase<T>> List<T> mergeDuplicateTree(List<T> tree, Long... rootPid) {
         Assert.notNull(rootPid, "Root Pid cannot be null");
         if (CollectionUtils.isEmpty(tree)) {
             return null;
@@ -156,7 +154,7 @@ public class TreeUtils {
                     return;
                 }
                 if (parentNode.getChildren() == null) {
-                    parentNode.setChildren(new ArrayList());
+                    parentNode.setChildren(new ArrayList<>());
                 }
                 parentNode.getChildren().add(node);
             }

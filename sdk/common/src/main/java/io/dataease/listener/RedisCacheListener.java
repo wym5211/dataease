@@ -21,7 +21,7 @@ import java.util.List;
 public class RedisCacheListener implements ApplicationListener<ApplicationReadyEvent> {
 
     @Resource
-    private RedisTemplate redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
 
     @Override
     public void onApplicationEvent(ApplicationReadyEvent event) {
@@ -36,9 +36,10 @@ public class RedisCacheListener implements ApplicationListener<ApplicationReadyE
     public void deleteKeysContainingString(RedisTemplate<String, String> redisTemplate, String searchString) {
         // 扫描所有的key
         ScanOptions scanOptions = ScanOptions.scanOptions().match("*" + searchString + "*").count(1000).build();
-        Cursor<byte[]> cursor = redisTemplate.getConnectionFactory()
-                .getConnection()
-                .scan(scanOptions);
+        Cursor<byte[]> cursor = redisTemplate.executeWithStickyConnection(connection -> connection.keyCommands().scan(scanOptions));
+        if (cursor == null) {
+            return;
+        }
 
         List<byte[]> keysToDelete = new ArrayList<>();
         while (cursor.hasNext()) {

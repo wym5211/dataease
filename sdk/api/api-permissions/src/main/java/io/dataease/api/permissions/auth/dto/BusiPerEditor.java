@@ -6,12 +6,11 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
-import java.io.Serializable;
 import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Schema(description = "业务权限编辑器")
 @Data
-public class BusiPerEditor extends BusiPermissionRequest implements Serializable {
+public class BusiPerEditor extends BusiPermissionRequest {
     @Serial
     private static final long serialVersionUID = 3067994331757489447L;
     @Schema(description = "编辑权限节点集合")

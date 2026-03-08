@@ -24,7 +24,7 @@ public class CommonThreadPool {
     @PostConstruct
     public void init() {
         scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(corePoolSize);
-        scheduledThreadPoolExecutor.setMaximumPoolSize(corePoolSize);
+        scheduledThreadPoolExecutor.setMaximumPoolSize(maximumPoolSize);
         scheduledThreadPoolExecutor.setKeepAliveTime(keepAliveSeconds, TimeUnit.SECONDS);
     }
 
@@ -75,7 +75,7 @@ public class CommonThreadPool {
         scheduledThreadPoolExecutor.execute(() -> {
             ExecutorService executorService = Executors.newSingleThreadExecutor();
             try {
-                Future future = executorService.submit(task);
+                Future<?> future = executorService.submit(task);
                 future.get(timeOut, timeUnit); // 此行会阻塞，直到任务执行完或超时
             } catch (TimeoutException timeoutException) {
                 LogUtil.getLogger().error("timeout to execute task", timeoutException);

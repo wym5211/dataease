@@ -4,12 +4,11 @@ import io.dataease.model.KeywordRequest;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class UserGridRequest extends KeywordRequest implements Serializable {
+public class UserGridRequest extends KeywordRequest {
     private List<Boolean> statusList;
 
     private List<Integer> originList;

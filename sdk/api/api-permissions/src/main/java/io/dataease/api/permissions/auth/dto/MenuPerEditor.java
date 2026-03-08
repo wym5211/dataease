@@ -6,13 +6,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
-import java.io.Serializable;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Schema(description = "菜单权限编辑器")
 @Data
-public class MenuPerEditor extends MenuPermissionRequest implements Serializable {
+public class MenuPerEditor extends MenuPermissionRequest {
     @Serial
     private static final long serialVersionUID = 3410520935167596750L;
     @Schema(description = "菜单权限集合")

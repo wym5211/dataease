@@ -1,7 +1,6 @@
 package io.dataease.extensions.view.util;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import io.dataease.extensions.datasource.model.SQLObj;
 import io.dataease.extensions.view.dto.*;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;

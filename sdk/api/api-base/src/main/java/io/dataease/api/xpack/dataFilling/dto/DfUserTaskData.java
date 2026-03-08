@@ -2,7 +2,6 @@ package io.dataease.api.xpack.dataFilling.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
-import io.dataease.utils.LongArray2StringSerialize;
 import lombok.Data;
 import lombok.experimental.Accessors;
 

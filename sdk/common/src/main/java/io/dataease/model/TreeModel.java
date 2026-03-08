@@ -5,13 +5,13 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class TreeModel<T>{
+public class TreeModel<T extends TreeBaseModel<?>> {
 
-    private TreeBaseModel<T> data;
+    private T data;
 
-    private List<TreeModel> children;
+    private List<TreeModel<T>> children;
 
-    public TreeModel(TreeBaseModel<T> data) {
+    public TreeModel(T data) {
         this.data = data;
     }
 

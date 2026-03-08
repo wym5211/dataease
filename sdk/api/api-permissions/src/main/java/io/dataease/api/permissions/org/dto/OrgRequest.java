@@ -6,13 +6,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
-import java.io.Serializable;
 
 
 @Schema(description = "组织列表过滤器")
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class OrgRequest extends KeywordRequest implements Serializable {
+public class OrgRequest extends KeywordRequest {
 
     @Serial
     private static final long serialVersionUID = 1697526057837588192L;

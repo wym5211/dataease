@@ -11,8 +11,8 @@ import java.util.regex.Pattern;
 
 @Data
 public class DatasourceRequest implements Serializable {
-    private final String REG_WITH_SQL_FRAGMENT = "((?i)WITH[\\s\\S]+(?i)AS?\\s*\\([\\s\\S]+\\))\\s*(?i)SELECT";
-    private Pattern WITH_SQL_FRAGMENT = Pattern.compile("((?i)WITH[\\s\\S]+(?i)AS?\\s*\\([\\s\\S]+\\))\\s*(?i)SELECT");
+    private static final String REG_WITH_SQL_FRAGMENT = "((?i)WITH[\\s\\S]+(?i)AS?\\s*\\([\\s\\S]+\\))\\s*(?i)SELECT";
+    private final Pattern WITH_SQL_FRAGMENT = Pattern.compile(REG_WITH_SQL_FRAGMENT);
     protected String query;
     protected String table;
     protected DatasourceDTO datasource;
@@ -45,7 +45,7 @@ public class DatasourceRequest implements Serializable {
             Matcher matcher = this.WITH_SQL_FRAGMENT.matcher(sql);
             if (matcher.find()) {
                 String withFragment = matcher.group();
-                if (!StringUtils.isEmpty(withFragment)) {
+                if (StringUtils.hasText(withFragment)) {
                     if (withFragment.length() > 6) {
                         int lastSelectIndex = withFragment.length() - 6;
                         sql = sql.replace(withFragment, withFragment.substring(lastSelectIndex));
@@ -62,7 +62,6 @@ public class DatasourceRequest implements Serializable {
     }
 
     public String getREG_WITH_SQL_FRAGMENT() {
-        this.getClass();
-        return "((?i)WITH[\\s\\S]+(?i)AS?\\s*\\([\\s\\S]+\\))\\s*(?i)SELECT";
+        return REG_WITH_SQL_FRAGMENT;
     }
 }

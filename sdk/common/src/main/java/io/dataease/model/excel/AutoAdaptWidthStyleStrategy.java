@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 public class AutoAdaptWidthStyleStrategy extends AbstractColumnWidthStyleStrategy {
 
-    private Map<Integer, Map<Integer, Integer>> CACHE = new HashMap(8);
+    private Map<Integer, Map<Integer, Integer>> CACHE = new HashMap<>(8);
 
     public AutoAdaptWidthStyleStrategy() {
     }
@@ -30,7 +30,7 @@ public class AutoAdaptWidthStyleStrategy extends AbstractColumnWidthStyleStrateg
         if (needSetWidth) {
             Map<Integer, Integer> maxColumnWidthMap = CACHE.get(writeSheetHolder.getSheetNo());
             if (maxColumnWidthMap == null) {
-                maxColumnWidthMap = new HashMap(16);
+                maxColumnWidthMap = new HashMap<>(16);
                 CACHE.put(writeSheetHolder.getSheetNo(), maxColumnWidthMap);
             }
 
@@ -39,9 +39,9 @@ public class AutoAdaptWidthStyleStrategy extends AbstractColumnWidthStyleStrateg
                 if (columnWidth > 255) {
                     columnWidth = 255;
                 }
-                Integer maxColumnWidth = (Integer) ((Map) maxColumnWidthMap).get(cell.getColumnIndex());
+                Integer maxColumnWidth = maxColumnWidthMap.get(cell.getColumnIndex());
                 if (maxColumnWidth == null || columnWidth > maxColumnWidth) {
-                    ((Map) maxColumnWidthMap).put(cell.getColumnIndex(), columnWidth);
+                    maxColumnWidthMap.put(cell.getColumnIndex(), columnWidth);
                     writeSheetHolder.getSheet().setColumnWidth(cell.getColumnIndex(), 7250);
                 }
             }
@@ -52,7 +52,7 @@ public class AutoAdaptWidthStyleStrategy extends AbstractColumnWidthStyleStrateg
         if (isHead) {
             return cell.getStringCellValue().getBytes().length;
         } else {
-            CellData cellData = cellDataList.get(0);
+            CellData<?> cellData = cellDataList.get(0);
             CellDataTypeEnum type = cellData.getType();
             if (type == null) {
                 return -1;

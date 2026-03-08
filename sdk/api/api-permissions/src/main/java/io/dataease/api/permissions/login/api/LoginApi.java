@@ -8,7 +8,6 @@ import io.dataease.api.permissions.login.dto.PwdLoginDTO;
 import io.dataease.api.permissions.login.vo.MfaQrVO;
 import io.dataease.api.permissions.user.dto.ModifyPwdRequest;
 import io.dataease.auth.vo.TokenVO;
-import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

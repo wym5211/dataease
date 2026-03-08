@@ -30,7 +30,6 @@ import org.springframework.util.StringUtils;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.*;
 
 public class DeFeignRegister implements ImportBeanDefinitionRegistrar, ResourceLoaderAware, EnvironmentAware {
@@ -42,11 +41,11 @@ public class DeFeignRegister implements ImportBeanDefinitionRegistrar, ResourceL
     public DeFeignRegister() {
     }
 
-    static void validateFallback(final Class clazz) {
+    static void validateFallback(final Class<?> clazz) {
         Assert.isTrue(!clazz.isInterface(), "Fallback class must implement the interface annotated by @DeFeign");
     }
 
-    static void validateFallbackFactory(final Class clazz) {
+    static void validateFallbackFactory(final Class<?> clazz) {
         Assert.isTrue(!clazz.isInterface(), "Fallback factory must produce instances "
                 + "of fallback classes that implement the interface annotated by @DeFeign");
     }
@@ -78,7 +77,7 @@ public class DeFeignRegister implements ImportBeanDefinitionRegistrar, ResourceL
                 url = "http://" + url;
             }
             try {
-                new URL(url);
+                URI.create(url).toURL();
             } catch (MalformedURLException e) {
                 throw new IllegalArgumentException(url + " is malformed", e);
             }
@@ -200,7 +199,7 @@ public class DeFeignRegister implements ImportBeanDefinitionRegistrar, ResourceL
                                                      BeanDefinitionRegistry registry) {
         ConfigurableBeanFactory beanFactory = registry instanceof ConfigurableBeanFactory
                 ? (ConfigurableBeanFactory) registry : null;
-        Class clazz = ClassUtils.resolveClassName(className, null);
+        Class<?> clazz = ClassUtils.resolveClassName(className, null);
         String contextId = getContextId(beanFactory, attributes);
         String name = getName(attributes);
         FeignClientFactoryBean factoryBean = new FeignClientFactoryBean();
@@ -209,7 +208,8 @@ public class DeFeignRegister implements ImportBeanDefinitionRegistrar, ResourceL
         factoryBean.setContextId(contextId);
         factoryBean.setType(clazz);
         factoryBean.setRefreshableClient(isClientRefreshEnabled());
-        BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(clazz, () -> {
+        BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(clazz);
+        definition.getRawBeanDefinition().setInstanceSupplier(() -> {
             factoryBean.setUrl(getUrl(beanFactory, attributes));
             factoryBean.setPath(getPath(beanFactory, attributes));
             factoryBean.setDismiss404(Boolean.parseBoolean(String.valueOf(attributes.get("dismiss404"))));
@@ -252,8 +252,6 @@ public class DeFeignRegister implements ImportBeanDefinitionRegistrar, ResourceL
 
     private void validate(Map<String, Object> attributes) {
         AnnotationAttributes annotation = AnnotationAttributes.fromMap(attributes);
-        // This blows up if an aliased property is overspecified
-        // FIXME annotation.getAliasedString("name", DeFeign.class, null);
         validateFallback(annotation.getClass("fallback"));
         validateFallbackFactory(annotation.getClass("fallbackFactory"));
     }

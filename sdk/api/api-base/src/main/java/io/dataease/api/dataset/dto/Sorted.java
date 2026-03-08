@@ -1,8 +1,8 @@
 package io.dataease.api.dataset.dto;
 
-/**
- * @Author Junjun
- */
+import lombok.Data;
+
+@Data
 public class Sorted {
     private Long id;
     private String sort;
