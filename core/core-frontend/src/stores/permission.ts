@@ -114,6 +114,66 @@ const RESOURCE_TYPE_FLAG_MAP: Record<string, string> = {
   datasource: 'datasource'
 }
 
+const RESOURCE_PERMISSION_OPTIONS = ['view', 'edit', 'share', 'export', 'delete'] as const
+type ResourcePermissionOption = (typeof RESOURCE_PERMISSION_OPTIONS)[number]
+
+const normalizePermissions = (permissions: string[]): ResourcePermissionOption[] => {
+  if (!Array.isArray(permissions)) return []
+  const set = new Set<ResourcePermissionOption>()
+  permissions.forEach(permission => {
+    if (
+      permission === 'view' ||
+      permission === 'edit' ||
+      permission === 'share' ||
+      permission === 'export' ||
+      permission === 'delete'
+    ) {
+      set.add(permission)
+    }
+  })
+  const hasManage = set.has('edit') || set.has('export') || set.has('delete')
+  if (hasManage) {
+    set.add('edit')
+    set.add('export')
+    set.add('delete')
+  }
+  return RESOURCE_PERMISSION_OPTIONS.filter(permission => set.has(permission))
+}
+
+const permissionToWeight = (permissions: string[]): number => {
+  const normalized = normalizePermissions(permissions)
+  let weight = 0
+  if (normalized.includes('view')) {
+    weight += 1
+  }
+  if (
+    normalized.includes('edit') ||
+    normalized.includes('export') ||
+    normalized.includes('delete')
+  ) {
+    weight += 2
+  }
+  if (normalized.includes('share')) {
+    weight += 4
+  }
+  return weight
+}
+
+const weightToPermissions = (weight?: number): ResourcePermissionOption[] => {
+  if (!weight || weight <= 0) return []
+  const permissions: ResourcePermissionOption[] = []
+  if ((weight & 1) === 1) {
+    permissions.push('view')
+  }
+  if ((weight & 2) === 2) {
+    permissions.push('edit', 'export', 'delete')
+  }
+  if ((weight & 4) === 4) {
+    permissions.push('share')
+  }
+  return normalizePermissions(permissions)
+}
+
 // 权限目标类型
 const PERMISSION_TARGET_TYPE = {
   ROLE: 1,
@@ -347,9 +407,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
         const busiFlag = resourceType === 'dashboard' ? 'dashboard-dataV' : resourceType
 
         const response = await queryTreeApi({
-          busiFlag,
-          leaf: false,
-          withLeaf: true
+          busiFlag
         })
 
         // 转换数据格式
@@ -370,9 +428,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
       } else if (resourceType === 'dataset') {
         // 数据集 - 使用数据集API
         const response = await getDatasetTree({
-          busiFlag: 'dataset',
-          leaf: false,
-          withLeaf: true
+          busiFlag: 'dataset'
         })
 
         // 转换数据格式
@@ -429,21 +485,22 @@ export const usePermissionStore = defineStore('permissionManager', () => {
             const perResponse = await resourcePerApi(requestParams)
 
             // 获取有权限的资源ID列表
-            const grantedResourceIds = new Set<string>()
+            const grantedResourceWeights = new Map<string, number>()
             // 后端可能直接返回 permissions 或在 data.permissions 中
             const permissionList = perResponse?.permissions || perResponse?.data?.permissions || []
             permissionList.forEach((r: any) => {
               if (r.id) {
-                grantedResourceIds.add(String(r.id))
+                grantedResourceWeights.set(String(r.id), Number(r.weight) || 1)
               }
             })
 
             // 应用权限到资源树
             const applyPermissions = (nodes: ResourceNode[]) => {
               nodes.forEach(node => {
-                if (grantedResourceIds.has(node.id)) {
-                  node.hasPermission = true
-                  node.permissions = ['view']
+                if (grantedResourceWeights.has(node.id)) {
+                  const weight = grantedResourceWeights.get(node.id) || 0
+                  node.permissions = weightToPermissions(weight)
+                  node.hasPermission = permissionToWeight(node.permissions) > 0
                 }
                 if (node.children?.length) {
                   applyPermissions(node.children)
@@ -535,15 +592,15 @@ export const usePermissionStore = defineStore('permissionManager', () => {
       for (const node of nodes) {
         if (node.id === resourceId) {
           const oldHasPermission = node.hasPermission
-          const oldPermissions = [...node.permissions]
-
-          node.permissions = permissions
-          node.hasPermission = permissions.length > 0
+          const oldPermissions = normalizePermissions(node.permissions)
+          const nextPermissions = normalizePermissions(permissions)
+          node.permissions = nextPermissions
+          node.hasPermission = permissionToWeight(nextPermissions) > 0
 
           // 记录变更
           if (
             oldHasPermission !== node.hasPermission ||
-            JSON.stringify(oldPermissions) !== JSON.stringify(permissions)
+            JSON.stringify(oldPermissions) !== JSON.stringify(nextPermissions)
           ) {
             const changeNode = { ...node, type: resourceType }
 
@@ -642,20 +699,20 @@ export const usePermissionStore = defineStore('permissionManager', () => {
     if (!hasResourceChanges.value) return
 
     try {
-      // 按资源类型分组收集当前有权限的资源ID
-      const permissionsByType: Record<string, Set<string>> = {}
+      const permissionsByType: Record<string, Map<string, number>> = {}
 
-      // 初始化所有资源类型的空集合
       Object.keys(state.value.resourceTreeData).forEach(type => {
-        permissionsByType[type] = new Set()
+        permissionsByType[type] = new Map()
       })
 
-      // 从资源树中收集所有当前有权限的资源
       Object.entries(state.value.resourceTreeData).forEach(([type, resources]) => {
         const collectGranted = (nodes: ResourceNode[]) => {
           nodes.forEach(node => {
             if (node.hasPermission) {
-              permissionsByType[type].add(node.id)
+              const weight = permissionToWeight(node.permissions)
+              if (weight > 0) {
+                permissionsByType[type].set(node.id, weight)
+              }
             }
             if (node.children?.length) {
               collectGranted(node.children)
@@ -665,10 +722,14 @@ export const usePermissionStore = defineStore('permissionManager', () => {
         collectGranted(resources)
       })
 
-      // 应用变更记录
       state.value.resourceChanges.grants.forEach(node => {
         if (permissionsByType[node.type]) {
-          permissionsByType[node.type].add(node.id)
+          const weight = permissionToWeight(node.permissions)
+          if (weight > 0) {
+            permissionsByType[node.type].set(node.id, weight)
+          } else {
+            permissionsByType[node.type].delete(node.id)
+          }
         }
       })
       state.value.resourceChanges.revokes.forEach(node => {
@@ -677,21 +738,17 @@ export const usePermissionStore = defineStore('permissionManager', () => {
         }
       })
 
-      // 只保存有变更的资源类型（避免清空其他类型的权限）
       const savePromises: Promise<any>[] = []
-
-      // 收集有变更的资源类型
       const changedTypes = new Set<string>()
       state.value.resourceChanges.grants.forEach(node => changedTypes.add(node.type))
       state.value.resourceChanges.revokes.forEach(node => changedTypes.add(node.type))
 
-      // 只保存有变更的资源类型
       changedTypes.forEach(type => {
-        const idSet = permissionsByType[type] || new Set<string>()
+        const permissionMap = permissionsByType[type] || new Map<string, number>()
         const flag = RESOURCE_TYPE_FLAG_MAP[type] || type
-        const permissions = Array.from(idSet).map(id => ({
+        const permissions = Array.from(permissionMap.entries()).map(([id, weight]) => ({
           id: id,
-          weight: 1
+          weight
         }))
 
         savePromises.push(
@@ -1065,7 +1122,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
       const findNode = (nodes: ResourceNode[]): string[] | null => {
         for (const node of nodes) {
           if (node.id === resourceId) {
-            return node.permissions || []
+            return normalizePermissions(node.permissions || [])
           }
           if (node.children?.length) {
             const found = findNode(node.children)

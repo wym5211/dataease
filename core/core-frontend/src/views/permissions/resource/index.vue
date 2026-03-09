@@ -84,16 +84,16 @@
             :props="treeProps"
             :default-expand-all="false"
             :expand-on-click-node="false"
+            :check-on-click-node="false"
             :filter-node-method="filterNode"
             node-key="id"
             show-checkbox
             check-strictly
             @check="handleCheckChange"
-            @node-click="handleNodeClick"
             @check-change="handleSelectionChange"
           >
             <template #default="{ data }">
-              <div class="tree-node">
+              <div class="tree-node" @click.stop="handleNodeClick(data)">
                 <el-icon class="node-icon">
                   <Document v-if="data.type === 'file'" />
                   <Folder v-else />
@@ -105,7 +105,7 @@
                   size="small"
                   class="permission-tag"
                 >
-                  {{ getPermissionStatus(data) === 'granted' ? '已授权' : '未授权' }}
+                  {{ getPermissionTagText(data) }}
                 </el-tag>
                 <el-tooltip v-if="data.description" :content="data.description" placement="top">
                   <el-icon class="info-icon"><InfoFilled /></el-icon>
@@ -144,11 +144,12 @@
             <h4>权限操作</h4>
             <el-checkbox-group v-model="selectedPermissions" @change="handlePermissionChange">
               <el-checkbox label="view">查看</el-checkbox>
-              <el-checkbox label="edit">编辑</el-checkbox>
+              <el-checkbox label="edit">编辑（管理）</el-checkbox>
               <el-checkbox label="share">分享</el-checkbox>
-              <el-checkbox label="export">导出</el-checkbox>
-              <el-checkbox label="delete">删除</el-checkbox>
+              <el-checkbox label="export">导出（管理）</el-checkbox>
+              <el-checkbox label="delete">删除（管理）</el-checkbox>
             </el-checkbox-group>
+            <el-text type="info" size="small">编辑/导出/删除共用同一管理权限位</el-text>
           </div>
 
           <div v-if="relatedMenus.length > 0" class="related-menus">
@@ -199,11 +200,12 @@
         <p>选中了 {{ selectedResources.length }} 个资源</p>
         <el-checkbox-group v-model="batchPermissions">
           <el-checkbox label="view">查看</el-checkbox>
-          <el-checkbox label="edit">编辑</el-checkbox>
+          <el-checkbox label="edit">编辑（管理）</el-checkbox>
           <el-checkbox label="share">分享</el-checkbox>
-          <el-checkbox label="export">导出</el-checkbox>
-          <el-checkbox label="delete">删除</el-checkbox>
+          <el-checkbox label="export">导出（管理）</el-checkbox>
+          <el-checkbox label="delete">删除（管理）</el-checkbox>
         </el-checkbox-group>
+        <el-text type="info" size="small">编辑/导出/删除共用同一管理权限位</el-text>
       </div>
       <template #footer>
         <el-button @click="batchDialogVisible = false">取消</el-button>
@@ -227,14 +229,31 @@ import {
   CircleClose
 } from '@element-plus/icons-vue'
 import type { TreeInstance } from 'element-plus-secondary'
+import { useRouter } from 'vue-router'
 import { usePermissionStore } from '@/stores/permission'
-import type { ResourceItem } from '@/stores/permission'
+import type { ResourceNode } from '@/stores/permission'
+
+type ResourceItem = {
+  readonly id: ResourceNode['id']
+  readonly name: ResourceNode['name']
+  readonly type: ResourceNode['type']
+  readonly hasPermission: ResourceNode['hasPermission']
+  readonly permissions: readonly string[]
+  readonly children?: readonly ResourceItem[]
+  readonly createTime?: ResourceNode['createTime']
+  readonly updateTime?: string
+  readonly status?: string
+  readonly description?: string
+  readonly creator?: ResourceNode['creator']
+  readonly parentId?: ResourceNode['parentId']
+}
 
 const permissionStore = usePermissionStore()
+const router = useRouter()
 
 // 直接使用 store 的计算属性（在模板中自动解包）
 const roleList = computed(() => permissionStore.roleList as any)
-const hasChanges = computed(() => permissionStore.hasChanges)
+const hasChanges = computed(() => Boolean(permissionStore.hasAnyChanges))
 const changeSummary = computed(() => permissionStore.changeSummary)
 
 const selectedRole = ref<string>('')
@@ -269,7 +288,11 @@ const resourceTypeLabel = computed(() => {
 
 const relatedMenus = computed(() => {
   if (!selectedNode.value) return []
-  return permissionStore.getRelatedMenus(selectedNode.value.id)
+  const getRelatedMenus = (permissionStore as any).getRelatedMenus
+  if (typeof getRelatedMenus !== 'function') {
+    return []
+  }
+  return getRelatedMenus(selectedNode.value.id) || []
 })
 
 const treeProps = {
@@ -312,9 +335,15 @@ const filterNode = (value: string, data: ResourceItem) => {
 }
 
 const handleCheckChange = (data: ResourceItem, checkedInfo: any) => {
-  const checked = checkedInfo.checkedKeys.includes(data.id)
+  if (!checkedInfo || !Array.isArray(checkedInfo.checkedKeys)) {
+    return
+  }
+  const checkedKeys = checkedInfo.checkedKeys
+  const checked = checkedKeys.includes(data.id)
   const permissions = checked ? ['view'] : []
   permissionStore.updateResourcePermission(selectedResourceType.value, data.id, permissions)
+  selectedNode.value = data
+  selectedPermissions.value = permissionStore.getResourcePermissions(data.id)
 }
 
 const handleNodeClick = (data: ResourceItem) => {
@@ -327,12 +356,29 @@ const handleSelectionChange = () => {
   selectedResources.value = checkedNodes.map(node => node.id)
 }
 
+const normalizePermissionSelection = (permissions: string[]): string[] => {
+  const set = new Set(permissions)
+  const hasManage = set.has('edit') || set.has('export') || set.has('delete')
+  if (hasManage) {
+    set.add('edit')
+    set.add('export')
+    set.add('delete')
+  } else {
+    set.delete('edit')
+    set.delete('export')
+    set.delete('delete')
+  }
+  return ['view', 'edit', 'share', 'export', 'delete'].filter(permission => set.has(permission))
+}
+
 const handlePermissionChange = () => {
   if (selectedNode.value) {
+    const normalizedPermissions = normalizePermissionSelection(selectedPermissions.value)
+    selectedPermissions.value = normalizedPermissions
     permissionStore.updateResourcePermission(
       selectedResourceType.value,
       selectedNode.value.id,
-      selectedPermissions.value
+      normalizedPermissions
     )
   }
 }
@@ -340,6 +386,29 @@ const handlePermissionChange = () => {
 const getPermissionStatus = (data: ResourceItem): string | null => {
   if (!selectedRole.value) return null
   return permissionStore.hasResourcePermission(data.id) ? 'granted' : 'revoked'
+}
+
+const getPermissionTagText = (data: ResourceItem): string => {
+  if (!selectedRole.value) return ''
+  if (!permissionStore.hasResourcePermission(data.id)) {
+    return '未授权'
+  }
+  const permissions = permissionStore.getResourcePermissions(data.id)
+  const labels: string[] = []
+  if (permissions.includes('view')) {
+    labels.push('查看')
+  }
+  if (
+    permissions.includes('edit') ||
+    permissions.includes('export') ||
+    permissions.includes('delete')
+  ) {
+    labels.push('管理')
+  }
+  if (permissions.includes('share')) {
+    labels.push('分享')
+  }
+  return labels.length ? `已授权(${labels.join('、')})` : '已授权'
 }
 
 const getResourceTypeLabel = (type: string): string => {
@@ -354,18 +423,35 @@ const getResourceTypeLabel = (type: string): string => {
   return labels[type as keyof typeof labels] || type
 }
 
-const formatDate = (timestamp: number): string => {
-  if (!timestamp) return '-'
-  return new Date(timestamp).toLocaleString('zh-CN')
+const formatDate = (value?: string | number): string => {
+  if (!value) return '-'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '-'
+  return date.toLocaleString('zh-CN')
+}
+
+const setTreeExpandedState = (expanded: boolean) => {
+  const treeInstance = resourceTreeRef.value as any
+  const setExpandedKeys = treeInstance?.setExpandedKeys
+  if (typeof setExpandedKeys === 'function') {
+    const expandedKeys = expanded ? getAllNodeKeys(resourceTree.value) : []
+    setExpandedKeys.call(treeInstance, expandedKeys)
+    return
+  }
+  const nodesMap = treeInstance?.store?.nodesMap || {}
+  Object.values(nodesMap).forEach((node: any) => {
+    if (node && node.level > 0) {
+      node.expanded = expanded
+    }
+  })
 }
 
 const expandAll = () => {
-  const allKeys = getAllNodeKeys(resourceTree.value)
-  resourceTreeRef.value?.setExpandedKeys(allKeys)
+  setTreeExpandedState(true)
 }
 
 const collapseAll = () => {
-  resourceTreeRef.value?.setExpandedKeys([])
+  setTreeExpandedState(false)
 }
 
 const selectAll = () => {
@@ -377,9 +463,9 @@ const clearSelection = () => {
   resourceTreeRef.value?.setCheckedKeys([])
 }
 
-const getAllNodeKeys = (tree: ResourceItem[]): string[] => {
+const getAllNodeKeys = (tree: readonly ResourceItem[]): string[] => {
   const keys: string[] = []
-  const traverse = (nodes: ResourceItem[]) => {
+  const traverse = (nodes: readonly ResourceItem[]) => {
     nodes.forEach(node => {
       keys.push(node.id)
       if (node.children?.length) {
@@ -419,11 +505,13 @@ const batchRevoke = () => {
 
 const confirmBatchAction = () => {
   if (batchAction.value === 'grant') {
+    const normalizedBatchPermissions = normalizePermissionSelection(batchPermissions.value)
+    batchPermissions.value = normalizedBatchPermissions
     selectedResources.value.forEach(resourceId => {
       permissionStore.updateResourcePermission(
         selectedResourceType.value,
         resourceId,
-        batchPermissions.value
+        normalizedBatchPermissions
       )
     })
     ElMessage.success(`批量授权 ${selectedResources.value.length} 个资源成功`)
@@ -436,24 +524,70 @@ const confirmBatchAction = () => {
   batchDialogVisible.value = false
 }
 
-const quickGrant = () => {
+const quickGrant = async () => {
   if (!selectedNode.value || !selectedRole.value) return
+  selectedPermissions.value = ['view']
   permissionStore.updateResourcePermission(selectedResourceType.value, selectedNode.value.id, [
     'view'
   ])
+  await updateTreeChecks()
+  handleSelectionChange()
   ElMessage.success('快速授权成功')
 }
 
-const quickRevoke = () => {
+const quickRevoke = async () => {
   if (!selectedNode.value || !selectedRole.value) return
+  selectedPermissions.value = []
   permissionStore.updateResourcePermission(selectedResourceType.value, selectedNode.value.id, [])
+  await updateTreeChecks()
+  handleSelectionChange()
   ElMessage.success('取消授权成功')
 }
 
 const viewResource = () => {
   if (!selectedNode.value) return
-  // 打开资源预览或编辑页面
-  ElMessage.info(`查看资源: ${selectedNode.value.name}`)
+  const resourceId = selectedNode.value.id
+  const resourceType = selectedNode.value.type
+  if (resourceType === 'dashboard') {
+    const newWindow = window.open(`#/dashboard?resourceId=${resourceId}`, '_blank')
+    if (!newWindow) {
+      ElMessage.warning('无法打开新窗口，请检查浏览器弹窗设置')
+    }
+    return
+  }
+  if (resourceType === 'screen') {
+    const newWindow = window.open(`#/dvCanvas?dvId=${resourceId}`, '_blank')
+    if (!newWindow) {
+      ElMessage.warning('无法打开新窗口，请检查浏览器弹窗设置')
+    }
+    return
+  }
+  if (resourceType === 'chart') {
+    const newWindow = window.open(`#/chart?id=${resourceId}`, '_blank')
+    if (!newWindow) {
+      ElMessage.warning('无法打开新窗口，请检查浏览器弹窗设置')
+    }
+    return
+  }
+  if (resourceType === 'dataset') {
+    router.push({
+      path: '/dataset-embedded-form',
+      query: {
+        id: String(resourceId)
+      }
+    })
+    return
+  }
+  if (resourceType === 'datasource') {
+    router.push({
+      path: '/datasource',
+      query: {
+        id: String(resourceId)
+      }
+    })
+    return
+  }
+  ElMessage.info(`当前资源类型暂不支持查看: ${selectedNode.value.name}`)
 }
 
 const saveChanges = async () => {
@@ -474,7 +608,7 @@ const saveChanges = async () => {
 }
 
 const resetChanges = () => {
-  permissionStore.resetResourceChanges()
+  permissionStore.resetPermissionChanges()
   updateTreeChecks()
   ElMessage.info('已重置为上次保存状态')
 }
