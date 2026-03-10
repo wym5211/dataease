@@ -135,6 +135,7 @@ export const nameMap = {
 export interface Configuration {
   dataBase: string
   jdbcUrl: string
+  url?: string
   urlType: string
   connectionType: string
   schema: string
@@ -199,5 +200,10 @@ export interface Node {
   apiConfiguration?: ApiConfiguration[]
   paramsConfiguration?: ApiConfiguration[]
   weight?: number
+  extraFlag?: number
+  enableDataFill?: boolean
+  pid?: number | string
+  isPlugin?: boolean
+  staticMap?: Record<string, unknown>
   lastSyncTime?: number | string
 }

@@ -90,6 +90,7 @@ import { XpackComponent } from '@/components/plugin'
 import { iconFieldMap } from '@/components/icon-group/field-list'
 import { iconDatasourceMap } from '@/components/icon-group/datasource-list'
 import { querySymmetricKey } from '@/api/login'
+import { resourceCheckPermission } from '@/api/relation'
 import { symmetricDecrypt } from '@/utils/encryption'
 import { isFreeFolder } from '@/utils/utils'
 const route = useRoute()
@@ -295,31 +296,33 @@ const validateDS = () => {
     .then(res => {
       if (res.data.type.startsWith('API')) {
         let error = 0
-        const dsStatus = JSON.parse(res.data.status)
+        const dsStatus = JSON.parse(res.data.status) as Array<{ status: string; name: string }>
+        const nodeExtraFlag = Math.abs(nodeTmpInfo.extraFlag || 0)
+        const apiConfiguration = nodeInfo.apiConfiguration || []
         for (let i = 0; i < dsStatus.length; i++) {
           if (dsStatus[i].status === 'Error') {
             error++
           }
-          for (let i = 0; i < nodeTmpInfo.apiConfiguration.length; i++) {
-            if (nodeInfo.apiConfiguration[i].name === dsStatus[i].name) {
-              nodeInfo.apiConfiguration[i].status = dsStatus[i].status
+          for (let i = 0; i < (nodeTmpInfo.apiConfiguration || []).length; i++) {
+            if (apiConfiguration[i].name === dsStatus[i].name) {
+              apiConfiguration[i].status = dsStatus[i].status
             }
           }
         }
         if (error === 0) {
-          changeDsStatus(state.datasourceTree, nodeTmpInfo.id, Math.abs(nodeTmpInfo.extraFlag))
+          changeDsStatus(state.datasourceTree, nodeTmpInfo.id, nodeExtraFlag)
           ElMessage.success(t('data_source.verification_successful'))
         } else {
-          changeDsStatus(state.datasourceTree, nodeTmpInfo.id, -Math.abs(nodeTmpInfo.extraFlag))
+          changeDsStatus(state.datasourceTree, nodeTmpInfo.id, -nodeExtraFlag)
           ElMessage.error(t('data_source.verification_failed'))
         }
       } else {
-        changeDsStatus(state.datasourceTree, nodeTmpInfo.id, Math.abs(nodeTmpInfo.extraFlag))
+        changeDsStatus(state.datasourceTree, nodeTmpInfo.id, Math.abs(nodeTmpInfo.extraFlag || 0))
         ElMessage.success(t('data_source.verification_successful'))
       }
     })
     .catch(() => {
-      changeDsStatus(state.datasourceTree, nodeTmpInfo.id, -Math.abs(nodeTmpInfo.extraFlag))
+      changeDsStatus(state.datasourceTree, nodeTmpInfo.id, -Math.abs(nodeTmpInfo.extraFlag || 0))
     })
 }
 
@@ -420,6 +423,7 @@ const defaultInfo = {
   name: '',
   createBy: '',
   creator: '',
+  copy: false,
   createTime: '',
   description: '',
   id: 0,
@@ -477,6 +481,50 @@ const dsLoading = ref(false)
 const mounted = ref(false)
 const isSupportSetKey = ref(false)
 const symmetricKey = ref('')
+const filterNodesByPermission = async (nodes: BusiTreeNode[]): Promise<BusiTreeNode[]> => {
+  const leafIds: Array<string | number> = []
+  const collectLeafIds = (items: BusiTreeNode[]) => {
+    ;(items || []).forEach(item => {
+      if (item.leaf) {
+        leafIds.push(item.id)
+        return
+      }
+      if (item.children?.length) {
+        collectLeafIds(item.children)
+      }
+    })
+  }
+  collectLeafIds(nodes)
+  if (!leafIds.length) {
+    return nodes
+  }
+  const permissionMap = new Map<string, boolean>()
+  await Promise.all(
+    leafIds.map(async id => {
+      try {
+        const res = await resourceCheckPermission(id)
+        permissionMap.set(String(id), res === true || res?.data === true)
+      } catch (e) {
+        permissionMap.set(String(id), false)
+      }
+    })
+  )
+  const filterTree = (items: BusiTreeNode[]): BusiTreeNode[] => {
+    return (items || [])
+      .map(item => {
+        if (item.leaf) {
+          return permissionMap.get(String(item.id)) ? item : null
+        }
+        const children = filterTree(item.children || [])
+        if (children.length > 0 || Number(item.id) === 0) {
+          return { ...item, children }
+        }
+        return null
+      })
+      .filter(Boolean) as BusiTreeNode[]
+  }
+  return filterTree(nodes)
+}
 
 const listDs = () => {
   rawDatasourceList.value = []
@@ -486,17 +534,22 @@ const listDs = () => {
   const request = { busiFlag: 'datasource' } as BusiTreeRequest
   interactiveStore
     .setInteractive(request)
-    .then(res => {
+    .then(async res => {
       const nodeData = (res as unknown as BusiTreeNode[]) || []
-      if (nodeData.length && nodeData[0]['id'] === '0' && nodeData[0]['name'] === 'root') {
-        rootManage.value = nodeData[0]['weight'] >= 7
-        state.datasourceTree = nodeData[0]['children'] || []
+      const visibleNodeData = await filterNodesByPermission(nodeData)
+      if (
+        visibleNodeData.length &&
+        visibleNodeData[0]['id'] === '0' &&
+        visibleNodeData[0]['name'] === 'root'
+      ) {
+        rootManage.value = visibleNodeData[0]['weight'] >= 7
+        state.datasourceTree = visibleNodeData[0]['children'] || []
         originResourceTree.value = cloneDeep(unref(state.datasourceTree))
         sortTypeChange(curSortType)
         return
       }
+      state.datasourceTree = visibleNodeData
       originResourceTree.value = cloneDeep(unref(state.datasourceTree))
-      state.datasourceTree = nodeData
       sortTypeChange(curSortType)
     })
     .finally(() => {
@@ -711,7 +764,7 @@ const editDatasource = (editType?: number) => {
   if (nodeInfo.type.startsWith('Excel')) {
     nodeInfo.editType = editType
   }
-  return getById(nodeInfo.id).then(res => {
+  return getById(Number(nodeInfo.id)).then(res => {
     let arr = pluginDs.value.filter(ele => {
       return ele.type == res.data.type
     })
@@ -1754,7 +1807,7 @@ const getMenuList = (val: boolean) => {
             v-if="nodeInfo.type.startsWith('Excel')"
             v-slot="slotProps"
             :name="t('dataset.data_preview')"
-            :time="nodeInfo.lastSyncTime"
+            :time="Number(nodeInfo.lastSyncTime)"
             :showTime="nodeInfo.type === 'ExcelRemote'"
           >
             <template v-if="slotProps.active">
@@ -1794,7 +1847,7 @@ const getMenuList = (val: boolean) => {
             "
             v-slot="slotProps"
             :name="t('dataset.update_setting')"
-            :time="(nodeInfo.lastSyncTime as string)"
+            :time="Number(nodeInfo.lastSyncTime)"
           >
             <template v-if="slotProps.active">
               <el-row :gutter="24">

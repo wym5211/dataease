@@ -60,6 +60,7 @@ import {
   exportLimit,
   getDatasetTotal
 } from '@/api/dataset'
+import { resourceCheckPermission } from '@/api/relation'
 import EmptyBackground from '@/components/empty-background/src/EmptyBackground.vue'
 import DeResourceGroupOpt from '@/views/common/DeResourceGroupOpt.vue'
 import DatasetDetail from './DatasetDetail.vue'
@@ -291,6 +292,50 @@ const generateColumns = (arr: Field[]) =>
 
 const dtLoading = ref(false)
 const isCreated = ref(false)
+const filterNodesByPermission = async (nodes: BusiTreeNode[]): Promise<BusiTreeNode[]> => {
+  const leafIds: Array<string | number> = []
+  const collectLeafIds = (items: BusiTreeNode[]) => {
+    ;(items || []).forEach(item => {
+      if (item.leaf) {
+        leafIds.push(item.id)
+        return
+      }
+      if (item.children?.length) {
+        collectLeafIds(item.children)
+      }
+    })
+  }
+  collectLeafIds(nodes)
+  if (!leafIds.length) {
+    return nodes
+  }
+  const permissionMap = new Map<string, boolean>()
+  await Promise.all(
+    leafIds.map(async id => {
+      try {
+        const res = await resourceCheckPermission(id)
+        permissionMap.set(String(id), res === true || res?.data === true)
+      } catch (e) {
+        permissionMap.set(String(id), false)
+      }
+    })
+  )
+  const filterTree = (items: BusiTreeNode[]): BusiTreeNode[] => {
+    return (items || [])
+      .map(item => {
+        if (item.leaf) {
+          return permissionMap.get(String(item.id)) ? item : null
+        }
+        const children = filterTree(item.children || [])
+        if (children.length > 0 || Number(item.id) === 0) {
+          return { ...item, children }
+        }
+        return null
+      })
+      .filter(Boolean) as BusiTreeNode[]
+  }
+  return filterTree(nodes)
+}
 const getData = () => {
   dtLoading.value = true
   let curSortType = sortList[Number(wsCache.get('TreeSort-backend')) ?? 1].value
@@ -298,16 +343,21 @@ const getData = () => {
   const request = { busiFlag: 'dataset' } as BusiTreeRequest
   interactiveStore
     .setInteractive(request)
-    .then(res => {
+    .then(async res => {
       const nodeData = (res as unknown as BusiTreeNode[]) || []
-      if (nodeData.length && nodeData[0]['id'] === '0' && nodeData[0]['name'] === 'root') {
-        rootManage.value = nodeData[0]['weight'] >= 7
-        state.datasetTree = nodeData[0]['children'] || []
+      const visibleNodeData = await filterNodesByPermission(nodeData)
+      if (
+        visibleNodeData.length &&
+        visibleNodeData[0]['id'] === '0' &&
+        visibleNodeData[0]['name'] === 'root'
+      ) {
+        rootManage.value = visibleNodeData[0]['weight'] >= 7
+        state.datasetTree = visibleNodeData[0]['children'] || []
         originResourceTree.value = cloneDeep(unref(state.datasetTree))
         sortTypeChange(curSortType)
         return
       }
-      state.datasetTree = nodeData
+      state.datasetTree = visibleNodeData
       originResourceTree.value = cloneDeep(unref(state.datasetTree))
       sortTypeChange(curSortType)
     })

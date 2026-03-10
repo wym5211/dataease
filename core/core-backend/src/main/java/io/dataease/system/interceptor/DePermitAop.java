@@ -29,6 +29,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -127,10 +128,11 @@ public class DePermitAop {
     }
 
     private boolean checkResourcePermit(TokenUserBO user, String resourceType, String resourceId, int required) {
+        List<String> resourceTypes = resolveResourceTypes(resourceType);
         QueryWrapper<SysResourcePermission> qw = new QueryWrapper<>();
         qw.eq("resource_id", resourceId);
-        if (StringUtils.isNotBlank(resourceType)) {
-            qw.eq("resource_type", resourceType);
+        if (CollectionUtils.isNotEmpty(resourceTypes)) {
+            qw.in("resource_type", resourceTypes);
         }
         qw.and(w -> w.eq("owner_type", 0).eq("owner_id", user.getUserId()));
         List<SysResourcePermission> userPerms = sysResourcePermissionMapper.selectList(qw);
@@ -144,8 +146,8 @@ public class DePermitAop {
         }
         QueryWrapper<SysResourcePermission> rq = new QueryWrapper<>();
         rq.eq("resource_id", resourceId);
-        if (StringUtils.isNotBlank(resourceType)) {
-            rq.eq("resource_type", resourceType);
+        if (CollectionUtils.isNotEmpty(resourceTypes)) {
+            rq.in("resource_type", resourceTypes);
         }
         rq.eq("owner_type", 1);
         rq.in("owner_id", roleIds);
@@ -156,6 +158,9 @@ public class DePermitAop {
     private boolean hasPermission(Integer actual, int required) {
         if (actual == null) {
             return false;
+        }
+        if (required == 1 && (actual & 2) == 2) {
+            return true;
         }
         return (actual & required) == required;
     }
@@ -194,10 +199,45 @@ public class DePermitAop {
     }
 
     private String resolveBusiFlag(DePermit dePermit, Object[] args, AuthResourceEnum rt) {
+        String rawFlag;
         if (StringUtils.isBlank(dePermit.busiFlag())) {
-            return rt == null ? null : rt.name().toLowerCase();
+            rawFlag = rt == null ? null : rt.name().toLowerCase();
+        } else {
+            rawFlag = evalPermitExpr(dePermit.busiFlag(), args);
         }
-        return evalPermitExpr(dePermit.busiFlag(), args);
+        return normalizeResourceType(rawFlag);
+    }
+
+    private List<String> resolveResourceTypes(String resourceType) {
+        if (StringUtils.isBlank(resourceType)) {
+            return null;
+        }
+        List<String> result = new ArrayList<>();
+        String normalizedType = normalizeResourceType(resourceType);
+        result.add(normalizedType);
+        if (StringUtils.equals(normalizedType, "dashboard")) {
+            result.add("panel");
+        } else if (StringUtils.equals(normalizedType, "dataV")) {
+            result.add("screen");
+        } else if (StringUtils.equals(normalizedType, "panel")) {
+            result.add("dashboard");
+        } else if (StringUtils.equals(normalizedType, "screen")) {
+            result.add("dataV");
+        }
+        return result.stream().filter(StringUtils::isNotBlank).distinct().toList();
+    }
+
+    private String normalizeResourceType(String type) {
+        if (StringUtils.isBlank(type)) {
+            return type;
+        }
+        if (StringUtils.equalsAnyIgnoreCase(type, "dashboard", "dashboard-copy")) {
+            return "dashboard";
+        }
+        if (StringUtils.equalsAnyIgnoreCase(type, "dataV", "dataV-copy")) {
+            return "dataV";
+        }
+        return type;
     }
 
     private DePermit resolveDePermit(Method method, Class<?> targetClass) {

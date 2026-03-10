@@ -54,6 +54,7 @@ import treeSort, { treeParentWeight } from '@/utils/treeSortUtils'
 import router from '@/router'
 import { cancelRequestBatch } from '@/config/axios/service'
 import { isFreeFolder } from '@/utils/utils'
+import { resourceCheckPermission } from '@/api/relation'
 const { wsCache } = useCache()
 
 const dvMainStore = dvMainStoreWithOut()
@@ -327,23 +328,90 @@ const getTree = async (notOpen = false) => {
   const nodeData = interactiveData.treeNodes
   rootManage.value = interactiveData.rootManage
   anyManage.value = interactiveData.anyManage
+  const filterNodesByWeight = (nodes: BusiTreeNode[]): BusiTreeNode[] => {
+    return (nodes || [])
+      .map(node => {
+        const children = filterNodesByWeight(node.children || [])
+        if (node.leaf) {
+          return Number(node.weight || 0) > 0 ? node : null
+        }
+        if (children.length > 0 || Number(node.weight || 0) > 0 || Number(node.id) === 0) {
+          return { ...node, children }
+        }
+        return null
+      })
+      .filter(Boolean) as BusiTreeNode[]
+  }
+  const filterNodesByPermission = async (nodes: BusiTreeNode[]): Promise<BusiTreeNode[]> => {
+    const leafIds: Array<string | number> = []
+    const collectLeafIds = (items: BusiTreeNode[]) => {
+      ;(items || []).forEach(item => {
+        if (item.leaf) {
+          leafIds.push(item.id)
+          return
+        }
+        if (item.children?.length) {
+          collectLeafIds(item.children)
+        }
+      })
+    }
+    collectLeafIds(nodes)
+    if (!leafIds.length) {
+      return nodes
+    }
+    const permissionMap = new Map<string, boolean>()
+    await Promise.all(
+      leafIds.map(async id => {
+        try {
+          const res = await resourceCheckPermission(id)
+          const allow = res === true || res?.data === true
+          permissionMap.set(String(id), allow)
+        } catch (e) {
+          permissionMap.set(String(id), false)
+        }
+      })
+    )
+    const filterTree = (items: BusiTreeNode[]): BusiTreeNode[] => {
+      return (items || [])
+        .map(item => {
+          if (item.leaf) {
+            return permissionMap.get(String(item.id)) ? item : null
+          }
+          const children = filterTree(item.children || [])
+          if (children.length > 0 || Number(item.id) === 0) {
+            return { ...item, children }
+          }
+          return null
+        })
+        .filter(Boolean) as BusiTreeNode[]
+    }
+    return filterTree(nodes)
+  }
+  let visibleNodeData = filterNodesByWeight(nodeData || [])
+  if (curCanvasType.value === 'dashboard' || curCanvasType.value === 'dataV') {
+    visibleNodeData = await filterNodesByPermission(visibleNodeData)
+  }
   if (
     dvInfo.value &&
     dvInfo.value.id &&
-    !JSON.stringify(nodeData).includes(dvInfo.value.id) &&
+    !JSON.stringify(visibleNodeData).includes(dvInfo.value.id) &&
     showPosition.value !== 'multiplexing'
   ) {
     dvMainStore.resetDvInfo()
   }
   let curSortType = sortList[Number(wsCache.get('TreeSort-backend')) ?? 1].value
   curSortType = wsCache.get(`TreeSort-${curCanvasType.value}`) ?? curSortType
-  if (nodeData.length && nodeData[0]['id'] === '0' && nodeData[0]['name'] === 'root') {
-    state.originResourceTree = nodeData[0]['children'] || []
+  if (
+    visibleNodeData.length &&
+    visibleNodeData[0]['id'] === '0' &&
+    visibleNodeData[0]['name'] === 'root'
+  ) {
+    state.originResourceTree = visibleNodeData[0]['children'] || []
     sortTypeChange(curSortType)
     afterTreeInit(notOpen)
     return
   }
-  state.originResourceTree = nodeData
+  state.originResourceTree = visibleNodeData
   sortTypeChange(curSortType)
   afterTreeInit(notOpen)
 }

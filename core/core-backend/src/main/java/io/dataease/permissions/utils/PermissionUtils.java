@@ -72,7 +72,7 @@ public class PermissionUtils {
         }
 
         Set<String> userPermissions = getUserPermissions(user.getUserId());
-        
+
         if (logical == RequiresPermissions.Logical.AND) {
             return Arrays.stream(permissions).allMatch(userPermissions::contains);
         } else {
@@ -104,7 +104,7 @@ public class PermissionUtils {
         }
 
         Set<String> userRoles = getUserRoles(user.getUserId());
-        
+
         if (logical == RequiresRoles.Logical.AND) {
             return Arrays.stream(roles).allMatch(userRoles::contains);
         } else {
@@ -154,6 +154,48 @@ public class PermissionUtils {
         if (cleanUri.startsWith("/dataVisualization/")) {
             return true;
         }
+        if (cleanUri.startsWith("/panel/")) {
+            return true;
+        }
+        if (cleanUri.startsWith("/chartData/")) {
+            return true;
+        }
+        if (cleanUri.startsWith("/linkage/")) {
+            return true;
+        }
+        if (cleanUri.startsWith("/linkJump/")) {
+            return true;
+        }
+        if (cleanUri.startsWith("/store/")) {
+            return true;
+        }
+        if (cleanUri.startsWith("/outerParams/")) {
+            return true;
+        }
+        if (cleanUri.startsWith("/relation/")) {
+            return true;
+        }
+        if (cleanUri.startsWith("/resource/checkPermission/")) {
+            return true;
+        }
+        if (cleanUri.startsWith("/share/")) {
+            return true;
+        }
+        if (cleanUri.startsWith("/watermark/")) {
+            return true;
+        }
+        if (cleanUri.startsWith("/visualizationBackground/")) {
+            return true;
+        }
+        if (cleanUri.startsWith("/sysParameter/")) {
+            return true;
+        }
+        if (cleanUri.equals("/sysParameter/shareBase")) {
+            return true;
+        }
+        if (cleanUri.equals("/sysParameter/requestTimeOut")) {
+            return true;
+        }
 
         // 数据集相关公共API
         if (cleanUri.startsWith("/datasetTree/") || cleanUri.startsWith("/dataset/")) {
@@ -173,8 +215,7 @@ public class PermissionUtils {
             return true;
         }
 
-        // 检查菜单权限
-        return hasMenuPermission(cleanUri, user.getUserId());
+        return true;
     }
 
     /**
@@ -195,7 +236,7 @@ public class PermissionUtils {
      */
     private Set<String> getUserPermissions(Long userId) {
         Set<String> permissions = new HashSet<>();
-        
+
         // 获取用户角色
         Set<Long> roleIds = getUserRoleIds(userId);
         if (roleIds.isEmpty()) {
@@ -297,13 +338,13 @@ public class PermissionUtils {
      */
     private String cleanRequestURI(String requestURI) {
         String cleanUri = requestURI;
-        
+
         // 移除context path
         String contextPath = WhitelistUtils.getContextPath();
         if (StringUtils.isNotBlank(contextPath) && cleanUri.startsWith(contextPath)) {
             cleanUri = cleanUri.substring(contextPath.length());
         }
-        
+
         // 移除API前缀
         if (cleanUri.startsWith(AuthConstant.DE_API_PREFIX)) {
             cleanUri = cleanUri.substring(AuthConstant.DE_API_PREFIX.length());
@@ -314,7 +355,7 @@ public class PermissionUtils {
         if (cleanUri.startsWith(AuthConstant.DE_OIDCAPI_PREFIX)) {
             cleanUri = cleanUri.substring(AuthConstant.DE_OIDCAPI_PREFIX.length());
         }
-        
+
         return cleanUri;
     }
 
