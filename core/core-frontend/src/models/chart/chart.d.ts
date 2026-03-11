@@ -1,6 +1,22 @@
 /**
  * 图表对象
  */
+declare interface ChartExtRequest {
+  user?: string | number
+  filter?: any[]
+  linkageFilters?: any[]
+  outerParamsFilters?: any[]
+  webParamsFilters?: any[]
+  drill?: any[]
+  queryFrom?: string
+  resultMode?: string
+  resultCount?: number
+  cache?: boolean
+  goPage?: number
+  pageSize?: number
+  excelExportFlag?: boolean
+}
+
 declare interface Chart {
   id: string
   render: string
@@ -77,6 +93,7 @@ declare interface Chart {
   extColor: Axis[]
 
   fontFamily?: string
+  chartExtRequest?: ChartExtRequest
 }
 declare type CustomAttr = DeepPartial<ChartAttr> | JSONString<DeepPartial<ChartAttr>>
 declare type CustomStyle = DeepPartial<ChartStyle> | JSONString<DeepPartial<ChartStyle>>

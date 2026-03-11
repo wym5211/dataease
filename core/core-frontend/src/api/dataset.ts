@@ -164,8 +164,8 @@ export const exportLimit = async (): Promise<boolean> => {
   })
 }
 
-export const perDelete = async (id): Promise<boolean> => {
-  return request.post({ url: `/datasetTree/perDelete/${id}`, data: {} }).then(res => {
+export const perDelete = async (id, silentError = false): Promise<boolean> => {
+  return request.post({ url: `/datasetTree/perDelete/${id}`, data: {}, silentError }).then(res => {
     return res?.data
   })
 }

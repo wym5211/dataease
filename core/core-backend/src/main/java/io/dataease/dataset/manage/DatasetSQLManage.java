@@ -152,7 +152,7 @@ public class DatasetSQLManage {
             if (dsMap.containsKey(datasetTable.getDatasourceId())) {
                 schema = dsMap.get(datasetTable.getDatasourceId()).getSchemaAlias();
             } else {
-                schema = putObj2Map(dsMap, datasetTable, isCross, coreDatasource);
+                schema = putObj2Map(dsMap, datasetTable, isCross, coreDatasource, chartExtRequest);
             }
             SQLObj table = getUnionTable(datasetTable, tableInfo, schema, i, filterParameters(chartExtRequest, currentDs.getId()), isFromDataSet, isCross, dsMap);
             if (i == 0) {
@@ -337,7 +337,7 @@ public class DatasetSQLManage {
             if (dsMap.containsKey(datasetTable.getDatasourceId())) {
                 schema = dsMap.get(datasetTable.getDatasourceId()).getSchemaAlias();
             } else {
-                schema = putObj2Map(dsMap, datasetTable, isCross);
+                schema = putObj2Map(dsMap, datasetTable, isCross, null, chartExtRequest);
             }
             SQLObj table = getUnionTable(datasetTable, tableInfo, schema, index, filterParameters(chartExtRequest, datasetTable.getId()), chartExtRequest == null, isCross, dsMap);
 
@@ -512,12 +512,16 @@ public class DatasetSQLManage {
     }
 
     public String putObj2Map(Map<Long, DatasourceSchemaDTO> dsMap, DatasetTableDTO ds, boolean isCross) {
-        return putObj2Map(dsMap, ds, isCross, null);
+        return putObj2Map(dsMap, ds, isCross, null, null);
     }
 
     public String putObj2Map(Map<Long, DatasourceSchemaDTO> dsMap, DatasetTableDTO ds, boolean isCross, CoreDatasource coreDatasource) {
+        return putObj2Map(dsMap, ds, isCross, coreDatasource, null);
+    }
+
+    public String putObj2Map(Map<Long, DatasourceSchemaDTO> dsMap, DatasetTableDTO ds, boolean isCross, CoreDatasource coreDatasource, ChartExtRequest chartExtRequest) {
         // 通过datasource id校验数据源权限
-        if (ObjectUtils.isEmpty(coreDatasource)) {
+        if (ObjectUtils.isEmpty(coreDatasource) && !skipResourcePermissionCheck(chartExtRequest)) {
             BusiPerCheckDTO dto = new BusiPerCheckDTO();
             dto.setId(ds.getDatasourceId());
             dto.setAuthEnum(AuthEnum.READ);
@@ -575,6 +579,19 @@ public class DatasetSQLManage {
             }
         }
         return schemaAlias;
+    }
+
+    private boolean skipResourcePermissionCheck(ChartExtRequest chartExtRequest) {
+        if (chartExtRequest == null) {
+            return false;
+        }
+        return StringUtils.equalsAnyIgnoreCase(
+                chartExtRequest.getQueryFrom(),
+                "preview",
+                "edit-preview",
+                "multiplexing",
+                "canvas-multiplexing"
+        );
     }
 
     public void datasetCrossDefault() {

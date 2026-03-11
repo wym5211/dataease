@@ -292,6 +292,46 @@ const generateColumns = (arr: Field[]) =>
 
 const dtLoading = ref(false)
 const isCreated = ref(false)
+const datasetManagePermissionMap = ref<Record<string, boolean>>({})
+const hasManagePermissionError = error => {
+  const msg = typeof error === 'string' ? error : ''
+  return (
+    msg.includes('DEException(code=60003') ||
+    msg.includes('该接口禁止访问') ||
+    msg.includes('禁止访问') ||
+    msg.includes('没有权限')
+  )
+}
+const resolveDatasetManagePermission = async (id: string | number) => {
+  if (!id) {
+    return false
+  }
+  const key = String(id)
+  if (Object.prototype.hasOwnProperty.call(datasetManagePermissionMap.value, key)) {
+    return datasetManagePermissionMap.value[key]
+  }
+  try {
+    await perDelete(Number(id), true)
+    datasetManagePermissionMap.value[key] = true
+    return true
+  } catch (error) {
+    if (hasManagePermissionError(error)) {
+      datasetManagePermissionMap.value[key] = false
+      return false
+    }
+    datasetManagePermissionMap.value[key] = false
+    return false
+  }
+}
+const canManageCurrentDataset = computed(() => {
+  return !!datasetManagePermissionMap.value[String(nodeInfo.id)]
+})
+const canManageDatasetNode = data => {
+  if (!data.leaf) {
+    return data.weight >= 7
+  }
+  return !!datasetManagePermissionMap.value[String(data.id)]
+}
 const filterNodesByPermission = async (nodes: BusiTreeNode[]): Promise<BusiTreeNode[]> => {
   const leafIds: Array<string | number> = []
   const collectLeafIds = (items: BusiTreeNode[]) => {
@@ -314,9 +354,14 @@ const filterNodesByPermission = async (nodes: BusiTreeNode[]): Promise<BusiTreeN
     leafIds.map(async id => {
       try {
         const res = await resourceCheckPermission(id)
-        permissionMap.set(String(id), res === true || res?.data === true)
+        const hasReadPermission = res === true || res?.data === true
+        permissionMap.set(String(id), hasReadPermission)
+        if (!hasReadPermission) {
+          datasetManagePermissionMap.value[String(id)] = false
+        }
       } catch (e) {
         permissionMap.set(String(id), false)
+        datasetManagePermissionMap.value[String(id)] = false
       }
     })
   )
@@ -420,6 +465,7 @@ const handleNodeClick = (data: BusiTreeNode) => {
     Object.assign(nodeInfo, nodeData)
     nodeInfo.weight = data.weight
     nodeInfo.ext = data.ext || 0
+    resolveDatasetManagePermission(data.id)
     columnsPreview = []
     dataPreview = []
     activeName.value = 'dataPreview'
@@ -529,7 +575,12 @@ const editorDataset = () => {
 }
 const embedded = useEmbedded()
 
-const handleEdit = id => {
+const handleEdit = async id => {
+  const canManage = await resolveDatasetManagePermission(id)
+  if (!canManage) {
+    ElMessage.warning(t('work_branch.permission_denied'))
+    return
+  }
   if (isDataEaseBi.value) {
     embedded.clearState()
     embedded.setDatasetId(id as string)
@@ -803,7 +854,7 @@ const sortTypeTip = computed(() => {
 
 const tablePanes = ref([])
 const tablePaneList = computed(() => {
-  return nodeInfo.weight >= 7 ? [...defaultTab, ...tablePanes.value] : [...defaultTab]
+  return canManageCurrentDataset.value ? [...defaultTab, ...tablePanes.value] : [...defaultTab]
 })
 const panelLoad = paneInfo => {
   tablePanes.value = paneInfo
@@ -984,7 +1035,7 @@ const proxyAllowDrop = throttle((arg1, arg2) => {
                   <Icon name="icon_dataset"><icon_dataset class="svg-icon" /></Icon>
                 </el-icon>
                 <span :title="node.label" class="label-tooltip ellipsis">{{ node.label }}</span>
-                <div class="icon-more" v-if="data.weight >= 7">
+                <div class="icon-more" v-if="canManageDatasetNode(data)">
                   <handle-more
                     icon-size="24px"
                     @handle-command="cmd => handleDatasetTree(cmd, data)"
@@ -1068,7 +1119,7 @@ const proxyAllowDrop = throttle((arg1, arg2) => {
                 </template>
                 {{ t('data_set.dataset_export') }}
               </el-button>
-              <el-button type="primary" @click="editorDataset" v-if="nodeInfo.weight >= 7">
+              <el-button type="primary" @click="editorDataset" v-if="canManageCurrentDataset">
                 <template #icon>
                   <Icon name="icon_edit_outlined"><icon_edit_outlined class="svg-icon" /></Icon>
                 </template>

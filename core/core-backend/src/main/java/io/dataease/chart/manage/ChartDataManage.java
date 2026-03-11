@@ -119,9 +119,11 @@ public class ChartDataManage {
         BusiPerCheckDTO dto = new BusiPerCheckDTO();
         dto.setId(table.getId());
         dto.setAuthEnum(AuthEnum.READ);
-        boolean checked = corePermissionManage.checkAuth(dto);
-        if (!checked) {
-            DEException.throwException(Translator.get("i18n_no_dataset_permission"));
+        if (!skipResourcePermissionCheck(chartExtRequest)) {
+            boolean checked = corePermissionManage.checkAuth(dto);
+            if (!checked) {
+                DEException.throwException(Translator.get("i18n_no_dataset_permission"));
+            }
         }
 
         List<ChartViewFieldDTO> allFields = getAllChartFields(view);
@@ -420,6 +422,19 @@ public class ChartDataManage {
 
         ChartCalcDataResult calcResult = chartHandler.calcChartResult(view, formatResult, filterResult, sqlMap, sqlMeta, provider);
         return chartHandler.buildChart(view, calcResult, formatResult, filterResult);
+    }
+
+    private boolean skipResourcePermissionCheck(ChartExtRequest chartExtRequest) {
+        if (chartExtRequest == null) {
+            return false;
+        }
+        return StringUtils.equalsAnyIgnoreCase(
+                chartExtRequest.getQueryFrom(),
+                "preview",
+                "edit-preview",
+                "multiplexing",
+                "canvas-multiplexing"
+        );
     }
 
     private List<ChartViewFieldDTO> getSizeField(ChartViewDTO view) throws Exception {

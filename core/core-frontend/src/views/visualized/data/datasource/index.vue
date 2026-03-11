@@ -44,7 +44,6 @@ import { Icon } from '@/components/icon-custom'
 import { fieldType } from '@/utils/attr'
 import { useEmitt } from '@/hooks/web/useEmitt'
 import {
-  getHidePwById,
   listSyncRecord,
   uploadFile,
   perDeleteDatasource,
@@ -439,12 +438,60 @@ const defaultInfo = {
   extraFlag: 0
 }
 const nodeInfo = reactive<Node>(cloneDeep(defaultInfo))
+const datasourceManagePermissionMap = ref<Record<number, boolean>>({})
 const infoList = computed(() => {
   return {
     creator: nodeInfo.creator,
     createTime: timestampFormatDate(nodeInfo.createTime)
   }
 })
+const hasManagePermissionError = error => {
+  const msg = typeof error === 'string' ? error : ''
+  return (
+    msg.includes('DEException(code=60003') ||
+    msg.includes('该接口禁止访问') ||
+    msg.includes('禁止访问') ||
+    msg.includes('没有权限')
+  )
+}
+const getNodeManagePermission = (id: number) => {
+  if (!id) {
+    return false
+  }
+  if (Object.prototype.hasOwnProperty.call(datasourceManagePermissionMap.value, id)) {
+    return datasourceManagePermissionMap.value[id]
+  }
+  return false
+}
+const resolveNodeManagePermission = (id: number) => {
+  if (!id) {
+    return Promise.resolve(false)
+  }
+  if (Object.prototype.hasOwnProperty.call(datasourceManagePermissionMap.value, id)) {
+    return Promise.resolve(datasourceManagePermissionMap.value[id])
+  }
+  return getById(id)
+    .then(() => {
+      datasourceManagePermissionMap.value[id] = true
+      return true
+    })
+    .catch(error => {
+      if (hasManagePermissionError(error)) {
+        datasourceManagePermissionMap.value[id] = false
+        return false
+      }
+      return false
+    })
+}
+const canManageCurrentNode = computed(() => {
+  return getNodeManagePermission(Number(nodeInfo.id))
+})
+const canManageTreeNode = data => {
+  if (!data.leaf) {
+    return data.weight >= 7
+  }
+  return getNodeManagePermission(Number(data.id))
+}
 const saveDsFolder = (params, successCb, finallyCb, cmd) => {
   let method = move
   let message = t('data_set.moved_successfully')
@@ -636,11 +683,7 @@ const handleNodeClick = data => {
     dsListTree.value.setCurrentKey(null)
     return
   }
-  let method = getHidePwById
-  if (data.weight < 7) {
-    method = getSimpleDs
-  }
-  return method(data.id).then(res => {
+  return getSimpleDs(data.id).then(res => {
     let {
       name,
       createBy,
@@ -764,64 +807,78 @@ const editDatasource = (editType?: number) => {
   if (nodeInfo.type.startsWith('Excel')) {
     nodeInfo.editType = editType
   }
-  return getById(Number(nodeInfo.id)).then(res => {
-    let arr = pluginDs.value.filter(ele => {
-      return ele.type == res.data.type
+  const datasourceId = Number(nodeInfo.id)
+  return getById(datasourceId)
+    .catch(error => {
+      const msg = typeof error === 'string' ? error : ''
+      if (msg.includes('DEException(code=60003')) {
+        return getSimpleDs(datasourceId)
+      }
+      return Promise.reject(error)
     })
-    let {
-      name,
-      createBy,
-      id,
-      createTime,
-      creator,
-      type,
-      pid,
-      configuration,
-      syncSetting,
-      apiConfigurationStr,
-      paramsStr,
-      fileName,
-      size,
-      description,
-      lastSyncTime,
-      enableDataFill
-    } = res.data
-    if (configuration) {
-      configuration = JSON.parse(symmetricDecrypt(configuration, symmetricKey.value))
-    }
-    if (paramsStr) {
-      paramsStr = JSON.parse(symmetricDecrypt(paramsStr, symmetricKey.value))
-    }
-    if (apiConfigurationStr) {
-      apiConfigurationStr = JSON.parse(symmetricDecrypt(apiConfigurationStr, symmetricKey.value))
-    }
-    let datasource = reactive<Node>(cloneDeep(defaultInfo))
-    Object.assign(datasource, {
-      name,
-      pid,
-      description,
-      fileName,
-      size,
-      createTime,
-      creator,
-      createBy,
-      id,
-      type,
-      configuration,
-      syncSetting,
-      apiConfiguration: apiConfigurationStr,
-      paramsConfiguration: paramsStr,
-      lastSyncTime,
-      enableDataFill,
-      isPlugin: arr && arr.length > 0,
-      staticMap: arr[0]?.staticMap
+    .then(res => {
+      let arr = pluginDs.value.filter(ele => {
+        return ele.type == res.data.type
+      })
+      let {
+        name,
+        createBy,
+        id,
+        createTime,
+        creator,
+        type,
+        pid,
+        configuration,
+        syncSetting,
+        apiConfigurationStr,
+        paramsStr,
+        fileName,
+        size,
+        description,
+        lastSyncTime,
+        enableDataFill
+      } = res.data
+      if (configuration) {
+        configuration = JSON.parse(symmetricDecrypt(configuration, symmetricKey.value))
+      }
+      if (paramsStr) {
+        paramsStr = JSON.parse(symmetricDecrypt(paramsStr, symmetricKey.value))
+      }
+      if (apiConfigurationStr) {
+        apiConfigurationStr = JSON.parse(symmetricDecrypt(apiConfigurationStr, symmetricKey.value))
+      }
+      let datasource = reactive<Node>(cloneDeep(defaultInfo))
+      Object.assign(datasource, {
+        name,
+        pid,
+        description,
+        fileName,
+        size,
+        createTime,
+        creator,
+        createBy,
+        id,
+        type,
+        configuration,
+        syncSetting,
+        apiConfiguration: apiConfigurationStr,
+        paramsConfiguration: paramsStr,
+        lastSyncTime,
+        enableDataFill,
+        isPlugin: arr && arr.length > 0,
+        staticMap: arr[0]?.staticMap
+      })
+      datasourceEditor.value.init(datasource, null, null, isSupportSetKey.value)
     })
-    datasourceEditor.value.init(datasource, null, null, isSupportSetKey.value)
-  })
 }
 
 const handleEdit = async data => {
   await handleNodeClick(data)
+  const canManage = await resolveNodeManagePermission(Number(data.id))
+  if (!canManage) {
+    ElMessage.warning(t('work_branch.permission_denied'))
+    return
+  }
   editDatasource()
 }
 
@@ -1298,7 +1355,7 @@ const getMenuList = (val: boolean) => {
                     >{{ node.label }}</span
                   >
                 </el-tooltip>
-                <div class="icon-more" v-if="data.weight >= 7">
+                <div class="icon-more" v-if="canManageTreeNode(data)">
                   <handle-more
                     icon-size="24px"
                     @handle-command="cmd => handleDatasourceTree(cmd, data)"
@@ -1381,7 +1438,7 @@ const getMenuList = (val: boolean) => {
                 {{ t('data_set.a_new_dataset') }}
               </el-button>
               <el-button
-                v-if="nodeInfo.type !== 'Excel' && nodeInfo.weight >= 7"
+                v-if="nodeInfo.type !== 'Excel' && canManageCurrentNode"
                 secondary
                 @click="validateDS"
               >
@@ -1390,7 +1447,7 @@ const getMenuList = (val: boolean) => {
 
               <template v-if="nodeInfo.type === 'Excel'">
                 <el-upload
-                  v-if="nodeInfo.weight >= 7"
+                  v-if="canManageCurrentNode"
                   action=""
                   :multiple="false"
                   ref="uploadAgain"
@@ -1413,7 +1470,7 @@ const getMenuList = (val: boolean) => {
                 </el-upload>
 
                 <el-upload
-                  v-if="nodeInfo.weight >= 7"
+                  v-if="canManageCurrentNode"
                   action=""
                   :multiple="false"
                   ref="uploadAgain"
@@ -1435,7 +1492,7 @@ const getMenuList = (val: boolean) => {
                   </template>
                 </el-upload>
               </template>
-              <el-button v-else-if="nodeInfo.weight >= 7" @click="editDatasource()" type="primary">
+              <el-button v-else-if="canManageCurrentNode" @click="editDatasource()" type="primary">
                 <template #icon>
                   <Icon name="icon_edit_outlined"><icon_edit_outlined class="svg-icon" /></Icon>
                 </template>
@@ -1601,7 +1658,7 @@ const getMenuList = (val: boolean) => {
                   !['Excel', 'es'].includes(nodeInfo.type) &&
                   !nodeInfo.type.startsWith('API') &&
                   !nodeInfo.type.startsWith('Excel') &&
-                  nodeInfo.weight >= 7
+                  canManageCurrentNode
                 "
               >
                 <el-row :gutter="24" v-show="nodeInfo.configuration.urlType !== 'jdbcUrl'">
@@ -1740,7 +1797,7 @@ const getMenuList = (val: boolean) => {
                   jsname="L2NvbXBvbmVudC9kYXRhLWZpbGxpbmcvRGF0YXNvdXJjZURhdGFGaWxsaW5nSW5mbw=="
                 />
               </template>
-              <template v-if="['es'].includes(nodeInfo.type) && nodeInfo.weight >= 7">
+              <template v-if="['es'].includes(nodeInfo.type) && canManageCurrentNode">
                 <el-row :gutter="24">
                   <el-col :span="12">
                     <BaseInfoItem :label="t('datasource.datasource_url')">{{
@@ -1752,7 +1809,7 @@ const getMenuList = (val: boolean) => {
             </template>
           </BaseInfoContent>
           <BaseInfoContent
-            v-if="nodeInfo.type.startsWith('API') && nodeInfo.weight >= 7"
+            v-if="nodeInfo.type.startsWith('API') && canManageCurrentNode"
             v-slot="slotProps"
             :name="t('datasource.data_table')"
           >
@@ -1843,7 +1900,7 @@ const getMenuList = (val: boolean) => {
           <BaseInfoContent
             v-if="
               (nodeInfo.type.startsWith('API') || nodeInfo.type === 'ExcelRemote') &&
-              nodeInfo.weight >= 7
+              canManageCurrentNode
             "
             v-slot="slotProps"
             :name="t('dataset.update_setting')"

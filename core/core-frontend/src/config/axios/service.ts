@@ -21,11 +21,13 @@ import { clearCache } from '@/utils/cacheUtil'
 type AxiosErrorWidthLoading<T> = T & {
   config: {
     loading?: boolean
+    silentError?: boolean
   }
 }
 
 type InternalAxiosRequestConfigWidthLoading<T> = T & {
   loading?: boolean
+  silentError?: boolean
 }
 
 import { ElMessage, ElMessageBox } from 'element-plus-secondary'
@@ -44,7 +46,7 @@ export const PATH_URL = embeddedStore.baseUrl ? embeddedStore?.baseUrl + embedde
 
 export interface AxiosInstanceWithLoading extends AxiosInstance {
   <T = any, R = AxiosResponse<T>, D = any>(
-    config: AxiosRequestConfig<D> & { loading?: boolean }
+    config: AxiosRequestConfig<D> & { loading?: boolean; silentError?: boolean }
   ): Promise<R>
 }
 
@@ -247,7 +249,8 @@ service.interceptors.response.use(
     if (
       !error.config.url.startsWith('/xpackComponent/content') &&
       !header.has('DE-FORBIDDEN-FLAG') &&
-      !header.has('DE-GATEWAY-FLAG')
+      !header.has('DE-GATEWAY-FLAG') &&
+      !error.config.silentError
     ) {
       ElMessage({
         type: 'error',
