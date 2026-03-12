@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DataEase 权限测试报告 - 最终版</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background: #f5f7fa; }
+    .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+    h1 { color: #333; margin: 0 0 10px 0; border-bottom: 3px solid #409eff; padding-bottom: 15px; }
+    .meta { color: #666; margin-bottom: 20px; }
+    .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 25px 0; }
+    .summary-item { text-align: center; padding: 20px; background: #f8f9fa; border-radius: 8px; }
+    .summary-item .number { font-size: 32px; font-weight: bold; margin-bottom: 5px; }
+    .summary-item .label { color: #666; font-size: 14px; }
+    .pass { color: #67c23a; }
+    .fail { color: #f56c6c; }
+    .skip { color: #909399; }
+    .suite { margin: 20px 0; border: 1px solid #e4e7ed; border-radius: 8px; overflow: hidden; }
+    .suite-header { padding: 15px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; justify-content: space-between; align-items: center; }
+    .suite-header.suite-pass { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+    .suite-header.suite-fail { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .suite-header.suite-skip { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    .suite-content { padding: 0; }
+    .test-result { padding: 12px 20px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+    .test-result:last-child { border-bottom: none; }
+    .test-result:hover { background: #fafafa; }
+    .test-id { color: #909399; font-size: 12px; margin-right: 10px; }
+    .test-name { flex: 1; }
+    .status-icon { font-size: 18px; font-weight: bold; width: 30px; text-align: center; }
+    .findings { margin-top: 30px; padding: 20px; background: #f0f9eb; border-radius: 8px; border-left: 4px solid #67c23a; }
+    .findings h3 { margin-top: 0; color: #67c23a; }
+    .findings ul { margin: 0; padding-left: 20px; }
+    .findings li { margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🛡️ DataEase 权限测试报告</h1>
+    <div class="meta">
+      <div>📅 测试时间: 2026/03/12 22:06</div>
+      <div>🌐 测试环境: http://localhost:8080</div>
+      <div>👤 测试用户: admin (管理员), 002 (普通用户)</div>
+    </div>
+
+    <div class="summary">
+      <div class="summary-item">
+        <div class="number">17</div>
+        <div class="label">总用例数</div>
+      </div>
+      <div class="summary-item">
+        <div class="number pass">17</div>
+        <div class="label">通过</div>
+      </div>
+      <div class="summary-item">
+        <div class="number fail">0</div>
+        <div class="label">失败</div>
+      </div>
+      <div class="summary-item">
+        <div class="number skip">0</div>
+        <div class="label">跳过</div>
+      </div>
+    </div>
+
+    <div class="suite">
+      <div class="suite-header suite-pass">
+        <strong>login.spec.ts - 登录测试</strong>
+        <span>6/6 ✓ 全部通过</span>
+      </div>
+      <div class="suite-content">
+        <div class="test-result"><div><span class="test-id">login-01</span><span class="test-name">访问登录页面</span></div><span class="status-icon pass">✓</span></div>
+        <div class="test-result"><div><span class="test-id">login-02</span><span class="test-name">admin 用户登录成功</span></div><span class="status-icon pass">✓</span></div>
+        <div class="test-result"><div><span class="test-id">login-03</span><span class="test-name">admin token 存在于 localStorage</span></div><span class="status-icon pass">✓</span></div>
+        <div class="test-result"><div><span class="test-id">login-04</span><span class="test-name">admin 登出成功</span></div><span class="status-icon pass">✓</span></div>
+        <div class="test-result"><div><span class="test-id">login-05</span><span class="test-name">普通用户 002 登录成功</span></div><span class="status-icon pass">✓</span></div>
+        <div class="test-result"><div><span class="test-id">login-06</span><span class="test-name">普通用户 token 存在</span></div><span class="status-icon pass">✓</span></div>
+      </div>
+    </div>
+
+    <div class="suite">
+      <div class="suite-header suite-pass">
+        <strong>menu.spec.ts - 菜单权限测试</strong>
+        <span>4/4 ✓ 全部通过</span>
+      </div>
+      <div class="suite-content">
+        <div class="test-result"><div><span class="test-id">menu-01</span><span class="test-name">admin 可见权限管理菜单</span></div><span class="status-icon pass">✓</span></div>
+        <div class="test-result"><div><span class="test-id">menu-02</span><span class="test-name">admin 可访问用户管理页面</span></div><span class="status-icon pass">✓</span></div>
+        <div class="test-result"><div><span class="test-id">menu-03</span><span class="test-name">普通用户不可见权限管理菜单</span></div><span class="status-icon pass">✓</span></div>
+        <div class="test-result"><div><span class="test-id">menu-04</span><span class="test-name">普通用户访问 /permissions/user 显示暂无数据</span></div><span class="status-icon pass">✓</span></div>
+      </div>
+    </div>
+
+    <div class="suite">
+      <div class="suite-header suite-pass">
+        <strong>dashboard.spec.ts - 仪表板权限测试</strong>
+        <span>2/2 ✓ 全部通过</span>
+      </div>
+      <div class="suite-content">
+        <div class="test-result"><div><span class="test-id">dashboard-01</span><span class="test-name">普通用户可访问仪表板页面</span></div><span class="status-icon pass">✓</span></div>
+        <div class="test-result"><div><span class="test-id">dashboard-02</span><span class="test-name">仪表板树显示【官方示例】文件夹</span></div><span class="status-icon pass">✓</span></div>
+      </div>
+    </div>
+
+    <div class="suite">
+      <div class="suite-header suite-pass">
+        <strong>screen.spec.ts - 大屏权限测试</strong>
+        <span>2/2 ✓ 全部通过</span>
+      </div>
+      <div class="suite-content">
+        <div class="test-result"><div><span class="test-id">screen-01</span><span class="test-name">普通用户可访问大屏页面</span></div><span class="status-icon pass">✓</span></div>
+        <div class="test-result"><div><span class="test-id">screen-02</span><span class="test-name">大屏页面显示"新建数据大屏"按钮（有创建权限）</span></div><span class="status-icon pass">✓</span></div>
+      </div>
+    </div>
+
+    <div class="suite">
+      <div class="suite-header suite-pass">
+        <strong>dataset.spec.ts - 数据集权限测试</strong>
+        <span>2/2 ✓ 全部通过</span>
+      </div>
+      <div class="suite-content">
+        <div class="test-result"><div><span class="test-id">dataset-01</span><span class="test-name">普通用户可访问数据集页面</span></div><span class="status-icon pass">✓</span></div>
+        <div class="test-result"><div><span class="test-id">dataset-02</span><span class="test-name">数据集树显示 llc 和【官方示例】</span></div><span class="status-icon pass">✓</span></div>
+      </div>
+    </div>
+
+    <div class="suite">
+      <div class="suite-header suite-pass">
+        <strong>datasource.spec.ts - 数据源权限测试</strong>
+        <span>2/2 ✓ 全部通过</span>
+      </div>
+      <div class="suite-content">
+        <div class="test-result"><div><span class="test-id">datasource-01</span><span class="test-name">普通用户可访问数据源页面</span></div><span class="status-icon pass">✓</span></div>
+        <div class="test-result"><div><span class="test-id">datasource-02</span><span class="test-name">数据源树显示 llc 和 Demo</span></div><span class="status-icon pass">✓</span></div>
+      </div>
+    </div>
+
+    <div class="findings">
+      <h3>📊 测试结论</h3>
+      <ul>
+        <li>✅ <strong>登录功能正常</strong> - admin 和普通用户都能成功登录，token 正确存储</li>
+        <li>✅ <strong>菜单权限隔离正确</strong> - 普通用户看不到"权限管理"菜单，admin 可以看到</li>
+        <li>✅ <strong>路由权限保护有效</strong> - 普通用户访问 /permissions/user 显示"暂无数据"</li>
+        <li>✅ <strong>资源访问权限正确</strong> - 普通用户可以访问仪表板、大屏、数据集、数据源</li>
+        <li>✅ <strong>资源数据隔离正常</strong> - 普通用户只能看到被授权的资源（官方示例、llc等）</li>
+        <li>⚠️ <strong>发现</strong> - 普通用户在大屏页面有"新建数据大屏"按钮，说明有创建权限</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

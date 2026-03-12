@@ -1,5 +1,8 @@
 import { isNumber } from 'lodash-es'
 import { DEFAULT_TITLE_STYLE } from '../editor/util/chart'
+
+// 重新导出 parseJson 以保持向后兼容性
+export { parseJson } from './parseJson'
 import { equalsAny, includesAny } from '../editor/util/StringUtils'
 import { FeatureCollection } from '@antv/l7plot/dist/esm/plots/choropleth/types'
 import { useMapStoreWithOut } from '@/store/modules/map'
@@ -460,13 +463,6 @@ export function resetRgbOpacity(sourceColor: string, times: number): string {
     }
   }
   return sourceColor
-}
-
-export function parseJson<T>(str: T | JSONString<T>): T {
-  if (typeof str !== 'string') {
-    return str as T
-  }
-  return JSON.parse(str) as T
 }
 
 type FlowFunction<P, R> = (param: P, result: R, context?: Record<string, any>, thisArg?: any) => R
