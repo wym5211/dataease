@@ -114,6 +114,14 @@ const RESOURCE_TYPE_FLAG_MAP: Record<string, string> = {
   datasource: 'datasource'
 }
 
+const RESOURCE_TYPE_ROOT_LABEL_MAP: Record<string, string> = {
+  dashboard: '仪表板',
+  screen: '数据大屏',
+  chart: '图表',
+  dataset: '数据集',
+  datasource: '数据源'
+}
+
 const RESOURCE_PERMISSION_OPTIONS = ['view', 'edit', 'share', 'export', 'delete'] as const
 type ResourcePermissionOption = (typeof RESOURCE_PERMISSION_OPTIONS)[number]
 
@@ -403,8 +411,12 @@ export const usePermissionStore = defineStore('permissionManager', () => {
       // 根据资源类型调用不同的API
       if (resourceType === 'dashboard' || resourceType === 'screen' || resourceType === 'chart') {
         // 仪表板、大屏、图表 - 使用可视化API
-        // busiFlag: dashboard=dashboard-dataV, screen=screen
-        const busiFlag = resourceType === 'dashboard' ? 'dashboard-dataV' : resourceType
+        const busiFlagMap: Record<string, string> = {
+          dashboard: 'dashboard',
+          screen: 'dataV',
+          chart: 'chart'
+        }
+        const busiFlag = busiFlagMap[resourceType] || resourceType
 
         const response = await queryTreeApi({
           busiFlag
@@ -469,6 +481,15 @@ export const usePermissionStore = defineStore('permissionManager', () => {
         // 其他类型暂时使用空数组
         // 资源类型暂未实现
         treeData = []
+      }
+
+      const rootLabel = RESOURCE_TYPE_ROOT_LABEL_MAP[resourceType]
+      if (rootLabel) {
+        treeData.forEach(node => {
+          if (String(node.id) === '0' || String(node.name).toLowerCase() === 'root') {
+            node.name = rootLabel
+          }
+        })
       }
 
       // 如果有选择角色，加载该角色的资源权限
