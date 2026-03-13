@@ -1,8 +1,9 @@
 import { isNumber } from 'lodash-es'
 import { DEFAULT_TITLE_STYLE } from '../editor/util/chart'
+import { parseJson } from './parseJson'
 
 // 重新导出 parseJson 以保持向后兼容性
-export { parseJson } from './parseJson'
+export { parseJson }
 import { equalsAny, includesAny } from '../editor/util/StringUtils'
 import { FeatureCollection } from '@antv/l7plot/dist/esm/plots/choropleth/types'
 import { useMapStoreWithOut } from '@/store/modules/map'
@@ -792,7 +793,10 @@ export const getMapColorCases = colorCases => {
 }
 
 export function getColor(chart: Chart) {
-  const basicStyle = parseJson(chart.customAttr).basicStyle
+  const customAttr = parseJson<DeepPartial<ChartAttr>>(
+    chart.customAttr as DeepPartial<ChartAttr> | string
+  )
+  const basicStyle = customAttr.basicStyle as ChartBasicStyle
   const { seriesColor } = basicStyle
   if (seriesColor?.length) {
     const { yAxis } = chart
@@ -835,7 +839,10 @@ export function setupSeriesColor(chart: ChartObj): ChartBasicStyle['seriesColor'
 }
 
 export function getGroupColor<O extends PickOptions = Options>(chart: Chart, options: O) {
-  const { basicStyle } = parseJson(chart.customAttr)
+  const customAttr = parseJson<DeepPartial<ChartAttr>>(
+    chart.customAttr as DeepPartial<ChartAttr> | string
+  )
+  const basicStyle = customAttr.basicStyle as ChartBasicStyle
   const { seriesColor } = basicStyle
   if (!seriesColor?.length) {
     return
@@ -913,7 +920,10 @@ export function setUpGroupSeriesColor(
 }
 
 export function getStackColor<O extends PickOptions = Options>(chart: Chart, options: O) {
-  const { basicStyle } = parseJson(chart.customAttr)
+  const customAttr = parseJson<DeepPartial<ChartAttr>>(
+    chart.customAttr as DeepPartial<ChartAttr> | string
+  )
+  const basicStyle = customAttr.basicStyle as ChartBasicStyle
   const { seriesColor } = basicStyle
   if (!seriesColor?.length) {
     return
@@ -923,12 +933,12 @@ export function getStackColor<O extends PickOptions = Options>(chart: Chart, opt
     return p
   }, {})
   const { yAxis, extStack } = chart
-  const { data } = options as unknown as Options
+  const { data, meta } = options as unknown as Options
   if (extStack?.length) {
     const seriesSet = new Set()
     data?.forEach(d => d.category !== null && seriesSet.add(d.category))
     const tmp = [...seriesSet]
-    const values = options.meta?.category?.values
+    const values = meta?.category?.values
     if (values?.length) {
       tmp.sort((a, b) => values.indexOf(a) - values.indexOf(b))
     }
@@ -1006,7 +1016,10 @@ export function setUpStackSeriesColor(
 }
 
 export function getSingleDimensionColor<O extends PickOptions = Options>(chart: Chart, options: O) {
-  const { basicStyle } = parseJson(chart.customAttr)
+  const customAttr = parseJson<DeepPartial<ChartAttr>>(
+    chart.customAttr as DeepPartial<ChartAttr> | string
+  )
+  const basicStyle = customAttr.basicStyle as ChartBasicStyle
   const { seriesColor } = basicStyle
   if (!seriesColor?.length) {
     return
@@ -1160,7 +1173,7 @@ export function filterEmptyMinValue(sourceData, field) {
     'value',
     0,
     0,
-    (max, min) => {
+    (_max, min) => {
       notEmptyMinValue = min
     }
   )
