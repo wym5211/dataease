@@ -92,8 +92,10 @@ import { querySymmetricKey } from '@/api/login'
 import { resourceCheckPermission } from '@/api/relation'
 import { symmetricDecrypt } from '@/utils/encryption'
 import { isFreeFolder } from '@/utils/utils'
+import { useUserStoreWithOut } from '@/store/modules/user'
 const route = useRoute()
 const interactiveStore = interactiveStoreWithOut()
+const userStore = useUserStoreWithOut()
 interface Field {
   fieldShortName: string
   name: string
@@ -126,8 +128,14 @@ const recordState = reactive({
 })
 const isDataEaseBi = computed(() => appStore.getIsDataEaseBi)
 const isIframe = computed(() => appStore.getIsIframe)
+const isAdmin = computed(() => userStore.getUid === '1')
+const adminRestrictedCommands = new Set(['copy', 'move', 'rename'])
 const embedded = useEmbedded()
 const createDataset = (tableName?: string) => {
+  if (!isAdmin.value) {
+    ElMessage.warning(t('work_branch.permission_denied'))
+    return
+  }
   if (isDataEaseBi.value) {
     embedded.clearState()
     embedded.setDatasourceId(nodeInfo.id as string)
@@ -739,6 +747,10 @@ const handleNodeClick = data => {
   })
 }
 const createDatasource = (data?: Tree) => {
+  if (!isAdmin.value) {
+    ElMessage.warning(t('work_branch.permission_denied'))
+    return
+  }
   datasourceEditor.value.init(null, data?.id, null, isSupportSetKey.value)
 }
 const showRecord = ref(false)
@@ -956,6 +968,10 @@ const handleCopy = async data => {
 }
 
 const handleDatasourceTree = (cmd: string, data?: Tree) => {
+  if (!isAdmin.value && ['datasource', 'folder'].includes(cmd)) {
+    ElMessage.warning(t('work_branch.permission_denied'))
+    return
+  }
   if (cmd === 'datasource') {
     createDatasource(data)
   }
@@ -965,6 +981,10 @@ const handleDatasourceTree = (cmd: string, data?: Tree) => {
 }
 const relationChartRef = ref()
 const operation = (cmd: string, data: Tree, nodeType: string) => {
+  if (!isAdmin.value && adminRestrictedCommands.has(cmd)) {
+    ElMessage.warning(t('work_branch.permission_denied'))
+    return
+  }
   if (cmd === 'copy') {
     handleCopy(data)
     return
@@ -1153,6 +1173,10 @@ const loadInit = () => {
 }
 
 const proxyAllowDrop = throttle((arg1, arg2) => {
+  if (!isAdmin.value) {
+    ElMessage.warning(t('work_branch.permission_denied'))
+    return false
+  }
   const flagArray = ['dashboard', 'dataV', 'dataset', 'datasource']
   const flag = flagArray.findIndex(item => item === 'datasource')
   if (flag < 0 || !isFreeFolder(arg2, flag + 1)) {
@@ -1170,6 +1194,10 @@ onMounted(() => {
   setSupportSetKey()
   const { opt } = router?.currentRoute?.value?.query || {}
   if (opt && opt === 'create') {
+    if (!isAdmin.value) {
+      ElMessage.warning(t('work_branch.permission_denied'))
+      return
+    }
     datasourceEditor.value.init(null, null, null, isSupportSetKey.value)
   }
   querySymmetricKey().then(res => {
@@ -1191,7 +1219,7 @@ const mouseleave = () => {
 }
 
 const getMenuList = (val: boolean) => {
-  return !val
+  const menus = !val
     ? menuList
     : [
         {
@@ -1200,6 +1228,10 @@ const getMenuList = (val: boolean) => {
           command: 'copy'
         }
       ].concat(menuList)
+  if (isAdmin.value) {
+    return menus
+  }
+  return menus.filter(item => !adminRestrictedCommands.has(item.command))
 }
 </script>
 
@@ -1227,7 +1259,7 @@ const getMenuList = (val: boolean) => {
         <div class="tree-header">
           <div class="icon-methods">
             <span class="title"> {{ t('datasource.datasource') }} </span>
-            <div v-if="rootManage" class="flex-align-center">
+            <div v-if="rootManage && isAdmin" class="flex-align-center">
               <el-tooltip
                 arrow-offset="10"
                 offset="14"
@@ -1319,7 +1351,7 @@ const getMenuList = (val: boolean) => {
             @node-drag-start="handleDragStart"
             :allow-drop="proxyAllowDrop"
             @node-drop="handleDrop"
-            draggable
+            :draggable="isAdmin"
             @node-click="handleNodeClick"
           >
             <template #default="{ node, data }">
@@ -1362,7 +1394,7 @@ const getMenuList = (val: boolean) => {
                     :menu-list="datasetTypeList"
                     :icon-name="icon_add_outlined"
                     placement="bottom-start"
-                    v-if="!data.leaf"
+                    v-if="!data.leaf && isAdmin"
                   ></handle-more>
                   <el-icon
                     class="hover-icon"
@@ -1394,7 +1426,7 @@ const getMenuList = (val: boolean) => {
     >
       <template v-if="!state.datasourceTree.length && mounted">
         <empty-background :description="t('data_source.no_data_source')" img-type="none">
-          <el-button v-if="rootManage" @click="() => createDatasource()" type="primary">
+          <el-button v-if="rootManage && isAdmin" @click="() => createDatasource()" type="primary">
             <template #icon>
               <Icon name="icon_add_outlined"><icon_add_outlined class="svg-icon" /></Icon>
             </template>
@@ -1429,7 +1461,12 @@ const getMenuList = (val: boolean) => {
               ></dataset-detail>
             </el-popover>
             <div class="right-btn flex-align-center">
-              <el-button secondary @click="createDataset(null)" v-permission="['dataset']">
+              <el-button
+                v-if="isAdmin"
+                secondary
+                @click="createDataset(null)"
+                v-permission="['dataset']"
+              >
                 <template #icon>
                   <Icon name="icon_dataset_outlined"
                     ><icon_dataset_outlined class="svg-icon"
@@ -1591,6 +1628,7 @@ const getMenuList = (val: boolean) => {
                 <template #default="scope">
                   <el-tooltip effect="dark" :content="t('data_set.a_new_dataset')" placement="top">
                     <el-button
+                      v-if="isAdmin"
                       @click.stop="createDataset(scope.row.tableName)"
                       text
                       v-permission="['dataset']"

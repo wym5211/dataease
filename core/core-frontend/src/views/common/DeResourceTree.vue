@@ -42,8 +42,10 @@ import { storeToRefs } from 'pinia'
 import DvHandleMore from '@/components/handle-more/src/DvHandleMore.vue'
 import { interactiveStoreWithOut } from '@/store/modules/interactive'
 import { useShareStoreWithOut } from '@/store/modules/share'
+import { useUserStoreWithOut } from '@/store/modules/user'
 const shareStore = useShareStoreWithOut()
 const interactiveStore = interactiveStoreWithOut()
+const userStore = useUserStoreWithOut()
 import { useI18n } from '@/hooks/web/useI18n'
 import _ from 'lodash'
 import DeResourceCreateOptV2 from '@/views/common/DeResourceCreateOptV2.vue'
@@ -157,8 +159,13 @@ const dvSvgType = computed(() =>
 )
 
 const isEmbedded = computed(() => appStore.getIsDataEaseBi || appStore.getIsIframe)
+const isAdmin = computed(() => userStore.getUid === '1')
+const adminRestrictedCommands = new Set(['copy', 'move', 'rename'])
 
 const resourceTypeList = computed(() => {
+  if (!isAdmin.value) {
+    return []
+  }
   const list = [
     {
       label: t('work_branch.new_empty'), //'空白新建',
@@ -187,7 +194,10 @@ const { handleDrop, allowDrop, handleDragStart } = treeDraggbleChart(
 
 const menuListWeight = id => {
   const pWeight = state.pWeightMap[id]
-  return pWeight < 7 ? menuList : menuListWithCopy
+  const menus = pWeight < 7 ? menuList : menuListWithCopy
+  return isAdmin.value
+    ? menus
+    : menus.filter(menu => !adminRestrictedCommands.has(String(menu.command)))
 }
 const menuListWithCopy = [
   {
@@ -242,6 +252,12 @@ const menuList = [
     divided: true
   }
 ]
+const getFolderMenuList = () => {
+  if (isAdmin.value) {
+    return state.folderMenuList
+  }
+  return state.folderMenuList.filter(menu => menu.command !== 'delete')
+}
 
 const infoId = wsCache.get(curCanvasType.value === 'dashboard' ? 'db-info-id' : 'dv-info-id')
 const routerDvId = router.currentRoute.value.query.dvId
@@ -493,6 +509,14 @@ const ensureLeafManagePermission = async (data: BusiTreeNode) => {
 }
 
 const operation = async (cmd: string, data: BusiTreeNode, nodeType: string) => {
+  if (!isAdmin.value && adminRestrictedCommands.has(cmd)) {
+    ElMessage.warning(t('work_branch.permission_denied'))
+    return
+  }
+  if (!isAdmin.value && cmd === 'delete' && nodeType === 'folder') {
+    ElMessage.warning(t('work_branch.permission_denied'))
+    return
+  }
   if (managePermissionCommands.has(cmd) && !(await ensureLeafManagePermission(data))) {
     return
   }
@@ -579,6 +603,10 @@ const addOperation = (
   nodeType?: string,
   parentSelect?: boolean
 ) => {
+  if (!isAdmin.value) {
+    ElMessage.warning(t('work_branch.permission_denied'))
+    return
+  }
   // 新建子节点的操作流程为先进行创建 后面选择所在目录
   if (cmd === 'newLeaf') {
     const baseUrl =
@@ -760,6 +788,10 @@ const sortTypeChange = sortType => {
 }
 
 const proxyAllowDrop = throttle((arg1, arg2) => {
+  if (!isAdmin.value) {
+    ElMessage.warning(t('work_branch.permission_denied'))
+    return false
+  }
   const flagArray = ['dashboard', 'dataV', 'dataset', 'datasource']
   const flag = flagArray.findIndex(item => item === curCanvasType.value)
   if (flag < 0 || !isFreeFolder(arg2, flag + 1)) {
@@ -819,7 +851,7 @@ defineExpose({
     <div class="tree-header">
       <div class="icon-methods" v-show="showPosition === 'preview'">
         <span class="title"> {{ resourceLabel }} </span>
-        <div v-if="rootManage" class="flex-align-center">
+        <div v-if="rootManage && isAdmin" class="flex-align-center">
           <el-tooltip
             offset="14"
             :content="t('work_branch.new_folder')"
@@ -920,7 +952,7 @@ defineExpose({
         @node-drag-start="handleDragStart"
         :allow-drop="proxyAllowDrop"
         @node-drop="handleDrop"
-        draggable
+        :draggable="isAdmin"
       >
         <template #default="{ node, data }">
           <span class="custom-tree-node" :class="{ 'node-disabled-custom': data.extraFlag1 === 0 }">
@@ -976,14 +1008,14 @@ defineExpose({
                 :menu-list="resourceTypeList"
                 :icon-name="icon_add_outlined"
                 placement="bottom-start"
-                v-if="!data.leaf"
+                v-if="!data.leaf && isAdmin"
               ></handle-more>
               <dv-handle-more
                 @handle-command="cmd => operation(cmd, data, data.leaf ? 'leaf' : 'folder')"
                 :node="data"
                 :any-manage="anyManage"
                 :resource-type="curCanvasType"
-                :menu-list="data.leaf ? menuListWeight(data.id) : state.folderMenuList"
+                :menu-list="data.leaf ? menuListWeight(data.id) : getFolderMenuList()"
               ></dv-handle-more>
             </div>
           </span>

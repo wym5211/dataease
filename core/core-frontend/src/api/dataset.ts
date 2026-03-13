@@ -158,7 +158,7 @@ export const exportDatasetData = (data = {}) => {
   })
 }
 
-export const exportLimit = async (): Promise<boolean> => {
+export const exportLimit = async (): Promise<string> => {
   return request.post({ url: `/exportCenter/exportLimit`, data: {} }).then(res => {
     return res?.data
   })

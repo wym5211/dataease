@@ -84,9 +84,11 @@ import { useCache } from '@/hooks/web/useCache'
 import { RefreshLeft } from '@element-plus/icons-vue'
 import { iconFieldMap } from '@/components/icon-group/field-list'
 import { exportPermission, isFreeFolder } from '@/utils/utils'
+import { useUserStoreWithOut } from '@/store/modules/user'
 const { t } = useI18n()
 const interactiveStore = interactiveStoreWithOut()
 const { wsCache } = useCache()
+const userStore = useUserStoreWithOut()
 interface Field {
   fieldShortName: string
   name: string
@@ -111,8 +113,21 @@ const showExport = ref(false)
 const rowAuth = ref()
 const exportDatasetLoading = ref(false)
 const limit = ref(t('data_set.ten_wan'))
-const exportForm = ref({})
-const table = ref({})
+interface ExportForm {
+  name?: string
+  expressionTree?: string
+}
+
+interface TableParams {
+  id?: string
+  row?: number
+  filename?: string
+  dataEaseBi?: boolean
+  expressionTree?: string
+}
+
+const exportForm = ref<ExportForm>({})
+const table = ref<TableParams>({})
 const exportFormRef = ref()
 const exportFormRules = {
   name: [
@@ -144,6 +159,8 @@ const mounted = ref(false)
 const openType = wsCache.get('open-backend') === '1' ? '_self' : '_blank'
 const isDataEaseBi = computed(() => appStore.getIsDataEaseBi)
 const isIframe = computed(() => appStore.getIsIframe)
+const isAdmin = computed(() => userStore.getUid === '1')
+const adminRestrictedCommands = new Set(['copy', 'move', 'rename'])
 const exportPermissions = computed(() => exportPermission(nodeInfo.weight, nodeInfo.ext))
 const createPanel = path => {
   const baseUrl = `#/${path}?opt=create&id=${nodeInfo.id}`
@@ -250,7 +267,7 @@ const allFieldsColumns = [
 ]
 
 const dataPreviewLoading = ref(false)
-const { width, node } = useMoveLine('DATASOURCE')
+const { width, node: datasetAsideRef } = useMoveLine('DATASOURCE')
 
 const infoList = computed(() => {
   return {
@@ -488,7 +505,7 @@ const closeExport = () => {
   showExport.value = false
 }
 
-const save = ({ logic, items, errorMessage }) => {
+const saveExport = ({ logic, items, errorMessage }) => {
   table.value.id = nodeInfo.id
   table.value.row = 100000
   table.value.filename = exportForm.value.name
@@ -564,7 +581,7 @@ const openMessageLoading = cb => {
       t('data_set.progress_and_download')
     ]),
     iconClass,
-    icon: h(RefreshLeft),
+    icon: RefreshLeft,
     showClose: true,
     customClass
   })
@@ -596,6 +613,10 @@ const handleEdit = async id => {
 }
 
 const createDataset = (data?: BusiTreeNode) => {
+  if (!isAdmin.value) {
+    ElMessage.warning(t('work_branch.permission_denied'))
+    return
+  }
   if (isDataEaseBi.value) {
     embedded.clearState()
     embedded.setdatasetPid(data?.id as string)
@@ -650,6 +671,14 @@ const handleClick = (tabName: TabPaneName) => {
 }
 const relationChartRef = ref()
 const operation = (cmd: string, data: BusiTreeNode, nodeType: string) => {
+  if (!isAdmin.value && adminRestrictedCommands.has(cmd)) {
+    ElMessage.warning(t('work_branch.permission_denied'))
+    return
+  }
+  if (!isAdmin.value && cmd === 'delete' && nodeType === 'folder') {
+    ElMessage.warning(t('work_branch.permission_denied'))
+    return
+  }
   if (cmd === 'copy') {
     if (isDataEaseBi.value) {
       embedded.clearState()
@@ -741,6 +770,10 @@ const operation = (cmd: string, data: BusiTreeNode, nodeType: string) => {
 }
 
 const handleDatasetTree = (cmd: string, data?: BusiTreeNode) => {
+  if (!isAdmin.value && ['dataset', 'folder'].includes(cmd)) {
+    ElMessage.warning(t('work_branch.permission_denied'))
+    return
+  }
   if (cmd === 'dataset') {
     createDataset(data)
   }
@@ -881,8 +914,8 @@ const mouseleave = () => {
   appStore.setArrowSide(false)
 }
 
-const getMenuList = (val: boolean) => {
-  return !val
+const getMenuList = (data: BusiTreeNode) => {
+  const menus = !data.leaf
     ? menuList
     : [
         {
@@ -891,9 +924,20 @@ const getMenuList = (val: boolean) => {
           command: 'copy'
         }
       ].concat(menuList)
+  if (isAdmin.value) {
+    return menus
+  }
+  const restrictedCommands = data.leaf
+    ? adminRestrictedCommands
+    : new Set([...adminRestrictedCommands, 'delete'])
+  return menus.filter(item => !restrictedCommands.has(item.command))
 }
 
 const proxyAllowDrop = throttle((arg1, arg2) => {
+  if (!isAdmin.value) {
+    ElMessage.warning(t('work_branch.permission_denied'))
+    return false
+  }
   const flagArray = ['dashboard', 'dataV', 'dataset', 'datasource']
   const flag = flagArray.findIndex(item => item === 'dataset')
   if (flag < 0 || !isFreeFolder(arg2, flag + 1)) {
@@ -916,7 +960,7 @@ const proxyAllowDrop = throttle((arg1, arg2) => {
       @mouseenter="mouseenter"
       @mouseleave="mouseleave"
       :class="{ retract: !sideTreeStatus }"
-      ref="node"
+      ref="datasetAsideRef"
       :style="{ width: width + 'px' }"
     >
       <ArrowSide
@@ -928,7 +972,7 @@ const proxyAllowDrop = throttle((arg1, arg2) => {
         <div class="tree-header">
           <div class="icon-methods">
             <span class="title"> {{ t('auth.dataset') }} </span>
-            <div v-if="rootManage" class="flex-align-center">
+            <div v-if="rootManage && isAdmin" class="flex-align-center">
               <el-tooltip
                 class="box-item"
                 effect="dark"
@@ -1019,7 +1063,7 @@ const proxyAllowDrop = throttle((arg1, arg2) => {
             @node-drag-start="handleDragStart"
             :allow-drop="proxyAllowDrop"
             @node-drop="handleDrop"
-            draggable
+            :draggable="isAdmin"
             @node-expand="nodeExpand"
             @node-collapse="nodeCollapse"
             :default-expanded-keys="expandedKey"
@@ -1042,14 +1086,14 @@ const proxyAllowDrop = throttle((arg1, arg2) => {
                     :menu-list="datasetTypeList"
                     :icon-name="icon_add_outlined"
                     placement="bottom-start"
-                    v-if="!data.leaf"
+                    v-if="!data.leaf && isAdmin"
                   ></handle-more>
                   <el-icon v-else class="hover-icon" @click.stop="handleEdit(data.id)">
                     <icon name="icon_edit_outlined"><icon_edit_outlined class="svg-icon" /></icon>
                   </el-icon>
                   <handle-more
                     @handle-command="cmd => operation(cmd, data, data.leaf ? 'dataset' : 'folder')"
-                    :menu-list="getMenuList(data.leaf)"
+                    :menu-list="getMenuList(data)"
                   ></handle-more>
                 </div>
               </span>
@@ -1067,7 +1111,7 @@ const proxyAllowDrop = throttle((arg1, arg2) => {
     >
       <template v-if="!state.datasetTree.length && mounted">
         <empty-background :description="t('data_set.data_set_yet')" img-type="none">
-          <el-button v-if="rootManage" @click="() => createDataset()" type="primary">
+          <el-button v-if="rootManage && isAdmin" @click="() => createDataset()" type="primary">
             <template #icon>
               <Icon name="icon_add_outlined"><icon_add_outlined class="svg-icon" /></Icon>
             </template>
@@ -1260,7 +1304,7 @@ const proxyAllowDrop = throttle((arg1, arg2) => {
       <el-form-item :label="$t('dataset.export_filter')" prop="expressionTree">
         <div class="tree-cont">
           <div class="content">
-            <RowAuth @save="save" ref="rowAuth" />
+            <RowAuth @save="saveExport" ref="rowAuth" />
           </div>
         </div>
       </el-form-item>
