@@ -54,7 +54,7 @@ import treeSort, { treeParentWeight } from '@/utils/treeSortUtils'
 import router from '@/router'
 import { cancelRequestBatch } from '@/config/axios/service'
 import { isFreeFolder } from '@/utils/utils'
-import { resourceCheckPermission } from '@/api/relation'
+import { resourceCheckManagePermission, resourceCheckPermission } from '@/api/relation'
 const { wsCache } = useCache()
 
 const dvMainStore = dvMainStoreWithOut()
@@ -142,6 +142,15 @@ const state = reactive({
   ],
   templateCreatePid: 0
 })
+const managePermissionMap = ref<Record<string, boolean>>({})
+const managePermissionCommands = new Set([
+  'delete',
+  'cancelPublish',
+  'edit',
+  'copy',
+  'move',
+  'rename'
+])
 
 const dvSvgType = computed(() =>
   curCanvasType.value === 'dashboard' ? dvDashboardSpine : dvScreenSpine
@@ -318,6 +327,7 @@ const nodeClick = (data: BusiTreeNode, node) => {
 }
 
 const getTree = async (notOpen = false) => {
+  managePermissionMap.value = {}
   const request = {
     busiFlag: curCanvasType.value,
     resourceTable: props.resourceTable
@@ -454,7 +464,38 @@ const copyLoading = ref(false)
 const openType = wsCache.get('open-backend') === '1' ? '_self' : '_blank'
 const emit = defineEmits(['nodeClick'])
 
-const operation = (cmd: string, data: BusiTreeNode, nodeType: string) => {
+const resolveManagePermission = async (resourceId: string | number) => {
+  const key = String(resourceId)
+  if (Object.prototype.hasOwnProperty.call(managePermissionMap.value, key)) {
+    return managePermissionMap.value[key]
+  }
+  try {
+    const res = await resourceCheckManagePermission(resourceId)
+    const canManage = res === true || res?.data === true
+    managePermissionMap.value[key] = canManage
+    return canManage
+  } catch (e) {
+    managePermissionMap.value[key] = false
+    return false
+  }
+}
+
+const ensureLeafManagePermission = async (data: BusiTreeNode) => {
+  if (!data?.leaf) {
+    return true
+  }
+  const canManage = await resolveManagePermission(data.id)
+  if (!canManage) {
+    ElMessage.warning(t('work_branch.permission_denied'))
+    return false
+  }
+  return true
+}
+
+const operation = async (cmd: string, data: BusiTreeNode, nodeType: string) => {
+  if (managePermissionCommands.has(cmd) && !(await ensureLeafManagePermission(data))) {
+    return
+  }
   if (cmd === 'delete') {
     const msg = data.leaf ? '' : t('visualization.delete_tips')
     const tips_label = data.leaf ? resourceLabel : t('visualization.folder')
@@ -489,7 +530,7 @@ const operation = (cmd: string, data: BusiTreeNode, nodeType: string) => {
   } else if (cmd === 'edit') {
     resourceEdit(data.id)
   } else if (cmd === 'copy') {
-    const targetPid = findParentIdByChildIdRecursive(state.resourceTree, data.id)
+    const targetPid = data.pid ?? findParentIdByChildIdRecursive(state.resourceTree, data.id)
     const params: ResourceOrFolder = {
       nodeType: nodeType as 'folder' | 'leaf',
       name: data.name + '-copy',
@@ -578,6 +619,33 @@ function createNewObject() {
 }
 
 const resourceEdit = resourceId => {
+  if (curCanvasType.value === 'dashboard' || curCanvasType.value === 'dataV') {
+    resolveManagePermission(resourceId).then(canManage => {
+      if (!canManage) {
+        ElMessage.warning(t('work_branch.permission_denied'))
+        return
+      }
+      const baseUrl =
+        curCanvasType.value === 'dataV' ? '#/dvCanvas?dvId=' : '#/dashboard?resourceId='
+      if (isEmbedded.value) {
+        embeddedStore.clearState()
+        if (curCanvasType.value === 'dataV') {
+          embeddedStore.setDvId(resourceId)
+        } else {
+          embeddedStore.setResourceId(resourceId)
+        }
+        useEmitt().emitter.emit(
+          'changeCurrentComponent',
+          curCanvasType.value === 'dataV' ? 'VisualizationEditor' : 'DashboardEditor'
+        )
+        return
+      }
+
+      const newWindow = window.open(baseUrl + resourceId, openType)
+      initOpenHandler(newWindow)
+    })
+    return
+  }
   const baseUrl = curCanvasType.value === 'dataV' ? '#/dvCanvas?dvId=' : '#/dashboard?resourceId='
   if (isEmbedded.value) {
     embeddedStore.clearState()

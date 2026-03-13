@@ -23,6 +23,8 @@ import { useShareStoreWithOut } from '@/store/modules/share'
 import { exportPermission } from '@/utils/utils'
 import { useCache } from '@/hooks/web/useCache'
 import { isDesktop } from '@/utils/ModelUtil'
+import { ElMessage } from 'element-plus-secondary'
+import { resourceCheckManagePermission } from '@/api/relation'
 
 const shareStore = useShareStoreWithOut()
 const { wsCache } = useCache('localStorage')
@@ -63,7 +65,14 @@ const downloadAsAppTemplate = downloadType => {
   emit('downloadAsAppTemplate', downloadType)
 }
 
-const dvEdit = () => {
+const dvEdit = async () => {
+  const canManage = await resourceCheckManagePermission(dvInfo.value.id)
+    .then(res => res === true || res?.data === true)
+    .catch(() => false)
+  if (!canManage) {
+    ElMessage.warning(t('work_branch.permission_denied'))
+    return
+  }
   if (isDataEaseBi.value || isIframe.value) {
     embeddedStore.clearState()
     if (dvInfo.value.type === 'dataV') {

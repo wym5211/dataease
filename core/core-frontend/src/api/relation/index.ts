@@ -23,3 +23,9 @@ export function resourceCheckPermission(id) {
     url: `/resource/checkPermission/${id}`
   })
 }
+
+export function resourceCheckManagePermission(id) {
+  return request.post({
+    url: `/resource/checkManagePermission/${id}`
+  })
+}

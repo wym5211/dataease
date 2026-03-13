@@ -15,9 +15,17 @@ public class ResourceService {
     private CorePermissionManage corePermissionManage;
 
     public boolean checkPermission(Long id) {
+        return checkPermissionByAuth(id, AuthEnum.READ);
+    }
+
+    public boolean checkManagePermission(Long id) {
+        return checkPermissionByAuth(id, AuthEnum.MANAGE);
+    }
+
+    private boolean checkPermissionByAuth(Long id, AuthEnum authEnum) {
         BusiPerCheckDTO dto = new BusiPerCheckDTO();
         dto.setId(id);
-        dto.setAuthEnum(AuthEnum.READ);
+        dto.setAuthEnum(authEnum);
         boolean b;
         try {
             b = corePermissionManage.checkAuth(dto);
