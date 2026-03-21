@@ -209,7 +209,7 @@ export class Map extends L7PlotChartView<ChoroplethOptions, Choropleth> {
       // 禁用线上地图数据
       customFetchGeoData: () => null
     }
-    const context: Record<string, any> = { drawOption, geoJson, customSubArea }
+    const context: Record<string, unknown> = { drawOption, geoJson, customSubArea }
     options = this.setupOptions(chart, options, context)
     const { Choropleth } = await import('@antv/l7plot/dist/esm/plots/choropleth')
     const view = new Choropleth(container, options)
@@ -248,9 +248,9 @@ export class Map extends L7PlotChartView<ChoroplethOptions, Choropleth> {
   private configBasicStyle(
     chart: Chart,
     options: ChoroplethOptions,
-    context: Record<string, any>
+    context: Record<string, unknown>
   ): ChoroplethOptions {
-    const { areaId }: L7PlotDrawOptions<any> = context.drawOption
+    const { areaId } = context.drawOption as L7PlotDrawOptions<Choropleth>
     const geoJson: FeatureCollection = context.geoJson
     const { basicStyle, label, misc } = parseJson(chart.customAttr)
     const senior = parseJson(chart.senior)
@@ -467,7 +467,7 @@ export class Map extends L7PlotChartView<ChoroplethOptions, Choropleth> {
   protected configCustomArea(
     chart: Chart,
     options: ChoroplethOptions,
-    context: Record<string, any>
+    context: Record<string, unknown>
   ): ChoroplethOptions {
     const { drawOption, customSubArea, geoJson } = context
     if (!drawOption.areaId.startsWith('custom_')) {
@@ -612,7 +612,7 @@ export class Map extends L7PlotChartView<ChoroplethOptions, Choropleth> {
   protected setupOptions(
     chart: Chart,
     options: ChoroplethOptions,
-    context: Record<string, any>
+    context: Record<string, unknown>
   ): ChoroplethOptions {
     return flow(
       this.configEmptyDataStrategy,

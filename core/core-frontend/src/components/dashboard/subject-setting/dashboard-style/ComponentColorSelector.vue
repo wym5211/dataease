@@ -244,7 +244,7 @@ const props = defineProps({
   }
 })
 
-let colorAreaInit = ref(false)
+const colorAreaInit = ref(false)
 
 const { themes } = toRefs(props)
 const emits = defineEmits(['onColorChange'])

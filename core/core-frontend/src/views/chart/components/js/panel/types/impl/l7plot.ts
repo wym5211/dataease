@@ -87,9 +87,9 @@ export abstract class L7PlotChartView<
   protected configZoomButton(chart: Chart, plot: P) {
     configL7PlotZoom(chart, plot)
   }
-  protected constructor(name: string, defaultData?: any[]) {
+  protected constructor(name: string, defaultData?: Record<string, unknown>[]) {
     super(ChartLibraryType.L7_PLOT, name)
     this.defaultData = defaultData
   }
-  protected abstract setupOptions(chart: Chart, options: O, context?: Record<string, any>): O
+  protected abstract setupOptions(chart: Chart, options: O, context?: Record<string, unknown>): O
 }

@@ -22,7 +22,7 @@ const { t } = useI18n()
 
 const props = withDefaults(
   defineProps<{
-    chart: any
+    chart: ChartObj
     themes?: EditorTheme
     propertyInner: Array<string>
   }>(),

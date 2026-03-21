@@ -12,16 +12,24 @@ import { useI18n } from '@/hooks/web/useI18n'
 import { XpackComponent } from '@/components/plugin'
 import EmptyBackground from '../../components/empty-background/src/EmptyBackground.vue'
 import exeRequest from '@/config/axios'
+import { logger } from '@/utils/logger'
 const { wsCache } = useCache()
 const interactiveStore = interactiveStoreWithOut()
 const embeddedStore = useEmbedded()
-const embeddedParamsDiv = inject('embeddedParams') as object
+interface EmbeddedParams {
+  chartId: string
+  dvId: string
+  busiFlag?: string
+  suffixId?: string
+  outerParams?: string
+}
+const embeddedParamsDiv = inject<EmbeddedParams | null>('embeddedParams', null)
 const config = ref()
 const viewInfo = ref()
 const userViewEnlargeRef = ref()
 const dvMainStore = dvMainStoreWithOut()
 const { t } = useI18n()
-const openHandler = ref(null)
+const openHandler = ref<any>(null)
 const state = reactive({
   canvasDataPreview: null,
   canvasStylePreview: null,
@@ -32,10 +40,12 @@ const state = reactive({
   initState: true
 })
 
-const embeddedParams = embeddedParamsDiv?.chartId ? embeddedParamsDiv : embeddedStore
+const embeddedParams = (
+  embeddedParamsDiv?.chartId ? embeddedParamsDiv : embeddedStore
+) as EmbeddedParams
 
 // 目标校验： 需要校验targetSourceId 是否是当前可视化资源ID
-const winMsgHandle = event => {
+const winMsgHandle = (event: MessageEvent) => {
   const msgInfo = event.data
 
   // 校验targetSourceId
@@ -52,7 +62,7 @@ const winMsgHandle = event => {
   }
 }
 
-const checkPer = async resourceId => {
+const checkPer = async (resourceId?: string) => {
   if (!window.DataEaseBi || !resourceId) {
     return true
   }
@@ -78,7 +88,7 @@ onBeforeMount(async () => {
   }
 
   // 添加外部参数
-  let attachParams
+  let attachParams: Record<string, unknown> | undefined
   await getOuterParamsInfo(embeddedParams.dvId).then(rsp => {
     dvMainStore.setNowPanelOuterParamsInfoV2(rsp.data, embeddedParams.dvId)
   })
@@ -103,7 +113,7 @@ onBeforeMount(async () => {
   initCanvasData(
     embeddedParams.dvId,
     { busiFlag: embeddedParams.busiFlag },
-    function ({ canvasDataResult, canvasStyleResult, dvInfo, canvasViewInfoPreview }) {
+    function ({ canvasDataResult, canvasStyleResult, dvInfo, canvasViewInfoPreview }: any) {
       state.canvasDataPreview = canvasDataResult
       state.canvasStylePreview = canvasStyleResult
       state.canvasViewInfoPreview = canvasViewInfoPreview
@@ -132,7 +142,7 @@ onBeforeMount(async () => {
             return false
           })
         } else if (ele.component === 'DeTabs') {
-          ele.propValue.forEach(tabItem => {
+          ;(ele.propValue as any[]).forEach(tabItem => {
             return (tabItem.componentData || []).some(itx => {
               if (itx.id === chartId) {
                 config.value = itx
@@ -150,13 +160,13 @@ onBeforeMount(async () => {
     }
   )
 })
-const userViewEnlargeOpen = opt => {
+const userViewEnlargeOpen = (opt: any) => {
   userViewEnlargeRef.value.dialogInit(state.canvasStylePreview, viewInfo.value, config.value, opt)
 }
 
-const onPointClick = param => {
+const onPointClick = (param: unknown) => {
   try {
-    console.info('de_inner_params send')
+    logger.debug('de_inner_params send')
     if (window['dataease-embedded-host'] && openHandler?.value) {
       const pm = {
         methodName: 'embeddedInteractive',
@@ -167,7 +177,7 @@ const onPointClick = param => {
       }
       openHandler.value.invokeMethod(pm)
     } else {
-      console.info('de_inner_params send to host')
+      logger.debug('de_inner_params send to host')
       const targetPm = {
         type: 'dataease-embedded-interactive',
         eventName: 'de_inner_params',
@@ -176,7 +186,7 @@ const onPointClick = param => {
       window.parent.postMessage(targetPm, '*')
     }
   } catch (e) {
-    console.warn('de_inner_params send error')
+    logger.warn('de_inner_params send error')
   }
 }
 </script>

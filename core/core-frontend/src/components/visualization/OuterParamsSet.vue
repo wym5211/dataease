@@ -349,7 +349,7 @@
                   type="textarea"
                   :autosize="{ minRows: 4, maxRows: 8 }"
                   @change="
-                    val =>
+                    () =>
                       validateArgs(
                         state.outerParamsInfo.defaultValue,
                         state.outerParamsInfo.paramsInfoId
@@ -393,14 +393,13 @@ import { iconFieldMap } from '../icon-group/field-list'
 import Icon from '../icon-custom/src/Icon.vue'
 const dvMainStore = dvMainStoreWithOut()
 const { dvInfo, componentData } = storeToRefs(dvMainStore)
-const outerParamsInfoTree = ref(null)
+const outerParamsInfoTree = ref<any>(null)
 const { t } = useI18n()
-const curEditDataId = ref(null)
+const curEditDataId = ref<string | null>(null)
 const snapshotStore = snapshotStoreWithOut()
 import icon_info_outlined from '@/assets/svg/icon_info_outlined.svg'
-import dvInfoSvg from '@/assets/svg/dv-info.svg'
 
-const state = reactive({
+const state = reactive<any>({
   filterExpand: true,
   datasetExpand: true,
   loading: false,
@@ -484,15 +483,15 @@ const matchModeChange = baseFilter => {
   }
 }
 
-const argRefs = ref({})
+const argRefs = ref<Record<string, any>>({})
 
-const setArgRef = (el, id) => {
+const setArgRef = (el: any, id: string) => {
   if (el) {
     argRefs.value[id] = el
   }
 }
 
-const validateArgs = (val, id) => {
+const validateArgs = (val: string, id: string) => {
   const cref = argRefs.value[id]
   const e = cref.input
   if (val === null || val === '' || typeof val === 'undefined') {
@@ -527,7 +526,7 @@ const validateArgs = (val, id) => {
   }
 }
 
-const closeEdit = params => {
+const closeEdit = (params: any) => {
   if (!params.paramName || params.paramName.length < 2 || params.paramName.length > 25) {
     ElMessage({
       message: t('commons.params_value') + t('common.input_limit', [2, 25]),
@@ -542,7 +541,7 @@ const closeEdit = params => {
   curEditDataId.value = null
 }
 
-const outerParamsOperation = (cmd, node, data) => {
+const outerParamsOperation = (cmd: string, node: any, data: any) => {
   if (cmd === 'rename') {
     curEditDataId.value = data.paramsInfoId
   } else if (cmd === 'delete') {
@@ -606,7 +605,7 @@ const initParams = async () => {
   getPanelViewList(dvInfo.value.id)
 }
 
-const findFields = (type, datasetFields) => {
+const findFields = (type: string, datasetFields: any[]) => {
   if (type === 'parameterList') {
     return datasetFields.filter(field => field.attachId.indexOf('DE') > -1)
   } else {
@@ -614,7 +613,7 @@ const findFields = (type, datasetFields) => {
   }
 }
 
-const datasetInfoChange = datasetInfo => {
+const datasetInfoChange = (datasetInfo: any) => {
   let viewCheckCount = 0
   datasetInfo.datasetViews.forEach(dsView => {
     if (dsView['checked']) {
@@ -626,7 +625,11 @@ const datasetInfoChange = datasetInfo => {
     viewCheckCount > 0 && viewCheckCount < datasetInfo.datasetViews.length
 }
 
-const paramsCheckedAdaptor = (outerParamsInfo, newBaseFilterInfo, newBaseDatasetInfo) => {
+const paramsCheckedAdaptor = (
+  outerParamsInfo: any,
+  newBaseFilterInfo: any[],
+  newBaseDatasetInfo: any[]
+) => {
   const dsFieldIdSelected = {}
   const dsFilterMatchMode = {}
   const viewMatchIds = []
@@ -675,7 +678,7 @@ const cancel = () => {
   state.outerParamsSetVisible = false
 }
 
-const jsonArrayCheck = params => {
+const jsonArrayCheck = (params: string) => {
   try {
     const result = JSON.parse(params)
     return result instanceof Array
@@ -753,13 +756,13 @@ const save = () => {
   })
 }
 
-const nodeClick = data => {
+const nodeClick = (data: any) => {
   state.outerParamsInfo = state.mapOuterParamsInfoArray[data.paramsInfoId]
   state.curNodeId = data.paramsInfoId
 }
 
 // 获取当前图表字段 关联仪表板的图表信息列表
-const getPanelViewList = dvId => {
+const getPanelViewList = (dvId: string) => {
   viewDetailList(dvId).then(rsp => {
     state.viewIdFieldArrayMap = {}
     state.currentLinkPanelViewArray = rsp.data
@@ -787,14 +790,14 @@ const getPanelViewList = dvId => {
   })
 }
 
-const initSelected = data => {
+const initSelected = (data: any) => {
   nextTick(() => {
     outerParamsInfoTree.value.setCurrentKey(data.paramsInfoId)
     nodeClick(data)
   })
 }
 
-const sourceFieldCheckedChange = data => {
+const sourceFieldCheckedChange = (data: any) => {
   if (data.checked) {
     state.outerParams.checked = true
   }
@@ -817,7 +820,7 @@ const addOuterParamsInfo = () => {
   initSelected(outerParamsInfo)
 }
 
-const removeOuterParamsInfo = (node, data) => {
+const removeOuterParamsInfo = (node: any, data: any) => {
   const parent = node.parent
   const children = parent.data.children || parent.data
   const index = children.findIndex(d => d.paramsInfoId === data.paramsInfoId)
@@ -827,7 +830,7 @@ const removeOuterParamsInfo = (node, data) => {
     state.curNodeId = null
   }
 }
-const batchSelectChange = (value, baseDatasetInfo) => {
+const batchSelectChange = (value: boolean, baseDatasetInfo: any) => {
   // do change
   baseDatasetInfo.datasetViews.forEach(viewInfo => {
     viewInfo.checked = value
@@ -841,7 +844,7 @@ const optInit = () => {
   state.outerParamsSetVisible = true
 }
 
-const findFilterName = id => {
+const findFilterName = (id: string) => {
   return dvMainStore.canvasViewInfo[id]?.title
 }
 

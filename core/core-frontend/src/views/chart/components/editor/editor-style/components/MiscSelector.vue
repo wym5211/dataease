@@ -15,7 +15,7 @@ const props = withDefaults(
   defineProps<{
     chart: ChartObj
     themes?: EditorTheme
-    quotaFields: Array<any>
+    quotaFields: Array<Axis>
     propertyInner?: Array<string>
     mobileInPc?: boolean
   }>(),
@@ -83,7 +83,7 @@ const validMinField = computed(() => {
 const validMaxField = computed(() => {
   return isValidField(state.miscForm.gaugeMaxField)
 })
-const isValidField = field => {
+const isValidField = (field: { id: string }) => {
   return field.id !== '-1' && quotaData.value.findIndex(ele => ele.id === field.id) !== -1
 }
 
@@ -169,7 +169,7 @@ const changeQuotaField = (type: string, resetSummary?: boolean) => {
   }
 }
 
-const getQuotaField = id => {
+const getQuotaField = (id: string): Partial<Axis> => {
   return quotaData.value.find(ele => ele.id === id) || {}
 }
 
@@ -252,7 +252,7 @@ const validMinFieldAgg = computed(() => {
 const validMaxFieldAgg = computed(() => {
   return isAggField(state.miscForm.gaugeMaxField)
 })
-const isAggField = field => {
+const isAggField = (field: { id: string }) => {
   return quotaData.value.find(ele => ele.id === field.id)?.agg
 }
 // 校验计算字段和聚合函数
@@ -265,7 +265,7 @@ const validMinFieldCalcAndAgg = computed(() => {
 const validMaxFieldCalcAndAgg = computed(() => {
   return isCalcFieldAndAgg(state.miscForm.gaugeMaxField)
 })
-const isCalcFieldAndAgg = field => {
+const isCalcFieldAndAgg = (field: { id: string }) => {
   return quotaData.value.find(ele => ele.id === field.id && ele.extField === 2 && ele.agg)
 }
 
@@ -280,7 +280,7 @@ const validMaxFieldNum = computed(() => {
   return isNumType(state.miscForm.gaugeMaxField)
 })
 
-const isNumType = field => {
+const isNumType = (field: { id: string }) => {
   return quotaData.value.find(ele => ele.id === field.id && NUMBER_DE_TYPE.includes(ele.deType))
 }
 

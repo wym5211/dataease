@@ -2,6 +2,7 @@ import SockJS from 'sockjs-client/dist/sockjs.min.js'
 import Stomp from 'stompjs'
 import { useCache } from '@/hooks/web/useCache'
 import { useEmitt } from '@/hooks/web/useEmitt'
+import { logger } from '@/utils/logger'
 const { wsCache } = useCache()
 let stompClient: Stomp.Client
 import dev from '../../config/dev'
@@ -35,8 +36,9 @@ export default {
         return
       }
       let prefix = '/'
-      if (window.DataEaseBi?.baseUrl) {
-        prefix = window.DataEaseBi.baseUrl
+      const dataEaseBi = window.DataEaseBi as { baseUrl?: string } | undefined
+      if (dataEaseBi?.baseUrl) {
+        prefix = dataEaseBi.baseUrl
       } else {
         // const href = window.location.href
         prefix = location.origin + location.pathname
@@ -64,7 +66,7 @@ export default {
         },
         error => {
           disconnect()
-          console.error('连接失败: ' + error)
+          logger.error('连接失败: ' + error)
         }
       )
     }
@@ -73,10 +75,10 @@ export default {
       if (stompClient && stompClient.connected) {
         stompClient.disconnect(
           function () {
-            console.info('断开连接')
+            logger.debug('断开连接')
           },
           function (error) {
-            console.info('断开连接失败: ' + error)
+            logger.debug('断开连接失败: ' + error)
           }
         )
       }
@@ -85,7 +87,7 @@ export default {
 
     function initialize() {
       connection()
-      const timeInterval = setInterval(() => {
+      setInterval(() => {
         if (!isLoginStatus()) {
           disconnect()
           return

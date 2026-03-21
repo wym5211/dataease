@@ -47,7 +47,7 @@ const pageInfo = reactive({
 const init = async () => {
   const chartObj = JSON.parse(JSON.stringify(chart.value))
   if (chartObj?.senior) {
-    let senior = parseJson(chartObj.senior)
+    const senior = parseJson(chartObj.senior)
     state.mappingForm = senior.areaMapping
     let curAreaMapping = state.mappingForm?.[dynamicAreaId.value]
     if (!curAreaMapping) {

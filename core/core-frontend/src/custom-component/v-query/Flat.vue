@@ -1,10 +1,15 @@
 <script lang="ts" setup>
-import { inject, computed } from 'vue'
+import { inject, computed, type PropType } from 'vue'
 import { getCSSVariable } from '@/utils/color'
+
+interface FlatItem {
+  label: string
+  value: string
+}
 
 const props = defineProps({
   options: {
-    type: Array,
+    type: Array as PropType<FlatItem[]>,
     default: () => []
   },
   disabled: {
@@ -12,7 +17,7 @@ const props = defineProps({
     default: false
   },
   activeItems: {
-    type: Array,
+    type: Array as PropType<string[]>,
     default: () => []
   },
   selectStyle: {
@@ -20,7 +25,16 @@ const props = defineProps({
     default: () => ({})
   }
 })
-const customStyle: any = inject('$custom-style-filter')
+const customStyle:
+  | {
+      background: string
+      border: string
+      text: string
+      btnColor: string
+      queryConditionHeight: number
+      placeholderSize: number
+    }
+  | undefined = inject('$custom-style-filter')
 
 const customSelectStyle = computed(() => {
   return customStyle
@@ -43,7 +57,8 @@ const btnColor = computed(() => {
 })
 
 const emits = defineEmits(['handleItemClick'])
-const handleItemClick = (item: any) => {
+
+const handleItemClick = (item: FlatItem) => {
   if (props.disabled) return
   emits('handleItemClick', item.value)
 }
@@ -56,7 +71,7 @@ const handleItemClick = (item: any) => {
         <p
           @click="handleItemClick(item)"
           v-for="item in options"
-          :key="item"
+          :key="item.value"
           :style="customColor"
           class="select-item"
           :class="activeItems.includes(item.value) && 'active-select'"

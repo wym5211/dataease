@@ -87,10 +87,10 @@ const init = reactive({
         return
       } else {
         const ph = import.meta.env.VITE_BASE_PATH + ':' + import.meta.env.VITE_SERVER_PORT + '/'
-        let params = new FormData()
+        const params = new FormData()
         params.append('file', blobInfo.blob())
 
-        let config = {
+        const config = {
           headers: {
             'Content-Type': 'multipart/form-data'
           }

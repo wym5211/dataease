@@ -34,7 +34,6 @@ import eventBus from '@/utils/eventBus'
 import { useI18n } from '@/hooks/web/useI18n'
 import DashboardHiddenComponent from '@/components/dashboard/DashboardHiddenComponent.vue'
 import { recoverToPublished } from '@/api/visualization/dataVisualization'
-import SqlAssistant from '@/views/sqlbot/assistant.vue'
 import { contextmenuStoreWithOut } from '@/store/modules/data-visualization/contextmenu'
 const contextmenuStore = contextmenuStoreWithOut()
 const embeddedStore = useEmbedded()
@@ -269,7 +268,7 @@ onMounted(async () => {
       canvasStyleData.value.component.chartTitle.color = '#000000'
     })
   } else {
-    let url = '#/panel/index'
+    const url = '#/panel/index'
     window.open(url, '_self')
   }
 })

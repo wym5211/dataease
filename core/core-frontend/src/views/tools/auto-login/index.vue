@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue'
 import router from '@/router'
-import { useRoute } from 'vue-router_2'
+import { useRoute } from 'vue-router'
 import { useCache } from '@/hooks/web/useCache'
 import { useAppStoreWithOut } from '@/store/modules/app'
 import { useUserStoreWithOut } from '@/store/modules/user'
@@ -31,7 +31,7 @@ onMounted(async () => {
       const res = await queryDekey()
       wsCache.set(appStore.getDekey, res.data)
     }
-    const param: Record<string, any> = { name: rsaEncryp(u), pwd: rsaEncryp(p) }
+    const param: { name: string; pwd: string } = { name: rsaEncryp(u), pwd: rsaEncryp(p) }
     const res = await loginApi(param)
     const { token, exp } = res.data
     userStore.setToken(token)

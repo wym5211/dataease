@@ -6,7 +6,7 @@ export interface IGetTaskInfoReq {
 }
 
 export interface ITaskInfoInsertReq {
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export interface ISchedulerOption {
@@ -178,7 +178,7 @@ export class ITaskInfoRes {
 }
 
 export interface ITaskInfoUpdateReq {
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export interface IDsTable {

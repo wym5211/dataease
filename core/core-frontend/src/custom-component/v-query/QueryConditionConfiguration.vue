@@ -24,7 +24,6 @@ import {
 } from 'vue'
 import { storeToRefs } from 'pinia'
 import { enumValueObj } from '@/api/dataset'
-import CustomSortFilter from './CustomSortFilter.vue'
 import { addQueryCriteriaConfig } from './options'
 import { getCustomTime } from './time-format'
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
@@ -215,7 +214,7 @@ const showTypeError = computed(() => {
   }
   let displayTypeField = null
   let hasParameterNumArrType = 0
-  let allNum =
+  const allNum =
     curComponent.value.checkedFields.every(id => {
       return curComponent.value.checkedFieldsMapArrNum?.[id]?.length
     }) && ['22'].includes(curComponent.value.displayType)
@@ -511,20 +510,20 @@ const setTreeDefault = () => {
   }
 }
 
-const setTreeDefaultBatch = ele => {
-  if (!!ele.checkedFields.length) {
+const setTreeDefaultBatch = (condition: any) => {
+  if (!!condition.checkedFields.length) {
     let tableId = ''
-    fields.value.forEach(ele => {
+    fields.value.forEach(fieldItem => {
       if (
-        ele.checkedFields.includes(ele.componentId) &&
-        ele.checkedFieldsMap[ele.componentId] &&
+        condition.checkedFields.includes(fieldItem.componentId) &&
+        condition.checkedFieldsMap[fieldItem.componentId] &&
         !tableId
       ) {
-        tableId = datasetFieldList.value.find(itx => itx.id === ele.componentId)?.tableId
+        tableId = datasetFieldList.value.find(itx => itx.id === fieldItem.componentId)?.tableId
       }
     })
-    if (tableId && !ele.treeDatasetId) {
-      ele.treeDatasetId = tableId
+    if (tableId && !condition.treeDatasetId) {
+      condition.treeDatasetId = tableId
     }
   }
 }
@@ -600,7 +599,7 @@ const setParametersNumType = componentId => {
       .map(ele => Object.values(ele?.fields || {}).flat())
       .flat()
       .filter(
-        ele =>
+        (ele: any) =>
           [
             curComponent.value.checkedFieldsMapEndNum[componentId],
             curComponent.value.checkedFieldsMapStartNum[componentId]
@@ -618,7 +617,7 @@ const setParametersTimeType = componentId => {
       .map(ele => Object.values(ele?.fields || {}).flat())
       .flat()
       .filter(
-        ele =>
+        (ele: any) =>
           [
             curComponent.value.checkedFieldsMapEnd[componentId],
             curComponent.value.checkedFieldsMapStart[componentId]
@@ -677,9 +676,9 @@ const duplicateRemoval = arr => {
 const setParameters = field => {
   const fieldArr = Object.values(curComponent.value.checkedFieldsMap).filter(ele => !!ele)
   curComponent.value.parameters = duplicateRemoval(
-    Object.values(field?.fields || {})
+    (Object.values(field?.fields || {}) as any[])
       .flat()
-      .filter(ele => fieldArr.includes(ele.id) && !!ele.variableName)
+      .filter((ele: any) => fieldArr.includes(ele.id) && !!ele.variableName)
       .concat(curComponent.value.parameters.filter(ele => fieldArr.includes(ele.id)))
   )
   fields.value.forEach(ele => {
@@ -748,7 +747,7 @@ const setType = () => {
       .find(ele => checkId === ele.id)
 
     if (field?.deType !== undefined) {
-      let displayType = curComponent.value.displayType
+      const displayType = curComponent.value.displayType
       if (['22'].includes(curComponent.value.displayType) && [2, 3].includes(field?.deType)) {
         return
       }
@@ -786,7 +785,7 @@ const setType = () => {
 let oldDisplayType
 
 const handleSetTypeChange = () => {
-  let displayType = curComponent.value.displayType
+  const displayType = curComponent.value.displayType
   if (oldDisplayType === '9' && ['0', '8'].includes(displayType)) {
     curComponent.value.displayType = '9'
     ElMessageBox.confirm(t('common.changing_the_display'), {
@@ -952,9 +951,9 @@ let newDatasetId = ''
 let oldDatasetId = ''
 const handleCurrentChange = node => {
   if (!curComponent.value.dataset?.id) return
-  let id = `${curComponent.value.dataset?.id}--${curComponent.value.id}`
+  const id = `${curComponent.value.dataset?.id}--${curComponent.value.id}`
   let isChange = false
-  for (let i in cascadeArr) {
+  for (const i in cascadeArr) {
     const [fir, sec] = cascadeArr[i]
     if (fir?.datasetId.includes(id) || sec?.datasetId.includes(id)) {
       isChange = true
@@ -1205,7 +1204,7 @@ const openCascadeDialog = () => {
 }
 
 const clearCascadeArrDataset = id => {
-  for (let i in cascadeArr) {
+  for (const i in cascadeArr) {
     const [fir, sec] = cascadeArr[i]
     if (fir?.datasetId.includes(id)) {
       cascadeArr[i] = []
@@ -1714,18 +1713,20 @@ const init = (queryId: string) => {
   if (!params.length) return
   Promise.all([getDsDetailsWithPerm(params), getSqlParams(params)])
     .then(([dq, p]) => {
-      dq.filter(ele => !!ele).forEach(ele => {
-        ele.activelist = 'dimensionList'
-        ele.fields.parameterList = p.filter(
-          itx => itx.datasetGroupId === ele.id && !itx.params?.length
-        )
-        ele.hasParameter = !!ele.fields.parameterList.length
-        ele.fields.dimensionList = (ele.fields.dimensionList || []).filter(
-          itx => !itx.params?.length
-        )
-        ele.fields.quotaList = (ele.fields.quotaList || []).filter(itx => !itx.params?.length)
-        datasetMap[ele.id] = ele
-      })
+      ;(dq as any[])
+        .filter(ele => !!ele)
+        .forEach((ele: any) => {
+          ele.activelist = 'dimensionList'
+          ele.fields.parameterList = (p as any[]).filter(
+            itx => itx.datasetGroupId === ele.id && !itx.params?.length
+          )
+          ele.hasParameter = !!ele.fields.parameterList.length
+          ele.fields.dimensionList = (ele.fields.dimensionList || []).filter(
+            itx => !itx.params?.length
+          )
+          ele.fields.quotaList = (ele.fields.quotaList || []).filter(itx => !itx.params?.length)
+          datasetMap[ele.id] = ele
+        })
       fields.value = datasetFieldList.value
         .map(ele => {
           if (!datasetMap[ele.tableId]) return null

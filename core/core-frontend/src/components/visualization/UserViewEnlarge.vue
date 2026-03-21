@@ -103,7 +103,7 @@
         ref="viewContainer"
         :style="customExport"
       >
-        <component-wrapper
+        <AnyComponentWrapper
           v-if="optType === 'enlarge'"
           class="enlarge-wrapper"
           :opt-type="optType"
@@ -161,8 +161,7 @@ import ChartComponentS2 from '@/views/chart/components/views/components/ChartCom
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { exportExcelDownload } from '@/views/chart/components/js/util'
 import { storeToRefs } from 'pinia'
-import { RefreshLeft } from '@element-plus/icons-vue'
-import { assign, merge } from 'lodash-es'
+import { assign } from 'lodash-es'
 import { useEmitt } from '@/hooks/web/useEmitt'
 import { ElMessage, ElButton } from 'element-plus-secondary'
 import { exportPivotExcel } from '@/views/chart/components/js/panel/common/common_table'
@@ -175,21 +174,22 @@ import EmptyBackground from '../empty-background/src/EmptyBackground.vue'
 import { supportExtremumChartType } from '@/views/chart/components/js/extremumUitl'
 import ChartCarouselTooltip from '@/views/chart/components/js/g2plot_tooltip_carousel'
 import html2canvas from 'html2canvas'
+const AnyComponentWrapper = ComponentWrapper as any
 const downLoading = ref(false)
 const dvMainStore = dvMainStoreWithOut()
 const dialogShow = ref(false)
 const requestStore = useRequestStoreWithOut()
 const permissionStore = usePermissionStoreWithOut()
-let viewInfo = ref<DeepPartial<ChartObj>>(null)
-const config = ref(null)
-const viewContainer = ref(null)
+const viewInfo = ref<any>(null)
+const config = ref<any>(null)
+const viewContainer = ref<any>(null)
 const { t } = useI18n()
-const optType = ref(null)
-const chartComponentDetails = ref(null)
-const chartComponentDetails2 = ref(null)
+const optType = ref<string | null>(null)
+const chartComponentDetails = ref<any>(null)
+const chartComponentDetails2 = ref<any>(null)
 const { dvInfo, isIframe, canvasStyleData } = storeToRefs(dvMainStore)
 const exportLoading = ref(false)
-const sourceViewType = ref()
+const sourceViewType = ref<string>('')
 const activeName = ref('left')
 const detailsError = ref(false)
 const DETAIL_CHART_ATTR: DeepPartial<ChartObj> = {
@@ -300,7 +300,14 @@ const pixelOptions = [
     ]
   }
 ]
-const dialogInit = (canvasStyle, view, item, opt, params = { scale: 0.5 }) => {
+const dialogInit = (
+  canvasStyle: any,
+  view: any,
+  item: any,
+  opt: string,
+  params = { scale: 0.5 }
+) => {
+  void canvasStyle
   state.scale = params.scale
   sourceViewType.value = view.type
   detailsError.value = false
@@ -348,7 +355,7 @@ const dataDetailsOpt = () => {
   })
 }
 
-const handleClick = tab => {
+const handleClick = (tab: string) => {
   nextTick(() => {
     const viewDataInfo = dvMainStore.getViewDataDetails(viewInfo.value.id)
     if (tab === 'left') {
@@ -398,9 +405,7 @@ const exportData = () => {
   useEmitt().emitter.emit('data-export-center', { activeName: 'IN_PROGRESS' })
 }
 
-const openMessageLoading = cb => {
-  const iconClass = `el-icon-loading`
-  const customClass = `de-message-loading de-message-export`
+const openMessageLoading = (cb: () => void) => {
   ElMessage({
     message: h('p', null, [
       t('data_fill.exporting'),
@@ -418,10 +423,7 @@ const openMessageLoading = cb => {
       ),
       t('data_fill.progress_to_download')
     ]),
-    iconClass,
-    icon: h(RefreshLeft),
-    showClose: true,
-    customClass
+    showClose: true
   })
 }
 // 地图

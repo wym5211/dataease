@@ -64,7 +64,7 @@ export class StockLine extends G2PlotChartView<MixOptions, Mix> {
    * @param dayCount
    * @param chart
    */
-  calculateMovingAverage = (data, dayCount, chart) => {
+  calculateMovingAverage = (data: Record<string, unknown>[], dayCount: number, chart: Chart) => {
     const xAxis = chart.xAxis
     const yAxis = chart.yAxis
     // 时间字段
@@ -95,13 +95,15 @@ export class StockLine extends G2PlotChartView<MixOptions, Mix> {
    * 获取数据集合中对象属性值的最大最小值
    * @param data
    */
-  calculateMinMax = data => {
+  calculateMinMax = (data: Record<string, unknown>[]) => {
     return data.reduce(
       (acc, current) => {
         // 获取 current 对象的所有属性值
         const values = Object.values(current)
         // 过滤出数字值
-        const numericValues: any[] = values.filter(value => typeof value === 'number')
+        const numericValues: number[] = values.filter(
+          value => typeof value === 'number'
+        ) as number[]
         // 找到 current 对象的数字属性值中的最大值和最小值
         // 如果存在数字值，则计算当前对象的最大值和最小值
         if (numericValues.length > 0) {
@@ -123,7 +125,11 @@ export class StockLine extends G2PlotChartView<MixOptions, Mix> {
    * @param plot
    * @param averagesLineData
    */
-  registerEvent = (data, plot, averagesLineData) => {
+  registerEvent = (
+    data: Record<string, unknown>[],
+    plot: Mix,
+    averagesLineData: Map<string, unknown>
+  ) => {
     // 监听图例点击事件，显示隐藏
     let risingVisible = true
     plot.on('legend-item:click', evt => {
@@ -230,7 +236,7 @@ export class StockLine extends G2PlotChartView<MixOptions, Mix> {
     // 时间字段
     const xAxisDataeaseName = xAxis[0].dataeaseName
     const averages = [5, 10, 20, 60, 120, 180]
-    const legendItems: any[] = [
+    const legendItems: Record<string, unknown>[] = [
       {
         name: '日K',
         value: 'k',
@@ -261,14 +267,14 @@ export class StockLine extends G2PlotChartView<MixOptions, Mix> {
     })
 
     // 将均线数据设置到主数据中
-    data.forEach((item: any) => {
+    data.forEach((item: Record<string, unknown>) => {
       const date = item[xAxisDataeaseName]
       for (const [key, value] of averagesLineData) {
         item[key] = value.find(m => m[xAxisDataeaseName] === date)?.value
       }
     })
 
-    const averageLines: any[] = []
+    const averageLines: Record<string, unknown>[] = []
     let index = 0
     const start = 0.5
     const end = 1
@@ -461,7 +467,14 @@ export class StockLine extends G2PlotChartView<MixOptions, Mix> {
     }
 
     const showFiled = chart.data.fields
-    const customTooltipItems = originalItems => {
+    const customTooltipItems = (
+      originalItems: Array<{
+        name: string
+        value: number
+        color: string
+        data?: Record<string, unknown>
+      }>
+    ) => {
       const formattedItems = originalItems.map(item => {
         const fieldObj = showFiled.find(q => q.dataeaseName === item.name)
         const displayName = fieldObj?.chartShowName || fieldObj?.name || item.name
@@ -487,7 +500,7 @@ export class StockLine extends G2PlotChartView<MixOptions, Mix> {
           ]
         : formattedItems
     }
-    const formatTooltipItem = (item: any) => {
+    const formatTooltipItem = (item: Record<string, unknown>) => {
       const size = item.name.startsWith('MA') || !item.value ? 10 : 5
       const markerMarginRight = item.name.startsWith('MA') || !item.value ? 5 : 9
       const markerMarginLeft = item.name.startsWith('MA') || !item.value ? 0 : 2
@@ -512,7 +525,7 @@ export class StockLine extends G2PlotChartView<MixOptions, Mix> {
         </li>
       `
     }
-    const generateCustomTooltipContent = (title: string, items: Array<any>) => {
+    const generateCustomTooltipContent = (title: string, items: Array<Record<string, unknown>>) => {
       return `
         <div style="padding: 10px 0;">
           <div style="margin-bottom: 10px;">${title}</div>
@@ -530,7 +543,7 @@ export class StockLine extends G2PlotChartView<MixOptions, Mix> {
         showNil: true,
         crosshairs: {
           follow: true,
-          text: (axisType, value, data) => {
+          text: (axisType: string, value: number, data: Array<{ title: string }>) => {
             if (axisType === 'y') {
               return { content: value ? value.toFixed(0) : value }
             }
@@ -645,7 +658,7 @@ export class StockLine extends G2PlotChartView<MixOptions, Mix> {
         })
       }
     }
-    const updateValues = (strategy: 'breakLine' | 'setZero', data: any[]) => {
+    const updateValues = (strategy: 'breakLine' | 'setZero', data: Record<string, unknown>[]) => {
       data.forEach(obj => {
         Object.keys(obj).forEach(key => {
           if (key.startsWith('f_') && obj[key] === null) {

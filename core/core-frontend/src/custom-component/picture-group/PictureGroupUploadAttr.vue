@@ -54,8 +54,8 @@ const handlePictureCardPreview = file => {
 
 const handleRemove = file => {
   uploadDisabled.value = false
-  let file_static_part = file.url.split('static-resource/')[1]
-  let index = element.value.propValue['urlList'].findIndex(
+  const file_static_part = file.url.split('static-resource/')[1]
+  const index = element.value.propValue['urlList'].findIndex(
     item => item.url.split('static-resource/')[1] === file_static_part
   )
   if (index !== -1) {

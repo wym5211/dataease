@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import noLic from './nolic.vue'
-import { ref, useAttrs, onMounted } from 'vue'
+import { ref, useAttrs, onMounted, computed } from 'vue'
 import { execute, randomKey, formatArray } from './convert'
 import { load, loadDistributed, xpackModelApi } from '@/api/plugin'
 import configGlobal from '@/components/config-global/src/ConfigGlobal.vue'
@@ -15,6 +15,23 @@ import tinymce from 'tinymce/tinymce'
 import { useEmitt } from '@/hooks/web/useEmitt'
 import { isNull } from '@/utils/utils'
 
+declare global {
+  interface Window {
+    DEXPack?: {
+      mapping: Record<string, { default: Component }>
+    }
+    _de_xpack_not_loaded?: boolean
+    VueDe?: unknown
+    AxiosDe?: unknown
+    PiniaDe?: unknown
+    vueRouterDe?: unknown
+    MittAllDe?: unknown
+    I18nDe?: unknown
+    EchartsDE?: unknown
+    tinymce?: unknown
+  }
+}
+
 const { wsCache } = useCache()
 
 const plugin = ref()
@@ -22,6 +39,7 @@ const plugin = ref()
 const loading = ref(false)
 
 const attrs = useAttrs()
+const jsname = computed(() => String(attrs.jsname || ''))
 
 const showNolic = () => {
   plugin.value = noLic
@@ -36,14 +54,21 @@ const generateRamStr = (len: number) => {
   return randomStr
 }
 
-const importProxy = (bytesArray: any[]) => {
+import type { Component } from 'vue'
+
+interface VueComponent {
+  default: Component
+  __esModule?: boolean
+}
+
+const importProxy = (bytesArray: number[][]) => {
   const promise = import(
     `../../../../../../${formatArray(bytesArray[6])}/${formatArray(bytesArray[7])}/${formatArray(
       bytesArray[8]
     )}/${formatArray(bytesArray[9])}/${formatArray(bytesArray[10])}.vue`
   )
   promise
-    .then((res: any) => {
+    .then((res: VueComponent) => {
       plugin.value = res.default
     })
     .catch(e => {
@@ -54,7 +79,7 @@ const importProxy = (bytesArray: any[]) => {
 
 const loadXpack = async () => {
   if (window['DEXPack']) {
-    const xpack = await window['DEXPack'].mapping[attrs.jsname]
+    const xpack = await window['DEXPack'].mapping[jsname.value]
     plugin.value = xpack.default
   }
 }
@@ -75,7 +100,7 @@ const loadComponent = () => {
   const key = generateRamStr(randomKey())
   load(key)
     .then(response => {
-      let code = response.data
+      const code = response.data
       const byteArray = execute(code, key)
       storeCacheProxy(byteArray)
       importProxy(byteArray)
@@ -88,8 +113,8 @@ const loadComponent = () => {
       loading.value = false
     })
 }
-const storeCacheProxy = byteArray => {
-  const result = []
+const storeCacheProxy = (byteArray: number[][]) => {
+  const result: number[][] = []
   byteArray.forEach(item => {
     result.push([...item])
   })
@@ -127,7 +152,7 @@ onMounted(async () => {
   }
   if (distributed) {
     if (window['DEXPack']) {
-      const xpack = await window['DEXPack'].mapping[attrs.jsname]
+      const xpack = await window['DEXPack'].mapping[jsname.value]
       plugin.value = xpack.default
     } else if (!window._de_xpack_not_loaded) {
       window._de_xpack_not_loaded = true

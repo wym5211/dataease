@@ -1,10 +1,10 @@
 export {}
 declare global {
   interface Window {
-    DataEaseBi: any
+    DataEaseBi: unknown
     _de_get_time_out: number
   }
-  interface Fn<T = any> {
+  interface Fn<T = void> {
     (...arg: T[]): T
   }
 
@@ -12,7 +12,10 @@ declare global {
 
   type ElRef<T extends HTMLElement = HTMLDivElement> = Nullable<T>
 
-  type Recordable<T = any, K = string> = Record<K extends string | number | symbol ? K : string, T>
+  type Recordable<T = unknown, K = string> = Record<
+    K extends string | number | symbol ? K : string,
+    T
+  >
 
   type LocaleType = 'zh-CN' | 'en' | 'tw'
 
@@ -26,17 +29,17 @@ declare global {
   type AxiosResponseType = 'arraybuffer' | 'blob' | 'document' | 'json' | 'text' | 'stream'
 
   interface AxiosConfig {
-    params?: any
-    data?: any
+    params?: Record<string, unknown>
+    data?: unknown
     url?: string
     method?: AxiosMethod
     headersType?: string
     responseType?: AxiosResponseType
   }
 
-  interface IResponse<T = any> {
+  interface IResponse<T = unknown> {
     code: string | number
-    data: T extends any ? T : T & any
+    data: T
     msg: string
   }
 

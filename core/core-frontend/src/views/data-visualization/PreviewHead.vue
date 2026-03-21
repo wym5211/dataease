@@ -51,6 +51,7 @@ const preview = () => {
 const isDataEaseBi = computed(() => appStore.getIsDataEaseBi)
 const isIframe = computed(() => appStore.getIsIframe)
 const shareDisable = computed(() => shareStore.getShareDisable || isDesktop())
+const creatorName = computed(() => (dvInfo.value as any)?.creatorName || '-')
 const exportPermissions = computed(() =>
   exportPermission(dvInfo.value['weight'], dvInfo.value['ext'])
 )
@@ -103,7 +104,7 @@ const executeStore = () => {
 const storeQuery = () => {
   if (!dvInfo?.value?.id) return
   storeStatusApi(dvInfo.value.id).then(res => {
-    favorited.value = res.data
+    favorited.value = Boolean(res.data)
   })
 }
 storeQuery()
@@ -153,9 +154,7 @@ const initOpenHandler = newWindow => {
     </el-tooltip>
     <el-divider style="margin: 0 16px 0 7px" direction="vertical" />
     <div class="create-area flex-align-center">
-      <span style="line-height: 22px"
-        >{{ t('visualization.creator') }}:{{ dvInfo.creatorName }}</span
-      >
+      <span style="line-height: 22px">{{ t('visualization.creator') }}:{{ creatorName }}</span>
       <el-popover show-arrow :offset="8" placement="bottom" width="400" trigger="hover">
         <template #reference>
           <el-icon class="info-tips"

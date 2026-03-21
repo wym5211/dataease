@@ -3,13 +3,14 @@ import { createI18n } from 'vue-i18n'
 import { useLocaleStoreWithOut } from '@/store/modules/locale'
 import type { I18n, I18nOptions } from 'vue-i18n'
 import { setHtmlPageLang } from './helper'
+import type { LocaleDropdownType } from 'types/localeDropdown'
 export let i18n: ReturnType<typeof createI18n>
 import { PATH_URL } from '@/config/axios/service'
 const createI18nOptions = async (): Promise<I18nOptions> => {
   const localeStore = useLocaleStoreWithOut()
   let locale = localeStore.getCurrentLocale
   const localeMap = await localeStore.getLocaleMap
-  const cMap: any = localeMap.find(item => {
+  const cMap: LocaleDropdownType | undefined = localeMap.find(item => {
     return item.lang === locale.lang
   })
   let defaultLocal = null
@@ -48,7 +49,7 @@ const createI18nOptions = async (): Promise<I18nOptions> => {
   }
 }
 
-const loadRemoteI18n = async (option: any) => {
+const loadRemoteI18n = async (option: LocaleDropdownType) => {
   const name = option.lang.replace('-', '_')
   const path =
     PATH_URL.startsWith('./') && PATH_URL.length > 2

@@ -1,13 +1,31 @@
 /**
+ * 图表过滤器
+ */
+declare interface ChartFilter {
+  datasetTableField: ChartViewField
+  fieldId: string
+  value: unknown
+}
+
+/**
+ * 图表下钻配置
+ */
+declare interface ChartDrill {
+  id: string
+  name: string
+  [key: string]: unknown
+}
+
+/**
  * 图表对象
  */
 declare interface ChartExtRequest {
   user?: string | number
-  filter?: any[]
-  linkageFilters?: any[]
-  outerParamsFilters?: any[]
-  webParamsFilters?: any[]
-  drill?: any[]
+  filter?: ChartFilter[]
+  linkageFilters?: ChartFilter[]
+  outerParamsFilters?: ChartFilter[]
+  webParamsFilters?: ChartFilter[]
+  drill?: ChartDrill[]
   queryFrom?: string
   resultMode?: string
   resultCount?: number
@@ -28,28 +46,28 @@ declare interface Chart {
   refreshTime: number
   refreshUnit: string
   data: {
-    data: any[]
-    series?: any[]
+    data: Record<string, unknown>[]
+    series?: Record<string, unknown>[]
     dynamicAssistLines?: AssistLine[]
     fields: ChartViewField[]
     tableRow: []
     //chart-mix
     left: {
-      data: any[]
-      series?: any[]
+      data: Record<string, unknown>[]
+      series?: Record<string, unknown>[]
       dynamicAssistLines?: AssistLine[]
       fields: ChartViewField[]
       tableRow: []
     }
     right: {
-      data: any[]
-      series?: any[]
+      data: Record<string, unknown>[]
+      series?: Record<string, unknown>[]
       dynamicAssistLines?: AssistLine[]
       fields: ChartViewField[]
       tableRow: []
     }
-    customCalc: any
-    customSumResult?: Record<string, any>
+    customCalc: Record<string, unknown>
+    customSumResult?: Record<string, unknown>
   }
   xAxis?: Axis[]
   xAxisExt?: Axis[]
@@ -79,13 +97,13 @@ declare interface Chart {
   aggregate?: boolean
   plugin?: CustomPlugin
   isPlugin: boolean
-  extremumValues?: Map<string, any>
-  filteredData?: any[]
+  extremumValues?: Map<string, unknown>
+  filteredData?: Record<string, unknown>[]
   container?: string
   /**
    * 针对不是序列字段的图表，通过获取分类字段的值作为序列字段
    */
-  seriesFieldObjs?: any[]
+  seriesFieldObjs?: Record<string, unknown>[]
   flowMapStartName?: Axis[]
   flowMapEndName?: Axis[]
   showPosition: string
@@ -237,4 +255,15 @@ declare interface PageInfo {
   currentPage: number
   pageSize: number
   total: number
+}
+
+/**
+ * 图表数据项
+ */
+declare interface ChartData {
+  value: number | null
+  category: string | null
+  field?: string
+  quotaList?: Axis[]
+  dynamicTooltipValue?: { fieldId: string; value: number }[]
 }

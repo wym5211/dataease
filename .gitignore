@@ -26,6 +26,7 @@ target/
 hs_err_pid*
 node_modules/
 dist/
+/release/
 package-lock.json
 .DS_Store
 .stylelintcache

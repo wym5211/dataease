@@ -246,7 +246,10 @@ export class Rose extends G2PlotChartView<RoseOptions, G2Rose> {
     return chart
   }
 
-  public setupSeriesColor(chart: ChartObj, data?: any[]): ChartBasicStyle['seriesColor'] {
+  public setupSeriesColor(
+    chart: ChartObj,
+    data?: { field: string; value: number }[]
+  ): ChartBasicStyle['seriesColor'] {
     return setUpSingleDimensionSeriesColor(chart, data)
   }
 

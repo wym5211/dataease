@@ -34,12 +34,12 @@ declare interface PageInfo {
 
 export interface S2DrawOptions<O> extends AntVDrawOptions<O> {
   pageInfo?: PageInfo
-  resizeAction?: (...args: any) => void
-  touchAction?: (...args: any) => void
+  resizeAction?: (...args: unknown[]) => void
+  touchAction?: (...args: unknown[]) => void
 }
 export abstract class S2ChartView<P extends SpreadSheet> extends AntVAbstractChartView {
   public abstract drawChart(drawOption: S2DrawOptions<P>): P
-  protected constructor(name: string, defaultData: any[]) {
+  protected constructor(name: string, defaultData: Record<string, unknown>[]) {
     super(ChartLibraryType.S2, name, defaultData)
   }
   protected configTheme(chart: Chart): S2Theme {
@@ -50,7 +50,7 @@ export abstract class S2ChartView<P extends SpreadSheet> extends AntVAbstractCha
     return getStyle(chart, s2DataConfig)
   }
 
-  protected configEmptyDataStrategy(chart: Chart): Record<string, any>[] {
+  protected configEmptyDataStrategy(chart: Chart): Record<string, unknown>[] {
     return handleTableEmptyStrategy(chart)
   }
 
@@ -70,7 +70,7 @@ export abstract class S2ChartView<P extends SpreadSheet> extends AntVAbstractCha
     configMergeCells(chart, option, dataConfig)
   }
 
-  protected showTooltip(s2Instance: P, event, metaConfig: Meta[]) {
+  protected showTooltip(s2Instance: P, event: MouseEvent, metaConfig: Meta[]) {
     const cell = s2Instance.getCell(event.target)
     const meta = cell.getMeta()
     let content = ''

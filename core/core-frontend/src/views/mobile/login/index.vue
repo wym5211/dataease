@@ -11,7 +11,7 @@ import { loginApi, queryDekey } from '@/api/login'
 import { useAppStoreWithOut } from '@/store/modules/app'
 import { useUserStoreWithOut } from '@/store/modules/user'
 import { useCache } from '@/hooks/web/useCache'
-import { useRouter } from 'vue-router_2'
+import { useRouter } from 'vue-router'
 import { rsaEncryp } from '@/utils/encryption'
 import VanForm from 'vant/es/form'
 import VanField from 'vant/es/field'
@@ -172,7 +172,15 @@ const switchType = type => {
 const toMain = () => {
   router.push({ path: '/index' })
 }
-const toMfa = (mfa: any) => {
+interface MfaData {
+  enabled?: boolean
+  ready?: boolean
+  uid?: string
+  origin?: number
+  [key: string]: string | number | boolean | undefined
+}
+
+const toMfa = (mfa: MfaData | undefined) => {
   const isLdap = loginType.value === 'ldap'
   if (!isLdap && mfa?.enabled) {
     for (const key in mfa) {

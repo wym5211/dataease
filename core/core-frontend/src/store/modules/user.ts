@@ -114,7 +114,7 @@ export const userStore = defineStore('user', {
       wsCache.set('user.language', language)
       this.language = language
       locale.setLang(language)
-      changeLocale(language as any)
+      changeLocale(language as 'zh-CN' | 'en' | 'tw')
     },
     clear() {
       const keys: string[] = ['token', 'uid', 'name', 'oid', 'language', 'exp', 'time']

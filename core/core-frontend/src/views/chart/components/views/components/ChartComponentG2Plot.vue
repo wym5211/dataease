@@ -126,7 +126,7 @@ const state = reactive({
   pointParam: null,
   data: { fields: [] } // 图表数据
 })
-let chartData = shallowRef<Partial<Chart['data']>>({
+const chartData = shallowRef<Partial<Chart['data']>>({
   fields: []
 })
 
@@ -186,6 +186,10 @@ const linkageActive = () => {
   })
 }
 const checkSelected = param => {
+  // 空值检查
+  if (!param) {
+    return false
+  }
   // 获取当前视图的所有联动字段ID
   const mappingFieldIds = Array.from(
     new Set(
@@ -284,7 +288,7 @@ const calcData = async (view, callback) => {
             // 地图
             const map = parseJson(view.customAttr)?.map
             if (map) {
-              let areaId = map.id
+              const areaId = map.id
               country.value = areaId.slice(0, 3)
             }
             if (!dynamicAreaId.value?.startsWith(country.value)) {
@@ -331,13 +335,24 @@ const renderChart = async (view, callback?) => {
   recursionTransObj(customStyleTrans, chart.customStyle, scale.value, terminal.value)
   switch (chartView.library) {
     case ChartLibraryType.L7_PLOT:
-      await renderL7Plot(chart, chartView as L7PlotChartView<any, any>, callback)
+      await renderL7Plot(
+        chart,
+        chartView as L7PlotChartView<ChartLibraryType.L7_PLOT, unknown, unknown>,
+        callback
+      )
       break
     case ChartLibraryType.L7:
-      await renderL7(chart, chartView as L7ChartView<any, any>, callback)
+      await renderL7(
+        chart,
+        chartView as L7ChartView<ChartLibraryType.L7, unknown, unknown>,
+        callback
+      )
       break
     case ChartLibraryType.G2_PLOT:
-      await renderG2Plot(chart, chartView as G2PlotChartView<any, any>)
+      await renderG2Plot(
+        chart,
+        chartView as G2PlotChartView<ChartLibraryType.G2_PLOT, unknown, unknown>
+      )
       callback?.()
       break
     default:
@@ -346,7 +361,10 @@ const renderChart = async (view, callback?) => {
 }
 let myChart = null
 let g2Timer: number
-const renderG2Plot = async (chart, chartView: G2PlotChartView<any, any>) => {
+const renderG2Plot = async (
+  chart,
+  chartView: G2PlotChartView<ChartLibraryType.G2_PLOT, unknown, unknown>
+) => {
   g2Timer && clearTimeout(g2Timer)
   g2Timer = setTimeout(async () => {
     try {
@@ -376,7 +394,11 @@ const country = ref('')
 const chartContainer = ref<HTMLElement>(null)
 let scope
 let mapTimer: number
-const renderL7Plot = async (chart: ChartObj, chartView: L7PlotChartView<any, any>, callback) => {
+const renderL7Plot = async (
+  chart: ChartObj,
+  chartView: L7PlotChartView<ChartLibraryType.L7_PLOT, unknown, unknown>,
+  callback
+) => {
   const map = parseJson(chart.customAttr).map
   let areaId = map.id
   country.value = areaId.slice(0, 3)
@@ -409,7 +431,11 @@ const renderL7Plot = async (chart: ChartObj, chartView: L7PlotChartView<any, any
 }
 
 let mapL7Timer: number
-const renderL7 = async (chart: ChartObj, chartView: L7ChartView<any, any>, callback) => {
+const renderL7 = async (
+  chart: ChartObj,
+  chartView: L7ChartView<ChartLibraryType.L7, unknown, unknown>,
+  callback
+) => {
   mapL7Timer && clearTimeout(mapL7Timer)
   mapL7Timer = setTimeout(async () => {
     myChart = await chartView.drawChart({
@@ -613,7 +639,7 @@ const trackMenu = computed(() => {
   let trackMenuInfo = []
   // 复用、放大状态的仪表板不进行联动、跳转和下钻的动作
   if (!['multiplexing', 'viewDialog'].includes(showPosition.value)) {
-    let drillFields =
+    const drillFields =
       curView?.drill && curView?.drillFilters?.length
         ? curView.drillFilters.map(item => item.fieldId)
         : []

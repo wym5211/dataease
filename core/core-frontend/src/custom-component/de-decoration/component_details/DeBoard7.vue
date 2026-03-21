@@ -30,7 +30,7 @@ const mergeColor = () => {
 }
 
 const border_style = computed(() => {
-  const [primaryColor, secondaryColor] = mergedColor.value
+  const [primaryColor, _secondaryColor] = mergedColor.value
   return {
     width: `${width.value}px`,
     height: `${height.value}px`,
@@ -44,7 +44,7 @@ const border_style = computed(() => {
 })
 
 // 使用立即执行的watch并添加防抖
-let debounceTimer: number
+let debounceTimer: ReturnType<typeof setTimeout>
 watch(
   () => props.color,
   () => {

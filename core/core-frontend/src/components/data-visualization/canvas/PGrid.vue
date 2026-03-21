@@ -9,14 +9,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, toRefs } from 'vue'
+import { computed, toRefs, type PropType } from 'vue'
 
 const props = defineProps({
   positionBox: {
-    type: Array
+    type: Array as PropType<Array<Array<{ el: unknown }>>>
   },
   matrixStyle: {
-    type: Object
+    type: Object as PropType<{ width: number; height: number }>
   }
 })
 

@@ -84,7 +84,7 @@ const defaultProps = {
 }
 
 // 图标映射
-const iconMap: Record<string, any> = {
+const iconMap: Record<string, string> = {
   dashboard: 'Odometer',
   chart: 'TrendCharts',
   table: 'Grid',
@@ -99,12 +99,33 @@ const getIcon = (iconName: string) => {
   return iconMap[iconName] || 'Folder'
 }
 
+interface BackendMenuItem {
+  id: string | number
+  name: string
+  path?: string
+  type?: number
+  meta?: {
+    title?: string
+    icon?: string
+  }
+  children?: BackendMenuItem[]
+}
+
+interface AdaptedMenuPermission extends MenuPermission {
+  id: string
+  name: string
+  type: string
+  path: string
+  icon: string
+  children?: AdaptedMenuPermission[]
+}
+
 // 数据适配：将后端MenuVO格式转换为组件期望的格式
-const adaptMenuData = (menuList: any[]): MenuPermission[] => {
+const adaptMenuData = (menuList: BackendMenuItem[]): MenuPermission[] => {
   if (!menuList || !Array.isArray(menuList)) return []
 
   return menuList.map(menu => {
-    const adapted: any = {
+    const adapted: AdaptedMenuPermission = {
       id: String(menu.id || ''),
       name: menu.meta?.title || menu.name || '',
       type: menu.type === 1 ? 'button' : 'menu',

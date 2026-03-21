@@ -3,12 +3,14 @@ import CommonAttr from '@/custom-component/common/CommonAttr.vue'
 import { toRefs } from 'vue'
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { storeToRefs } from 'pinia'
-const props = defineProps({
-  themes: {
-    type: String,
-    default: 'dark'
+const props = withDefaults(
+  defineProps<{
+    themes?: EditorTheme
+  }>(),
+  {
+    themes: 'dark'
   }
-})
+)
 
 const { themes } = toRefs(props)
 const dvMainStore = dvMainStoreWithOut()

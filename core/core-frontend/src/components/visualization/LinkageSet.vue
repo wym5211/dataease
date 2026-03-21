@@ -320,16 +320,16 @@ import { deepCopy } from '@/utils/utils'
 import { ACTION_SELECTION } from '@/custom-component/component-list'
 const dvMainStore = dvMainStoreWithOut()
 const { dvInfo, canvasViewInfo, componentData, curComponent } = storeToRefs(dvMainStore)
-const linkageInfoTree = ref(null)
-const linkageInfoTreeDiffDs = ref(null)
+const linkageInfoTree = ref<any>(null)
+const linkageInfoTreeDiffDs = ref<any>(null)
 const { t } = useI18n()
 const dialogShow = ref(false)
 const loading = ref(false)
-const curLinkageTargetViewsInfo = ref([])
-const curLinkageTargetViewsInfoSameDs = ref([])
-const curLinkageTargetViewsInfoDiffDs = ref([])
+const curLinkageTargetViewsInfo = ref<any[]>([])
+const curLinkageTargetViewsInfoSameDs = ref<any[]>([])
+const curLinkageTargetViewsInfoDiffDs = ref<any[]>([])
 const snapshotStore = snapshotStoreWithOut()
-const state = reactive({
+const state = reactive<any>({
   sourceLinkageInfo: {},
   showSelected: false,
   curLinkageViewInfo: {},
@@ -389,14 +389,14 @@ const diffDsShow = computed(
     curComponent.value.innerType !== 'indicator'
 )
 
-const dialogInit = viewItem => {
+const dialogInit = (viewItem: any) => {
   state.showSelected = false
   dialogShow.value = true
   state.initState = false
   init(viewItem)
 }
 
-const linkageSetting = curViewId => {
+const linkageSetting = (curViewId: any) => {
   // sourceViewId 也加入查询
   const targetViewIds = []
   findAllViewsId(componentData.value, targetViewIds)
@@ -454,7 +454,7 @@ const linkageSetting = curViewId => {
   })
 }
 
-const init = viewItem => {
+const init = (viewItem: any) => {
   state.initState = false
   state.viewId = viewItem.id
   curLinkageTargetViewsInfo.value = []

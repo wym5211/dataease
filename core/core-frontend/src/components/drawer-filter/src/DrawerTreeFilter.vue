@@ -25,7 +25,7 @@ const props = defineProps({
 
 const { property } = toRefs(props)
 const treeConfig = computed(() => {
-  let obj = Object.assign(
+  const obj = Object.assign(
     {
       checkStrictly: false,
       showCheckbox: true,

@@ -72,7 +72,7 @@ import { ref, watch } from 'vue'
 import { ElMessage } from 'element-plus-secondary'
 import MenuPermissionTree from './MenuPermissionTree.vue'
 import ResourcePermission from './ResourcePermission.vue'
-import type { Role, MenuPermission, ResourcePermission as ResourcePermissionType } from '../types'
+import type { Role, ResourcePermission as ResourcePermissionType } from '../types'
 
 interface Props {
   role: Role | null
@@ -105,7 +105,7 @@ watch(
 )
 
 // 加载角色权限
-const loadRolePermissions = async (roleId: string) => {
+const loadRolePermissions = async (_roleId: string) => {
   try {
     // TODO: 后端API就绪后启用
     // const res = await getRolePermissions(roleId)
@@ -154,11 +154,9 @@ const confirmSave = async () => {
       //   menuIds: menuPermissions.value,
       //   resourceIds: resourcePermissions.value.map(r => r.id)
       // })
-      console.log('保存菜单权限:', menuPermissions.value)
       ElMessage.success('菜单权限保存成功')
     } else if (pendingSaveType.value === 'resource') {
-      const permissions = resourceRef.value?.getPermissions() || []
-      console.log('保存资源权限:', permissions)
+      const _permissions = resourceRef.value?.getPermissions() || []
       ElMessage.success('资源权限保存成功')
     }
     confirmVisible.value = false

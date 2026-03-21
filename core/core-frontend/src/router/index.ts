@@ -1,5 +1,5 @@
-import { createRouter, createWebHashHistory } from 'vue-router_2'
-import type { RouteRecordRaw } from 'vue-router_2'
+import { createRouter, createWebHashHistory } from 'vue-router'
+import type { RouteRecordRaw } from 'vue-router'
 import type { App } from 'vue'
 
 export const routes: AppRouteRecordRaw[] = [
@@ -181,12 +181,14 @@ export const routes: AppRouteRecordRaw[] = [
   {
     path: '/permissions/',
     hidden: true,
+    meta: {},
     redirect: { name: 'permissions-menu' }
   },
   {
     path: '/permissions',
     name: 'permissions',
     hidden: true,
+    meta: {},
     component: () => import('@/layout/index.vue'),
     redirect: { name: 'permissions-menu' },
     children: [

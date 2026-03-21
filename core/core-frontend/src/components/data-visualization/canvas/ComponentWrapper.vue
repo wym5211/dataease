@@ -262,7 +262,7 @@ const componentBackgroundStyle = computed(() => {
       }px`
     }
 
-    let style = {
+    const style = {
       padding: innerPaddingStyle,
       borderRadius: borderRadiusStyle
     }

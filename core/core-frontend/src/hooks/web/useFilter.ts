@@ -7,7 +7,11 @@ import { getCustomRange } from '@/custom-component/v-query/time-format-dayjs'
 const dvMainStore = dvMainStoreWithOut()
 const { componentData, canvasStyleData } = storeToRefs(dvMainStore)
 
-const getDynamicRangeTime = (type: number, selectValue: any, timeGranularityMultiple: string) => {
+const getDynamicRangeTime = (
+  type: number,
+  selectValue: string[],
+  timeGranularityMultiple: string
+) => {
   const timeType = (timeGranularityMultiple || '').split('range')[0]
 
   if ('datetimerange' === timeGranularityMultiple || type === 1 || !timeType) {
@@ -45,9 +49,11 @@ const getDynamicRangeTime = (type: number, selectValue: any, timeGranularityMult
   ]
 }
 
+type SelectValue = any
+
 const forMatterValue = (
   type: number,
-  selectValue: any,
+  selectValue: SelectValue,
   timeGranularity: string,
   timeGranularityMultiple: string
 ) => {
@@ -59,7 +65,10 @@ const forMatterValue = (
     : getRange(selectValue, timeGranularity)
 }
 
-export const getRange = (selectValue, timeGranularity) => {
+export const getRange = (selectValue: SelectValue, timeGranularity: string) => {
+  if (selectValue === null || selectValue === undefined || Array.isArray(selectValue)) {
+    return []
+  }
   switch (timeGranularity) {
     case 'year':
       return getYearEnd(selectValue)
@@ -73,28 +82,33 @@ export const getRange = (selectValue, timeGranularity) => {
       break
   }
 }
-const getYearEnd = timestamp => {
+const getYearEnd = (timestamp: string | number | Date) => {
   return [
     +new Date(dayjs(timestamp).startOf('year').format('YYYY/MM/DD HH:mm:ss')),
     +new Date(dayjs(timestamp).endOf('year').format('YYYY/MM/DD HH:mm:ss'))
   ]
 }
 
-const getMonthEnd = timestamp => {
+const getMonthEnd = (timestamp: string | number | Date) => {
   return [
     +new Date(dayjs(timestamp).startOf('month').format('YYYY/MM/DD HH:mm:ss')),
     +new Date(dayjs(timestamp).endOf('month').format('YYYY/MM/DD HH:mm:ss'))
   ]
 }
 
-const getDayEnd = timestamp => {
+const getDayEnd = (timestamp: string | number | Date) => {
   return [
     +new Date(dayjs(timestamp).startOf('day').format('YYYY/MM/DD HH:mm:ss')),
     +new Date(dayjs(timestamp).endOf('day').format('YYYY/MM/DD HH:mm:ss'))
   ]
 }
 
-const getFieldId = (arr, result, relationshipChartIndex, ids) => {
+const getFieldId = (
+  arr: { id: string }[],
+  result: string[],
+  relationshipChartIndex: number[],
+  ids: string[]
+): [string, string[]] => {
   const [obj] = [...result].reverse()
   const valArr = obj.split(',')
   const idArr = arr.map(ele => ele.id)
@@ -114,16 +128,16 @@ const getFieldId = (arr, result, relationshipChartIndex, ids) => {
 
 const getValueByDefaultValueCheckOrFirstLoad = (
   defaultValueCheck: boolean,
-  defaultValue: any,
-  selectValue: any,
+  defaultValue: SelectValue,
+  selectValue: SelectValue,
   firstLoad: boolean,
   multiple: boolean,
-  defaultMapValue: any,
+  defaultMapValue: SelectValue,
   optionValueSource: number,
-  mapValue: any,
+  mapValue: SelectValue,
   displayType: string,
   displayId: string
-) => {
+): SelectValue => {
   if (+displayType === 9) {
     if (firstLoad) {
       return defaultValueCheck
@@ -158,7 +172,7 @@ const getValueByDefaultValueCheckOrFirstLoad = (
 export const useFilter = (curComponentId: string, firstLoad = false) => {
   // 弹窗区域过滤组件是否生效
   const popupAvailable = canvasStyleData.value.popupAvailable
-  const filter = []
+  const filter: any[] = []
   const queryComponentList = componentData.value.filter(
     ele =>
       ele.component === 'VQuery' &&
@@ -225,29 +239,29 @@ export const useFilter = (curComponentId: string, firstLoad = false) => {
 }
 
 const getResult = (
-  conditionType,
-  defaultConditionValueF,
-  defaultConditionValueS,
-  conditionValueF,
-  conditionValueS,
-  firstLoad
-) => {
+  conditionType: number,
+  defaultConditionValueF: string,
+  defaultConditionValueS: string,
+  conditionValueF: string,
+  conditionValueS: string,
+  firstLoad: boolean
+): string[] => {
   const valueF = firstLoad ? defaultConditionValueF : conditionValueF
   const valueS = firstLoad ? defaultConditionValueS : conditionValueS
   if (conditionType === 0) {
-    return valueF === '' ? [] : valueF
+    return valueF === '' ? [] : [valueF]
   }
   return [valueF || '', valueS || ''].filter(ele => ele !== '')
 }
 
 const getResultNum = (
-  defaultNumValueEnd,
-  numValueEnd,
-  numValueStart,
-  defaultNumValueStart,
-  defaultValueCheck,
-  firstLoad
-) => {
+  defaultNumValueEnd: string,
+  numValueEnd: string,
+  numValueStart: string,
+  defaultNumValueStart: string,
+  defaultValueCheck: boolean,
+  firstLoad: boolean
+): string[] => {
   if (firstLoad && !defaultValueCheck) {
     return []
   }
@@ -257,19 +271,19 @@ const getResultNum = (
 }
 
 const getOperator = (
-  displayType,
-  multiple,
-  conditionType,
-  defaultConditionValueOperatorF,
-  defaultConditionValueF,
-  defaultConditionValueOperatorS,
-  defaultConditionValueS,
-  conditionValueOperatorF,
-  conditionValueF,
-  conditionValueOperatorS,
-  conditionValueS,
-  firstLoad
-) => {
+  displayType: string,
+  multiple: boolean,
+  conditionType: number,
+  defaultConditionValueOperatorF: string,
+  defaultConditionValueF: string,
+  defaultConditionValueOperatorS: string,
+  defaultConditionValueS: string,
+  conditionValueOperatorF: string,
+  conditionValueF: string,
+  conditionValueOperatorS: string,
+  conditionValueS: string,
+  firstLoad: boolean
+): string => {
   if (+displayType === 9) {
     return multiple ? 'in' : 'eq'
   }
@@ -298,8 +312,8 @@ const getOperator = (
   return [1, 7].includes(+displayType) ? 'between' : multiple ? 'in' : 'eq'
 }
 
-const duplicateRemoval = arr => {
-  const objList = []
+const duplicateRemoval = <T extends { id: string }>(arr: T[]): T[] => {
+  const objList: T[] = []
   let idList = arr.map(ele => ele.id)
   for (let index = 0; index < arr.length; index++) {
     const element = arr[index]
@@ -311,13 +325,18 @@ const duplicateRemoval = arr => {
   return objList
 }
 
-export const searchQuery = (queryComponentList, filter, curComponentId, firstLoad) => {
+export const searchQuery = (
+  queryComponentList: any[],
+  filter: any[],
+  curComponentId: string,
+  firstLoad: boolean
+): void => {
   queryComponentList.forEach(ele => {
     if (!!ele.propValue?.length) {
       ele.propValue.forEach(item => {
         let shouldSearch = false
         const relationshipChartIndex = []
-        const ids = Array(5).fill(1)
+        const ids = Array(5).fill('1')
         if (item.displayType === '9' && item.treeCheckedList?.length) {
           item.treeCheckedList.forEach((itx, idx) => {
             if (
@@ -374,7 +393,7 @@ export const searchQuery = (queryComponentList, filter, curComponentId, firstLoa
               ? optionFilter.map(itemOption => itemOption.replace(/-de-/g, ','))
               : optionFilter
             if (isTree) {
-              const [i, r] = getFieldId(
+              const [i, _r] = getFieldId(
                 treeFieldList,
                 optionFilterValue,
                 relationshipChartIndex,
@@ -506,9 +525,14 @@ export const searchQuery = (queryComponentList, filter, curComponentId, firstLoa
             if (result?.length) {
               let fieldId = item.checkedFieldsMap[curComponentId]
               if (isTree) {
-                const [i, r] = getFieldId(treeFieldList, result, relationshipChartIndex, ids)
+                const [i, _r] = getFieldId(
+                  treeFieldList,
+                  result as string[],
+                  relationshipChartIndex,
+                  ids
+                )
                 fieldId = i
-                result = r
+                result = _r
               }
               let parametersFilter = duplicateRemoval(
                 parameters.reduce((pre, next) => {

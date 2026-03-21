@@ -25,8 +25,8 @@ import 'vant/es/picker-group/style'
 import 'vant/es/time-picker/style'
 
 interface SelectConfig {
-  selectValue: any
-  defaultValue: any
+  selectValue: string | string[] | undefined
+  defaultValue: string | string[] | undefined
   defaultValueCheck: boolean
   id: string
   queryConditionWidth: number
@@ -197,9 +197,10 @@ const selectStyle = computed(() => {
       }
 })
 
-const columnsType = computed(() => {
+type MobileDateColumnType = 'year' | 'month' | 'day'
+const columnsType = computed<MobileDateColumnType[]>(() => {
   if (!dvMainStore.mobileInPc) return []
-  return ['year', 'month', 'day'].slice(0, getIndex() + 1)
+  return (['year', 'month', 'day'] as MobileDateColumnType[]).slice(0, getIndex() + 1)
 })
 
 const showTimePick = computed(() => {
@@ -207,7 +208,7 @@ const showTimePick = computed(() => {
   const type = multiple.value ? config.value.timeGranularityMultiple : config.value.timeGranularity
   return type.includes('datetime')
 })
-const currentTime = ref([])
+const currentTime = ref<string[]>([])
 const currentDate = ref(['2021', '01', '01'])
 const showDate = ref(false)
 

@@ -4,15 +4,18 @@ import type { LocaleDropdownType } from 'types/localeDropdown'
 import zhCnOriginal from 'element-plus-secondary/es/locale/lang/zh-cn'
 import enOriginal from 'element-plus-secondary/es/locale/lang/en'
 import twOriginal from 'element-plus-secondary/es/locale/lang/zh-tw'
-import { getLocale } from '@/utils/utils'
+import { getLocale, deepCopy } from '@/utils/utils'
 import request from '@/config/axios'
 import { setElementPlusLocale } from '@/plugins/element-plus'
 
-// 合并DataEase的国际化配置到Element Plus的国际化结构中
-const mergeLocaleData = (baseLocale: any, customData: any) => {
-  const merged = JSON.parse(JSON.stringify(baseLocale || {}))
+// Element Plus locale 类型
+type ElementPlusLocale = Record<string, unknown>
 
-  const mergeRecursive = (obj: any, source: any) => {
+// 合并DataEase的国际化配置到Element Plus的国际化结构中
+const mergeLocaleData = (baseLocale: ElementPlusLocale, customData: ElementPlusLocale) => {
+  const merged = deepCopy(baseLocale || {})
+
+  const mergeRecursive = (obj: ElementPlusLocale, source: ElementPlusLocale) => {
     for (const key in source) {
       if (source.hasOwnProperty(key)) {
         if (
@@ -21,7 +24,7 @@ const mergeLocaleData = (baseLocale: any, customData: any) => {
           !Array.isArray(source[key])
         ) {
           if (!obj[key]) obj[key] = {}
-          mergeRecursive(obj[key], source[key])
+          mergeRecursive(obj[key] as ElementPlusLocale, source[key] as ElementPlusLocale)
         } else {
           obj[key] = source[key]
         }
@@ -50,10 +53,17 @@ const elLocaleMap = {
   en: enOriginal,
   tw: twOriginal
 }
+type LocaleLang = keyof typeof elLocaleMap
+type LocaleItem = LocaleDropdownType
+const normalizeLang = (lang?: string): LocaleLang => {
+  if (lang === 'en' || lang === 'tw' || lang === 'zh-CN') return lang
+  if (lang?.startsWith('zh')) return 'zh-CN'
+  return 'en'
+}
 interface LocaleState {
   customLoaded: boolean
   currentLocale: LocaleDropdownType
-  localeMap: LocaleDropdownType[]
+  localeMap: LocaleItem[]
 }
 
 export const useLocaleStore = defineStore('locales', {
@@ -61,8 +71,8 @@ export const useLocaleStore = defineStore('locales', {
     return {
       customLoaded: false,
       currentLocale: {
-        lang: getLocale(),
-        elLocale: elLocaleMap[getLocale()]
+        lang: normalizeLang(getLocale()),
+        elLocale: elLocaleMap[normalizeLang(getLocale())]
       },
       // 多语言
       localeMap: [
@@ -85,7 +95,7 @@ export const useLocaleStore = defineStore('locales', {
     getCurrentLocale(): LocaleDropdownType {
       return this.currentLocale
     },
-    async getLocaleMap(): Promise<LocaleDropdownType[]> {
+    async getLocaleMap(): Promise<LocaleItem[]> {
       if (this.customLoaded) {
         return this.localeMap
       }
@@ -95,13 +105,12 @@ export const useLocaleStore = defineStore('locales', {
         const customMap = res.data
         let match = false
         for (const key in customMap) {
-          const item = {
-            lang: key,
-            name: customMap[key],
-            custom: true
+          const item: LocaleItem = {
+            lang: normalizeLang(key),
+            name: String(customMap[key])
           }
           this.localeMap.push(item)
-          if (this.currentLocale?.lang === key) {
+          if (this.currentLocale?.lang === normalizeLang(key)) {
             match = true
           }
         }
@@ -123,12 +132,15 @@ export const useLocaleStore = defineStore('locales', {
   actions: {
     async setCurrentLocale(localeMap: LocaleDropdownType) {
       // this.locale = Object.assign(this.locale, localeMap)
-      this.currentLocale.lang = localeMap?.lang
-      const baseLocale = elLocaleMap[localeMap?.lang]
+      this.currentLocale.lang = normalizeLang(localeMap?.lang as string)
+      const baseLocale = elLocaleMap[normalizeLang(localeMap?.lang as string)]
       const customData = await loadCustomLocaleData(localeMap?.lang)
 
       // 合并基础国际化配置和自定义配置
-      this.currentLocale.elLocale = mergeLocaleData(baseLocale, customData)
+      this.currentLocale.elLocale = {
+        ...(baseLocale as any),
+        el: mergeLocaleData((baseLocale as any).el || {}, customData)
+      } as any
 
       // 同时更新Element Plus的国际化配置
       if (this.currentLocale.elLocale) {
@@ -137,12 +149,15 @@ export const useLocaleStore = defineStore('locales', {
       // wsCache.set('lang', localeMap?.lang)
     },
     async setLang(language: string) {
-      this.currentLocale.lang = language
-      const baseLocale = elLocaleMap[language]
+      this.currentLocale.lang = normalizeLang(language)
+      const baseLocale = elLocaleMap[normalizeLang(language)]
       const customData = await loadCustomLocaleData(language)
 
       // 合并基础国际化配置和自定义配置
-      this.currentLocale.elLocale = mergeLocaleData(baseLocale, customData)
+      this.currentLocale.elLocale = {
+        ...(baseLocale as any),
+        el: mergeLocaleData((baseLocale as any).el || {}, customData)
+      } as any
 
       // 同时更新Element Plus的国际化配置
       if (this.currentLocale.elLocale) {

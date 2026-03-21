@@ -14,8 +14,18 @@ import { installDirective } from '@/directive'
 import '@/utils/DateUtil'
 import '@/permission'
 import WebSocketPlugin from '../../websocket'
+import { setupErrorHandler } from '@/utils/errorHandler'
+
 const setupAll = async () => {
   const app = createApp(App)
+
+  // 初始化全局错误处理（优先初始化）
+  setupErrorHandler(app, {
+    showMessage: true,
+    reportError: false, // 生产环境可开启
+    logError: true
+  })
+
   installDirective(app)
   setupStore(app)
   await setupI18n(app)

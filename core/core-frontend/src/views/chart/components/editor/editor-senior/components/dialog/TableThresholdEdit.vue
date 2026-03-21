@@ -418,7 +418,7 @@ const getFieldOptions = () => {
   return fieldOptions
 }
 
-const datePickerFormat = (fieldItem: { dateStyle: any; datePattern: any }) => {
+const datePickerFormat = (fieldItem: { dateStyle: string; datePattern: string }) => {
   return transDateFormat(fieldItem.dateStyle, fieldItem.datePattern)
 }
 

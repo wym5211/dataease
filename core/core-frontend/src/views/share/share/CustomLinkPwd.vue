@@ -32,17 +32,21 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
+import type { FormRules } from 'element-plus-secondary'
 
 const { t } = useI18n()
 const dialogVisible = ref(false)
 const pwdForm = ref()
 const originPwd = ref('')
+interface PwdForm {
+  pwd: string
+}
 const state = reactive({
-  form: reactive<any>({
+  form: reactive<PwdForm>({
     pwd: ''
   })
 })
-const rule = reactive<any>({
+const rule = reactive<FormRules>({
   pwd: [
     { required: true, message: t('work_branch.password_null_hint'), trigger: 'blur' },
     {

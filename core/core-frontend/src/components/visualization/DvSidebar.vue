@@ -7,17 +7,23 @@ import { snapshotStoreWithOut } from '@/store/modules/data-visualization/snapsho
 import Icon from '../icon-custom/src/Icon.vue'
 const dvMainStore = dvMainStoreWithOut()
 const { canvasCollapse } = storeToRefs(dvMainStore)
-let componentNameEdit = ref(false)
-let inputComponentName = ref({ id: null, name: null })
-let componentNameInputAttr = ref(null)
+const componentNameEdit = ref(false)
 import dvInfoSvg from '@/assets/svg/dv-info.svg'
 import { useI18n } from '@/hooks/web/useI18n'
 const snapshotStore = snapshotStoreWithOut()
 const { t } = useI18n()
+
+interface SidebarElement {
+  id?: string | number | null
+  name?: string
+  label?: string
+}
+
 const props = defineProps({
   element: {
+    type: Object as PropType<SidebarElement>,
     required: false,
-    default: {}
+    default: () => ({})
   },
   scrollWidth: {
     required: false,
@@ -62,6 +68,11 @@ const props = defineProps({
 })
 
 const { width, asidePosition, sideName, themeInfo, view, themes, element } = toRefs(props)
+const inputComponentName = ref<{ id: string | number | null; name: string | null }>({
+  id: null,
+  name: null
+})
+const componentNameInputAttr = ref<HTMLInputElement | null>(null)
 const collapseChange = () => {
   canvasCollapse.value[sideName.value] = !canvasCollapse.value[sideName.value]
 }

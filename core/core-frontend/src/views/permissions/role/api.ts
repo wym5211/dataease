@@ -10,9 +10,14 @@ import type {
 
 const BASE_URL = '/role'
 
+interface RoleResponse {
+  data?: { records?: Role[] } | Role[]
+  records?: Role[]
+}
+
 // 获取角色列表
 export const getRoleList = async (params: RoleListRequest): Promise<RoleListResponse> => {
-  const response: any = await request.post({
+  const response: RoleResponse = await request.post({
     url: `${BASE_URL}/byCurOrg`,
     data: { keyword: params.keyword || '' }
   })
@@ -65,8 +70,21 @@ export const saveRolePermissions = (
   return request.post({ url: `${BASE_URL}/permission/${roleId}`, data })
 }
 
+interface MenuTreeItem {
+  id: string | number
+  name: string
+  path?: string
+  icon?: string
+  type?: number
+  meta?: {
+    title?: string
+    icon?: string
+  }
+  children?: MenuTreeItem[]
+}
+
 // 获取菜单树（用于权限管理，返回所有菜单）
-export const getMenuTree = (): Promise<any> => {
+export const getMenuTree = (): Promise<MenuTreeItem[]> => {
   return request.get({ url: '/menu/tree' })
 }
 

@@ -9,6 +9,7 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, reactive, toRefs } from 'vue'
+import dayjs from 'dayjs'
 
 const props = defineProps({
   element: {
@@ -20,7 +21,7 @@ const { element } = toRefs(props)
 const state = reactive({
   nowDate: '', // 当前日期
   nowWeek: '',
-  timer: null
+  timer: null as ReturnType<typeof setInterval> | null
 })
 
 const currentTime = () => {
@@ -38,7 +39,7 @@ const formatDate = () => {
 
   const date = new Date()
 
-  state.nowDate = date.format(timeFormat)
+  state.nowDate = dayjs(date).format(timeFormat)
 
   if (showWeek) {
     state.nowWeek = weekArr[date.getDay()]

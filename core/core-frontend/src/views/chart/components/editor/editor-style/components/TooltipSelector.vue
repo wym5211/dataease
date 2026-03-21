@@ -15,7 +15,7 @@ import {
   mergeTooltipFormat
 } from '@/views/chart/components/js/formatter'
 import { fieldType } from '@/utils/attr'
-import { defaultTo, partition, map, includes, isEmpty, merge } from 'lodash-es'
+import { defaultTo, partition, map, includes, isEmpty } from 'lodash-es'
 import chartViewManager from '../../../js/panel'
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { storeToRefs } from 'pinia'
@@ -35,7 +35,7 @@ const props = defineProps({
     default: 'dark'
   },
   allFields: {
-    type: Array<any>,
+    type: Array as PropType<ChartViewField[]>,
     required: false
   },
   propertyInner: {
@@ -126,7 +126,7 @@ const changeDataset = () => {
 
 const AXIS_PROP: AxisType[] = ['yAxis', 'yAxisExt', 'extBubble']
 const quotaAxis = computed(() => {
-  let result = []
+  const result = []
   AXIS_PROP.forEach(prop => {
     if (!chartViewInstance.value?.axis?.includes(prop)) {
       return
@@ -463,7 +463,7 @@ watch(
     if (!showProperty('showFields')) {
       return
     }
-    let result = []
+    const result = []
     state.tooltipForm.showFields?.forEach(field => {
       if (allFields.value?.map(i => i.value).includes(field)) {
         result.push(field)

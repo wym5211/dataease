@@ -13,7 +13,7 @@ import { useEmitt } from '@/hooks/web/useEmitt'
 import { Icon } from '@/components/icon-custom'
 import SystemCfg from './SystemCfg.vue'
 import ToolboxCfg from './ToolboxCfg.vue'
-import { useRouter, useRoute } from 'vue-router_2'
+import { useRouter, useRoute } from 'vue-router'
 import TopDoc from '@/layout/components/TopDoc.vue'
 import AccountOperator from '@/layout/components/AccountOperator.vue'
 import { isDesktop } from '@/utils/ModelUtil'
@@ -24,13 +24,13 @@ import { findBaseParams } from '@/api/aiComponent'
 import AiTips from '@/layout/components/AiTips.vue'
 import DesktopSetting from './DesktopSetting.vue'
 import request from '@/config/axios'
+import { useCache } from '@/hooks/web/useCache'
+import { useI18n } from '@/hooks/web/useI18n'
+import { msgCountApi } from '@/api/msg'
 
 const appearanceStore = useAppearanceStoreWithOut()
 const { push } = useRouter()
 const route = useRoute()
-import { useCache } from '@/hooks/web/useCache'
-import { useI18n } from '@/hooks/web/useI18n'
-import { msgCountApi } from '@/api/msg'
 const { wsCache } = useCache('localStorage')
 const aiBaseUrl = ref('https://maxkb.fit2cloud.com/ui/chat/2ddd8b594ce09dbb?mode=embed')
 const handleIconClick = () => {
@@ -56,10 +56,13 @@ const activeIndex = computed(() => {
 })
 
 const permissionStore = usePermissionStore()
-const downloadClick = params => {
+const downloadClick = (params: unknown) => {
   useEmitt().emitter.emit('data-export-center', params)
 }
-const routers: any[] = formatRoute(permissionStore.getRoutersNotHidden as AppCustomRouteRecordRaw[])
+
+const routers: AppCustomRouteRecordRaw[] = formatRoute(
+  permissionStore.getRoutersNotHidden as AppCustomRouteRecordRaw[]
+)
 const showSystem = ref(false)
 const showMsg = ref(false)
 const showToolbox = ref(false)

@@ -2,11 +2,9 @@
 import { ref, reactive, onBeforeMount, nextTick, inject } from 'vue'
 import { initCanvasData, initCanvasDataMobile, onInitReady } from '@/utils/canvasUtils'
 import { interactiveStoreWithOut } from '@/store/modules/interactive'
-import router from '@/router/mobile'
 import { useEmbedded } from '@/store/modules/embedded'
 import { isMobile } from '@/utils/utils'
 import { check } from '@/utils/CrossPermission'
-import { useEmitt } from '@/hooks/web/useEmitt'
 import { useCache } from '@/hooks/web/useCache'
 import { getOuterParamsInfo } from '@/api/visualization/outerParams'
 import { ElMessage } from 'element-plus-secondary'
@@ -20,9 +18,15 @@ const { wsCache } = useCache()
 const interactiveStore = interactiveStoreWithOut()
 const embeddedStore = useEmbedded()
 const dashboardPreview = ref(null)
-const embeddedParamsDiv = inject('embeddedParams') as object
-
-const embeddedParams = embeddedParamsDiv?.dvId ? embeddedParamsDiv : embeddedStore
+interface EmbeddedParams {
+  dvId: string
+  busiFlag?: string
+  outerParams?: string
+}
+const embeddedParamsDiv = inject<EmbeddedParams | null>('embeddedParams', null)
+const embeddedParams = (
+  embeddedParamsDiv?.dvId ? embeddedParamsDiv : embeddedStore
+) as EmbeddedParams
 const { t } = useI18n()
 const state = reactive({
   canvasDataPreview: null,
@@ -34,7 +38,7 @@ const state = reactive({
 })
 const dvMainStore = dvMainStoreWithOut()
 
-const checkPer = async resourceId => {
+const checkPer = async (resourceId?: string) => {
   if (!window.DataEaseBi || !resourceId) {
     return true
   }
@@ -56,7 +60,7 @@ onBeforeMount(async () => {
     tokenInfo = embeddedStore.getTokenInfo
   }
   // 添加外部参数
-  let attachParams
+  let attachParams: Record<string, unknown> | undefined
   try {
     await getOuterParamsInfo(embeddedParams.dvId).then(rsp => {
       dvMainStore.setNowPanelOuterParamsInfoV2(rsp.data, embeddedParams.dvId)
@@ -95,7 +99,7 @@ onBeforeMount(async () => {
       dvInfo,
       canvasViewInfoPreview,
       curPreviewGap
-    }) {
+    }: any) {
       if (!isPc.value) {
         if (dvInfo.mobileLayout) {
           dvMainStore.setMobileInPc(true)

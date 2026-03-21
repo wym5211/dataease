@@ -5,8 +5,16 @@ import { valueFormatter } from '@/views/chart/components/js/formatter'
 import { parseJson } from '@/views/chart/components/js/util'
 import { Scene } from '@antv/l7-scene'
 import { deepCopy } from '@/utils/utils'
+import type { L7PlotDrawOptions } from '@/views/chart/components/js/panel/types/impl/l7plot'
 
-export const configCarouselTooltip = (chart, view, data, scene, customSubArea?, drawOption?) => {
+export const configCarouselTooltip = (
+  chart: Chart,
+  view: Plot,
+  data: Record<string, unknown>[],
+  scene: Scene,
+  customSubArea?: CustomGeoSubArea[],
+  drawOption?: L7PlotDrawOptions<unknown>
+) => {
   if (['bubble-map', 'map'].includes(chart.type)) {
     data = view.source.data.dataArray
       ?.filter(i => i.dimensionList?.length > 0)
@@ -68,7 +76,7 @@ export class CarouselManager {
    * @private
    */
   private view: Plot
-  private data: any[]
+  private data: Record<string, unknown>[]
   /**
    * 停留时长
    * @private
@@ -102,7 +110,14 @@ export class CarouselManager {
   private onMouseLeaveHandler: () => void
   private onVisibilityChangeHandler: () => void
 
-  constructor(scene, chart, view, data: any[], customSubArea, drawOption?) {
+  constructor(
+    scene: Scene,
+    chart: Chart,
+    view: Plot,
+    data: Record<string, unknown>[],
+    customSubArea: CustomGeoSubArea[],
+    drawOption?: L7PlotDrawOptions<unknown>
+  ) {
     // 绑定事件处理函数
     this.onMouseEnterHandler = this.pauseCarouselPopups.bind(this)
     this.onMouseLeaveHandler = this.resumeCarouselPopups.bind(this)
@@ -119,7 +134,14 @@ export class CarouselManager {
    * @param data
    * @param customSubArea
    */
-  public update(scene, chart, view, data: any[], customSubArea, drawOption?) {
+  public update(
+    scene: Scene,
+    chart: Chart,
+    view: Plot,
+    data: Record<string, unknown>[],
+    customSubArea: CustomGeoSubArea[],
+    drawOption?: L7PlotDrawOptions<unknown>
+  ) {
     this.init(scene, chart, view, data, customSubArea, drawOption)
   }
 
@@ -131,7 +153,14 @@ export class CarouselManager {
    * @param data
    * @private
    */
-  private init(scene, chart, view, data: any[], customSubArea, drawOption?) {
+  private init(
+    scene: Scene,
+    chart: Chart,
+    view: Plot,
+    data: Record<string, unknown>[],
+    customSubArea: CustomGeoSubArea[],
+    drawOption?: L7PlotDrawOptions<unknown>
+  ) {
     this.view = view
     this.chart = chart
     this.scene = scene
@@ -381,7 +410,7 @@ export class CarouselManager {
     }
   }
 
-  private getActiveData(index): any {
+  private getActiveData(index: number): { type: string; features: unknown[] } {
     if (this.drawOption?.areaId?.startsWith('custom_')) {
       const result = {
         type: 'FeatureCollection',
@@ -414,7 +443,7 @@ export class CarouselManager {
    * @param index
    * @private
    */
-  private getPopupData(index: number): any {
+  private getPopupData(index: number): { data: Record<string, unknown>; centroid: number[] } {
     if (this.drawOption?.areaId?.startsWith('custom_')) {
       const data = this.data[index]
       const area = this.customSubArea?.find(a => a.name === data.areaName)
@@ -438,7 +467,7 @@ export class CarouselManager {
    * @param obj
    * @private
    */
-  private objectToSemicolonSeparated(obj: any): string {
+  private objectToSemicolonSeparated(obj: Record<string, string>): string {
     let result = ''
     for (const key in obj) {
       if (obj.hasOwnProperty(key)) {
@@ -506,7 +535,7 @@ export class CarouselManager {
    * @param data
    * @private
    */
-  private getTooltipItems(data) {
+  private getTooltipItems(data: Record<string, unknown>) {
     const result = []
     const customAttr = parseJson(this.chart.customAttr)
     const tooltip = customAttr.tooltip
@@ -543,7 +572,7 @@ export class CarouselManager {
    * @param index
    * @private
    */
-  private createSymbolicMapPopup(index): void {
+  private createSymbolicMapPopup(index: number): void {
     const buildTooltip = () => {
       const customAttr = this.chart.customAttr ? parseJson(this.chart.customAttr) : null
       if (customAttr?.tooltip?.show) {
@@ -615,7 +644,11 @@ export class CarouselManager {
      * @param showFields
      * @returns {string}
      */
-    const buildTooltipContent = (tooltip, fieldData, showFields) => {
+    const buildTooltipContent = (
+      tooltip: { customContent?: string },
+      fieldData: Record<string, unknown>,
+      showFields: string[]
+    ) => {
       let content = ''
       if (tooltip.customContent) {
         content = tooltip.customContent
@@ -636,7 +669,7 @@ export class CarouselManager {
      * @param details
      * @returns {Map<string, any>}
      */
-    const mergeDetailsToMap = details => {
+    const mergeDetailsToMap = (details: Record<string, unknown>[]) => {
       const resultMap = new Map()
       details.forEach(item => {
         Object.entries(item).forEach(([key, value]) => {

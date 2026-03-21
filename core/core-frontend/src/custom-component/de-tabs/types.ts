@@ -4,5 +4,5 @@ export interface DropdownProps {
   divided?: boolean
   command?: string | number | object
   label?: string | number
-  [k: string]: any
+  [k: string]: string | number | boolean | object | undefined
 }

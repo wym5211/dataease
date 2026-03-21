@@ -20,17 +20,34 @@ import type {
 // 后端API基础路径（不含/de2api，由代理自动添加）
 const API_BASE = '/user'
 
+interface BackendUserGridVO {
+  id: string | number
+  account: string
+  name: string
+  email?: string
+  phone?: string
+  enable: boolean
+  createTime?: string
+  roleItems?: BackendRoleItem[]
+}
+
+interface BackendRoleItem {
+  id: string | number
+  name: string
+  code?: string
+}
+
 /**
  * 适配后端UserGridVO到前端User格式
  */
-const adaptUserGridVO = (backendUser: any): User => {
+const adaptUserGridVO = (backendUser: BackendUserGridVO): User => {
   return {
     userId: String(backendUser.id || ''),
     username: backendUser.account || '',
     nickName: backendUser.name || '',
     email: backendUser.email || '',
     phone: backendUser.phone || '',
-    roles: (backendUser.roleItems || []).map((role: any) => ({
+    roles: (backendUser.roleItems || []).map((role: BackendRoleItem) => ({
       roleId: String(role.id || ''),
       roleName: role.name || '',
       roleCode: role.code || ''
@@ -41,6 +58,11 @@ const adaptUserGridVO = (backendUser: any): User => {
       ? new Date(backendUser.createTime).toISOString()
       : new Date().toISOString()
   }
+}
+
+interface UserListResponseData {
+  records: BackendUserGridVO[]
+  total: number
 }
 
 // 适配请求参数格式：前端分页从1开始，后端从1开始（一致）
@@ -64,7 +86,7 @@ export const getUserList = async (params: UserListRequest): Promise<UserListResp
   try {
     // 调用后端实际API: POST /user/pager/{goPage}/{pageSize}
     // Vite代理会自动转换为：POST /de2api/user/pager/{goPage}/{pageSize}
-    const response: any = await request.post({
+    const response: { data?: UserListResponseData } = await request.post({
       url: `${API_BASE}/pager/${page}/${pageSize}`,
       data: requestBody
     })
@@ -85,13 +107,23 @@ export const getUserList = async (params: UserListRequest): Promise<UserListResp
   }
 }
 
+interface RoleOption {
+  id: string | number
+  name: string
+  code?: string
+}
+
+interface RoleOptionResponse {
+  data?: RoleOption[]
+}
+
 export const getUserOptions = async (): Promise<UserOptionsResponse> => {
   try {
     // 调用后端获取角色选项API
     // 后端API: POST /user/role/option
     // axios自动添加 /api 前缀 -> /api/user/role/option
     // Vite代理将 /api 替换为 de2api -> /de2api/user/role/option
-    const roleResponse: any = await request.post({
+    const roleResponse: RoleOptionResponse | RoleOption[] = await request.post({
       url: '/user/role/option',
       data: {} // 后端需要POST请求体
     })
@@ -99,7 +131,7 @@ export const getUserOptions = async (): Promise<UserOptionsResponse> => {
     // 适配后端角色数据格式 (id, name, code) -> (roleId, roleName, roleCode)
     // 后端可能返回包装对象 {code, data, msg} 或直接返回数组
     const roleList = Array.isArray(roleResponse) ? roleResponse : roleResponse?.data || []
-    const adaptedRoles = roleList.map((role: any) => ({
+    const adaptedRoles = roleList.map((role: RoleOption) => ({
       roleId: String(role.id || ''),
       roleName: role.name || '',
       roleCode: role.code || ''
@@ -134,7 +166,7 @@ export const createUser = async (data: UserForm): Promise<User> => {
 
     // 调用后端实际API: POST /user/create
     // Vite代理会自动转换为：POST /de2api/user/create
-    const response: any = await request.post({
+    const response: string | number = await request.post({
       url: `${API_BASE}/create`,
       data: requestBody
     })
@@ -211,7 +243,7 @@ export const deleteUser = async (userId: string): Promise<void> => {
   }
 }
 
-export const resetPassword = async (userId: string, newPassword: string): Promise<void> => {
+export const resetPassword = async (userId: string, _newPassword: string): Promise<void> => {
   try {
     // 后端的重置密码API是重置为默认密码，不是设置新密码
     // Vite代理会自动转换为：POST /de2api/user/resetPwd/{id}

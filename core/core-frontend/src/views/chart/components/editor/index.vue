@@ -47,7 +47,7 @@ import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { storeToRefs } from 'pinia'
 import { BASE_VIEW_CONFIG, getViewConfig } from '@/views/chart/components/editor/util/chart'
 import ChartType from '@/views/chart/components/editor/chart-type/ChartType.vue'
-import { useRouter, useRoute } from 'vue-router_2'
+import { useRouter, useRoute } from 'vue-router'
 import CompareEdit from '@/views/chart/components/editor/drag-item/components/CompareEdit.vue'
 import ValueFormatterEdit from '@/views/chart/components/editor/drag-item/components/ValueFormatterEdit.vue'
 import CustomSortEdit from '@/views/chart/components/editor/drag-item/components/CustomSortEdit.vue'
@@ -89,9 +89,9 @@ const {
   dvInfo
 } = storeToRefs(dvMainStore)
 const router = useRouter()
-let componentNameEdit = ref(false)
-let inputComponentName = ref({ id: null, name: null })
-let componentNameInput = ref(null)
+const componentNameEdit = ref(false)
+const inputComponentName = ref({ id: null, name: null })
+const componentNameInput = ref(null)
 
 const { t } = useI18n()
 const loading = ref(false)
@@ -1542,7 +1542,7 @@ const addDsWindow = () => {
   }
   const path =
     embeddedStore.getToken && appStore.getIsIframe ? 'dataset-embedded-form' : '/dataset-form'
-  let routeData = router.resolve(path)
+  const routeData = router.resolve(path)
   const openType = wsCache.get('open-backend') === '1' ? '_self' : '_blank'
   const newWindow = window.open(routeData.href, openType)
   initOpenHandler(newWindow)
@@ -1556,7 +1556,7 @@ const editDs = () => {
     ElMessage.warning(t('visualization.save_page_tips'))
     return
   }
-  let routeData = router.resolve({
+  const routeData = router.resolve({
     path: path,
     query: {
       id: view.value.tableId
@@ -1886,7 +1886,7 @@ const setActiveShift = (ele, type = 'dimension') => {
 }
 
 const mergeFormatter = (
-  activeChildItems: any,
+  activeChildItems: Axis[],
   value = dvMainStore.canvasStyleData.component.formatterItem
 ) => {
   activeChildItems.forEach(item => {

@@ -320,7 +320,13 @@ const addFields = () => {
   showTextArea.value = false
 }
 const timeDialog = ref()
-const showTimeDialog = (obj: any) => {
+interface TimeDialogObj {
+  deType: number
+  timeType?: string
+  value?: number | string
+}
+
+const showTimeDialog = (obj: TimeDialogObj) => {
   if (obj.deType !== 1) return
   timeDialog.value.init(obj.timeType, obj.value)
 }

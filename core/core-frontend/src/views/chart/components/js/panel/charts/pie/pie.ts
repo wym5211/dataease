@@ -324,7 +324,10 @@ export class Pie extends G2PlotChartView<PieOptions, G2Pie> {
     return chart
   }
 
-  public setupSeriesColor(chart: ChartObj, data?: any[]): ChartBasicStyle['seriesColor'] {
+  public setupSeriesColor(
+    chart: ChartObj,
+    data?: { field: string; value: number }[]
+  ): ChartBasicStyle['seriesColor'] {
     data = cloneDeep(data)
     const { calcTopN, topN, topNLabel } = chart.customAttr.basicStyle
     if (data?.length && calcTopN && data.length > topN) {

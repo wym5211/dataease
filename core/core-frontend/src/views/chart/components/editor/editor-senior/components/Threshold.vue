@@ -348,7 +348,7 @@ const getDynamicStyleLabel = (item, fieldObj) => {
     if (field.summary === 'value') {
       return getFieldName(field.field) + '(' + t('chart.field') + ')'
     } else {
-      let suffix = field.summary === 'avg' ? t('chart.drag_block_label_value') : ''
+      const suffix = field.summary === 'avg' ? t('chart.drag_block_label_value') : ''
       return getFieldName(field.field) + '(' + t('chart.' + field.summary) + suffix + ')'
     }
   }

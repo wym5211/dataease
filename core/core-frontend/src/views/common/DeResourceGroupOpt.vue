@@ -94,7 +94,7 @@ const showName = computed(() => {
   return !['newLeafAfter', 'move'].includes(cmd.value)
 })
 
-let nameList = []
+const nameList = []
 const resourceFormRules = ref()
 
 const resource = ref()

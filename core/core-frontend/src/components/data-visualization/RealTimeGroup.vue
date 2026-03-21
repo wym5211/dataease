@@ -69,7 +69,7 @@ import { layerStoreWithOut } from '@/store/modules/data-visualization/layer'
 import { storeToRefs } from 'pinia'
 import { ElIcon, ElMessage, ElRow } from 'element-plus-secondary'
 import Icon from '../icon-custom/src/Icon.vue'
-import { nextTick, ref, toRefs } from 'vue'
+import { nextTick, ref, toRefs, type PropType } from 'vue'
 import draggable from 'vuedraggable'
 import { lockStoreWithOut } from '@/store/modules/data-visualization/lock'
 import ContextMenuAsideDetails from '@/components/data-visualization/canvas/ContextMenuAsideDetails.vue'
@@ -92,40 +92,57 @@ const { areaData } = storeToRefs(composeStore)
 
 const { curComponent, canvasViewInfo } = storeToRefs(dvMainStore)
 
+interface RealTimeComponent {
+  id: string
+  name: string
+  component: string
+  icon: string
+  isShow: boolean
+  isLock: boolean
+  expand?: boolean
+  category?: string
+  innerType?: string
+  componentData?: RealTimeComponent[]
+  [key: string]: unknown
+}
+
 const props = defineProps({
   tabPosition: {
     type: String,
     required: false,
     default: 'main'
   },
-  componentData: []
+  componentData: {
+    type: Array as PropType<unknown[]>,
+    required: true
+  }
 })
 
 const { componentData } = toRefs(props)
 
-const getComponent = index => {
-  return componentData.value[componentData.value.length - 1 - index]
+const getComponent = (index: number) => {
+  return componentData.value[componentData.value.length - 1 - index] as RealTimeComponent
 }
-const transformIndex = index => {
+const transformIndex = (index: number) => {
   return componentData.value.length - 1 - index
 }
 
-const onClick = index => {
+const onClick = (index: number) => {
   setCurComponent(index)
   //其他情况点击清理选择区域
   areaData.value.components.splice(0, areaData.value.components.length)
 }
 
-const setCurComponent = index => {
-  dvMainStore.setCurComponent({ component: componentData.value[index], index })
+const setCurComponent = (index: number) => {
+  dvMainStore.setCurComponent({ component: componentData.value[index] as RealTimeComponent, index })
 }
 
-let nameEdit = ref(false)
-let editComponentId = ref('')
-let inputName = ref('')
-let nameInput = ref(null)
-let curEditComponent = null
-const editComponentName = item => {
+const nameEdit = ref(false)
+const editComponentId = ref('')
+const inputName = ref('')
+const nameInput = ref(null)
+let curEditComponent: RealTimeComponent | null = null
+const editComponentName = (item: RealTimeComponent) => {
   curEditComponent = curComponent.value
   editComponentId.value = `#component-label-${item.id}`
   nameEdit.value = true
@@ -180,7 +197,7 @@ const showComponent = () => {
   })
 }
 
-const dragOnEnd = ({ oldIndex, newIndex }) => {
+const dragOnEnd = ({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) => {
   const source = componentData.value[newIndex]
   const comLength = componentData.value.length
   // 还原数组
@@ -254,7 +271,7 @@ const iconMap = {
   'circle-packing-origin': circlePackingOrigin,
   'bullet-graph-origin': bulletGraphOrigin
 }
-const getIconName = item => {
+const getIconName = (item: RealTimeComponent) => {
   if (item.component === 'UserView') {
     const viewInfo = canvasViewInfo.value[item.id]
     return iconMap[`${viewInfo.type}-origin`]
@@ -263,7 +280,7 @@ const getIconName = item => {
   }
 }
 
-const menuAsideClose = (param, index) => {
+const menuAsideClose = (param: { opt?: string } | undefined, index: number) => {
   const iconDom = document.getElementById('close-button')
   if (iconDom) {
     iconDom.click()
@@ -275,7 +292,7 @@ const menuAsideClose = (param, index) => {
   }
 }
 
-const handleContextMenu = e => {
+const handleContextMenu = (e: MouseEvent) => {
   e.preventDefault()
   // 获取鼠标点击位置
   const x = e.clientX
@@ -295,8 +312,11 @@ const handleContextMenu = e => {
     document.body.removeChild(customContextMenu)
   })
 }
-const expandClick = component => {
+const expandClick = (component: RealTimeComponent) => {
   component['expand'] = !component['expand']
+}
+const getPropValueArray = (component: RealTimeComponent) => {
+  return Array.isArray(component.propValue) ? component.propValue : []
 }
 </script>
 
@@ -437,13 +457,13 @@ const expandClick = component => {
                 <real-time-tab
                   :tab-element="getComponent(index)"
                   tab-position="groupTab"
-                  :component-data="getComponent(index).propValue"
+                  :component-data="getPropValueArray(getComponent(index))"
                 ></real-time-tab>
               </div>
               <div v-if="getComponent(index)?.component === 'Group' && getComponent(index)?.expand">
                 <real-time-group
                   tab-position="tabGroup"
-                  :component-data="getComponent(index).propValue"
+                  :component-data="getPropValueArray(getComponent(index))"
                 ></real-time-group>
               </div>
             </div>

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { toRefs } from 'vue'
+import { computed, toRefs } from 'vue'
 import Icon from '@/components/icon-custom/src/Icon.vue'
 
 const props = defineProps({
   icon: {
-    type: Object,
+    type: [Object, String, Function],
     required: false
   },
   name: {
@@ -28,13 +28,15 @@ const props = defineProps({
 })
 
 const { icon, name, label, dragInfo, themes } = toRefs(props)
+const isIconUrl = computed(() => typeof icon.value === 'string')
 </script>
 
 <template>
   <div class="drag-component" :class="'drag-' + themes">
     <div draggable="true" :data-id="dragInfo" class="icon-content">
       <span v-if="name" class="label-content">{{ name }}</span>
-      <Icon v-if="icon"><component class="svg-icon drag-icon" :is="icon"></component></Icon>
+      <img v-if="isIconUrl" class="svg-icon drag-icon" :src="icon as string" alt="" />
+      <Icon v-else-if="icon"><component class="svg-icon drag-icon" :is="icon"></component></Icon>
     </div>
     <div class="label-content">
       <span>{{ label }}</span>

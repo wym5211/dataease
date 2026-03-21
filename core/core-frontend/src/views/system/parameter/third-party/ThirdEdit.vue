@@ -96,7 +96,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   await formEl.validate(valid => {
     if (valid) {
-      let url = `${
+      const url = `${
         state.form.domain.endsWith('/') ? state.form.domain : state.form.domain + '/'
       }api/v1/system/assistant/info/${state.form.id}`
       fetch(url)
@@ -128,7 +128,7 @@ const closeLoading = () => {
 }
 
 const validateHandlerOnly = () => {
-  let url = `${
+  const url = `${
     state.form.domain.endsWith('/') ? state.form.domain : state.form.domain + '/'
   }api/v1/system/assistant/info/${state.form.id}`
   fetch(url)

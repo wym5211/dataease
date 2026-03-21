@@ -22,11 +22,7 @@
       type="file"
       accept=".jpeg,.jpg,.png,.gif,.svg"
       hidden
-      @click="
-        e => {
-          e.target.value = ''
-        }
-      "
+      @click="onInputClick"
       v-on:change="reUpload"
     />
 
@@ -108,6 +104,13 @@ const reUpload = e => {
 
 const sizeMessage = () => {
   ElMessage.error('图片大小不能超过15M')
+}
+
+const onInputClick = (e: MouseEvent) => {
+  const target = e.target as HTMLInputElement | null
+  if (target) {
+    target.value = ''
+  }
 }
 
 onMounted(() => {

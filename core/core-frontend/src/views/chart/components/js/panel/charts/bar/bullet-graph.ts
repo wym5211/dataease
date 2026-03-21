@@ -213,7 +213,7 @@ export class BulletGraph extends G2PlotChartView<G2BulletOptions, G2Bullet> {
 
     const { layout, xAxis } = tmpOptions
     const position = xAxis.position
-    const style: any = { ...xAxis.label.style }
+    const style: { textAlign?: string; textBaseline?: string } = { ...xAxis.label.style }
 
     if (layout === 'vertical') {
       style.textAlign = 'center'
@@ -236,7 +236,7 @@ export class BulletGraph extends G2PlotChartView<G2BulletOptions, G2Bullet> {
 
     const { layout, yAxis: yAxisConfig } = tmpOptions
     const position = yAxisConfig.position
-    const style: any = { ...yAxisConfig.label.style }
+    const style: { textAlign?: string; textBaseline?: string } = { ...yAxisConfig.label.style }
 
     if (layout === 'vertical') {
       style.textAlign = position === 'left' ? 'end' : 'start'
@@ -254,13 +254,14 @@ export class BulletGraph extends G2PlotChartView<G2BulletOptions, G2Bullet> {
     if (!tmpOptions.label) return tmpOptions
 
     const labelAttr = parseJson(chart.customAttr).label
-    const label: any = {
-      ...tmpOptions.label,
-      formatter: param =>
-        param.mKey === 'measures'
-          ? valueFormatter(param.measures, labelAttr.labelFormatter)
-          : undefined
-    }
+    const label: { formatter: (param: { mKey: string; measures: number }) => string | undefined } =
+      {
+        ...tmpOptions.label,
+        formatter: param =>
+          param.mKey === 'measures'
+            ? valueFormatter(param.measures, labelAttr.labelFormatter)
+            : undefined
+      }
     return { ...tmpOptions, label: { measure: label } }
   }
 
@@ -465,7 +466,7 @@ export class BulletGraph extends G2PlotChartView<G2BulletOptions, G2Bullet> {
  * 组装子弹图数据
  * @param chart
  */
-function mergeBulletData(chart): any[] {
+function mergeBulletData(chart: Chart): BulletDataItem[] {
   // 先根据维度分组，再根据指标字段组装成子弹图的格式
   const groupedData = chart.data.data.reduce((acc, item) => {
     const field = item.field
@@ -474,7 +475,7 @@ function mergeBulletData(chart): any[] {
     }
     acc[field].push(item)
     return acc
-  }, {})
+  }, {} as Record<string, ChartDataItem[]>)
   const result = []
   // 组装子弹图数据，每个维度对应一个子弹图
   Object.keys(groupedData).forEach(field => {
@@ -523,4 +524,16 @@ function mergeBulletData(chart): any[] {
     result.push(bulletData)
   })
   return result
+}
+
+interface BulletDataItem {
+  title: string
+  ranges: number[]
+  measures: number[]
+  target: number[]
+  dimensionList: Record<string, unknown>
+  quotaList: unknown[]
+  minRanges?: number[]
+  originalRanges?: number[]
+  originalTarget?: number[]
 }

@@ -220,7 +220,7 @@ export class Treemap extends G2PlotChartView<TreemapOptions, G2Treemap> {
     legend.show = false
     return chart
   }
-  public setupSeriesColor(chart: ChartObj, data?: any[]): ChartBasicStyle['seriesColor'] {
+  public setupSeriesColor(chart: ChartObj, data?: ChartData[]): ChartBasicStyle['seriesColor'] {
     data?.sort((a, b) => b.value - a.value)
     return setUpSingleDimensionSeriesColor(chart, data)
   }

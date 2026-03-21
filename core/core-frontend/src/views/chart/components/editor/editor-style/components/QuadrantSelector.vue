@@ -82,7 +82,7 @@ const fontSizeList = computed(() => {
 const fillOpacityList = computed(() => {
   const arr = []
   for (let i = 0; i <= 1; i = i + 0.1) {
-    let c = i.toFixed(1)
+    const c = i.toFixed(1)
     arr.push({
       name: c + '',
       value: c

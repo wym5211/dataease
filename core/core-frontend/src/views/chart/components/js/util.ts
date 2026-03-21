@@ -228,7 +228,12 @@ export function antVCustomColor(chart) {
 }
 
 export function getRemark(chart) {
-  const remark = {} as any
+  interface RemarkConfig {
+    show: boolean
+    content: string
+    bgFill: string
+  }
+  const remark = {} as RemarkConfig
   if (chart.customStyle) {
     const customStyle = JSON.parse(JSON.stringify(chart.customStyle))
     if (customStyle.text) {
@@ -282,7 +287,7 @@ export function handleEmptyDataStrategy<O extends PickOptions>(chart: Chart, opt
   if (strategy === 'ignoreData') {
     if (isChartMix) {
       for (let i = 0; i < data.length; i++) {
-        handleIgnoreData(data[i] as Record<string, any>[])
+        handleIgnoreData(data[i] as Record<string, unknown>[])
       }
     } else {
       handleIgnoreData(data)
@@ -296,12 +301,12 @@ export function handleEmptyDataStrategy<O extends PickOptions>(chart: Chart, opt
       if (isChartMix) {
         if (data[0]) {
           if (xAxisExt?.length > 0 || extStack?.length > 0) {
-            handleBreakLineMultiDimension(data[0] as Record<string, any>[])
+            handleBreakLineMultiDimension(data[0] as Record<string, unknown>[])
           }
         }
         if (data[1]) {
           if (extBubble?.length > 0) {
-            handleBreakLineMultiDimension(data[1] as Record<string, any>[])
+            handleBreakLineMultiDimension(data[1] as Record<string, unknown>[])
           }
         }
       } else {
@@ -318,16 +323,16 @@ export function handleEmptyDataStrategy<O extends PickOptions>(chart: Chart, opt
       if (isChartMix) {
         if (data[0]) {
           if (xAxisExt?.length > 0 || extStack?.length > 0) {
-            handleSetZeroMultiDimension(data[0] as Record<string, any>[])
+            handleSetZeroMultiDimension(data[0] as Record<string, unknown>[])
           } else {
-            handleSetZeroSingleDimension(data[0] as Record<string, any>[])
+            handleSetZeroSingleDimension(data[0] as Record<string, unknown>[])
           }
         }
         if (data[1]) {
           if (extBubble?.length > 0) {
-            handleSetZeroMultiDimension(data[1] as Record<string, any>[], true)
+            handleSetZeroMultiDimension(data[1] as Record<string, unknown>[], true)
           } else {
-            handleSetZeroSingleDimension(data[1] as Record<string, any>[], true)
+            handleSetZeroSingleDimension(data[1] as Record<string, unknown>[], true)
           }
         }
       } else {
@@ -345,7 +350,7 @@ export function handleEmptyDataStrategy<O extends PickOptions>(chart: Chart, opt
   return options
 }
 
-function handleBreakLineMultiDimension(data) {
+function handleBreakLineMultiDimension(data: Record<string, unknown>[]) {
   const dimensionInfoMap = new Map()
   const subDimensionSet = new Set()
   const quotaMap = new Map<string, { id: string }[]>()
@@ -381,7 +386,7 @@ function handleBreakLineMultiDimension(data) {
   })
 }
 
-function handleSetZeroMultiDimension(data: Record<string, any>[], isExt = false) {
+function handleSetZeroMultiDimension(data: Record<string, unknown>[], isExt = false) {
   const dimensionInfoMap = new Map()
   const subDimensionSet = new Set()
   const quotaMap = new Map<string, { id: string }[]>()
@@ -408,12 +413,12 @@ function handleSetZeroMultiDimension(data: Record<string, any>[], isExt = false)
       let subInsertIndex = 0
       subDimensionSet.forEach(dimension => {
         if (!dimensionInfo.set.has(dimension)) {
-          const _temp = {
+          const _temp: Record<string, unknown> = {
             field,
             value: 0,
             category: dimension,
             quotaList: quotaMap.get(dimension as string)
-          } as any
+          }
           if (isExt) {
             _temp.valueExt = 0
           }
@@ -427,7 +432,7 @@ function handleSetZeroMultiDimension(data: Record<string, any>[], isExt = false)
   })
 }
 
-function handleSetZeroSingleDimension(data: Record<string, any>[], isExt = false) {
+function handleSetZeroSingleDimension(data: Record<string, unknown>[], isExt = false) {
   data.forEach(item => {
     if (item.value === null) {
       if (!isExt) {
@@ -439,7 +444,7 @@ function handleSetZeroSingleDimension(data: Record<string, any>[], isExt = false
   })
 }
 
-function handleIgnoreData(data: Record<string, any>[]) {
+function handleIgnoreData(data: Record<string, unknown>[]) {
   for (let i = data.length - 1; i >= 0; i--) {
     const item = data[i]
     if (item.value === null) {
@@ -466,10 +471,15 @@ export function resetRgbOpacity(sourceColor: string, times: number): string {
   return sourceColor
 }
 
-type FlowFunction<P, R> = (param: P, result: R, context?: Record<string, any>, thisArg?: any) => R
+type FlowFunction<P, R> = (
+  param: P,
+  result: R,
+  context?: Record<string, unknown>,
+  thisArg?: unknown
+) => R
 
 export function flow<P, R>(...flows: FlowFunction<P, R>[]): FlowFunction<P, R> {
-  return (param: P, result: R, context?: Record<string, any>, thisArg?: any) => {
+  return (param: P, result: R, context?: Record<string, unknown>, thisArg?: unknown) => {
     return flows.reduce((result: R, flow: FlowFunction<P, R>) => {
       if (thisArg) {
         return flow.call(thisArg, param, result, context)
@@ -480,7 +490,7 @@ export function flow<P, R>(...flows: FlowFunction<P, R>[]): FlowFunction<P, R> {
   }
 }
 
-export const isParent = (type: any, parentType: any) => {
+export const isParent = (type: unknown, parentType: unknown) => {
   let _type = type
   while (_type) {
     if (_type === parentType) {
@@ -556,9 +566,26 @@ function getChartExcelTitle(preFix, viewTitle) {
   return `${preFix}_${viewTitle}_${year}${month}${day}_${hour}${minute}${second}`
 }
 
+interface ExcelExportRequest {
+  proxy: null
+  dvId: string
+  viewId: string
+  viewInfo: Chart
+  viewName: string
+  busiFlag: string
+  downloadType: string
+  dataEaseBi?: boolean
+  header?: string[]
+  details?: unknown[][]
+  excelTypes?: number[]
+  excelHeaderKeys?: string[]
+  detailFields?: Array<{ name: string; deType: number; dataeaseName: string }>
+  multiInfo?: unknown[]
+}
+
 export const exportExcelDownload = (chart, preFix, callBack?) => {
   const excelName = getChartExcelTitle(preFix, chart.title)
-  let request: any = {
+  let request: ExcelExportRequest = {
     proxy: null,
     dvId: chart.sceneId,
     viewId: chart.id,
@@ -676,7 +703,11 @@ export const getDynamicColorScale = (
  * @param maxValue
  * @param minValue
  */
-export const filterChartDataByRange = (data: any[], maxValue: number, minValue: number) => {
+export const filterChartDataByRange = (
+  data: Array<{ value: number | null | undefined }>,
+  maxValue: number,
+  minValue: number
+) => {
   return data.filter(
     item =>
       item.value === null ||
@@ -694,7 +725,7 @@ export const filterChartDataByRange = (data: any[], maxValue: number, minValue: 
  * @param callback
  */
 export const getMaxAndMinValueByData = (
-  data: any[],
+  data: Array<Record<string, number>>,
   field: string,
   maxValue: number,
   minValue: number,
@@ -885,7 +916,7 @@ export function getGroupColor<O extends PickOptions = Options>(chart: Chart, opt
 
 export function setUpGroupSeriesColor(
   chart: ChartObj,
-  data?: any[]
+  data?: Array<{ value: number | null; category: string | null }>
 ): ChartBasicStyle['seriesColor'] {
   const result: ChartBasicStyle['seriesColor'] = []
   const seriesSet = new Set<string>()
@@ -970,7 +1001,7 @@ export function getStackColor<O extends PickOptions = Options>(chart: Chart, opt
 
 export function setUpStackSeriesColor(
   chart: ChartObj,
-  data?: any[]
+  data?: Array<{ value: number | null; category: string | null }>
 ): ChartBasicStyle['seriesColor'] {
   const result: ChartBasicStyle['seriesColor'] = []
   const seriesSet = new Set<string>()
@@ -1051,7 +1082,7 @@ export function getSingleDimensionColor<O extends PickOptions = Options>(chart: 
 
 export function setUpSingleDimensionSeriesColor(
   chart: ChartObj,
-  data?: any[]
+  data?: Array<{ field: string }>
 ): ChartBasicStyle['seriesColor'] {
   const result: ChartBasicStyle['seriesColor'] = []
   const seriesSet = new Set<string>()

@@ -95,7 +95,7 @@
   </el-row>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { onMounted, reactive } from 'vue'
 import { watermarkFind, watermarkSave } from '@/api/watermark'
 import { ElMessage } from 'element-plus-secondary/es'
@@ -105,11 +105,50 @@ import { useI18n } from '@/hooks/web/useI18n'
 import ParamsTips from '@/views/watermark/ParamsTips.vue'
 const { t } = useI18n()
 
-const state = reactive({
+interface UserLoginInfo {
+  username: string
+  nickName: string
+  ip: string
+  name: string
+  account: string
+}
+
+interface WatermarkForm {
+  enable: boolean
+  enablePanelCustom: boolean
+  type: string
+  content: string
+  watermark_color: string
+  watermark_x_space: number
+  watermark_y_space: number
+  watermark_fontsize: number
+}
+
+interface WatermarkState {
+  userLoginInfo: UserLoginInfo
+  cmOption: {
+    tabSize: number
+    styleActiveLine: boolean
+    lineNumbers: boolean
+    line: boolean
+    mode: string
+    theme: string
+    hintOptions: {
+      completeSingle: boolean
+    }
+  }
+  watermarkFormSource: WatermarkForm | null
+  predefineColors: string[]
+  watermarkForm: WatermarkForm
+}
+
+const state = reactive<WatermarkState>({
   userLoginInfo: {
     username: '',
     nickName: '',
-    ip: ''
+    ip: '',
+    name: '',
+    account: ''
   },
   cmOption: {
     tabSize: 2,
@@ -176,13 +215,13 @@ const save = () => {
   })
 }
 
-const findData = callback => {
+const findData = (callback: (res: { data: { settingContent: string } }) => void) => {
   watermarkFind().then(rsp => {
     callback(rsp)
   })
 }
 
-const findUserData = callback => {
+const findUserData = (callback: (res: { data: UserLoginInfo }) => void) => {
   personInfoApi().then(rsp => {
     callback(rsp)
   })
@@ -197,7 +236,7 @@ const initData = () => {
 }
 
 const initWatermark = () => {
-  let watermark_txt
+  let watermark_txt = ''
   let watermark_width = 120
   if (state.watermarkForm.type === 'custom') {
     watermark_txt = state.watermarkForm.content

@@ -214,9 +214,15 @@ const loadArrearance = () => {
 const switchTab = (name: string) => {
   activeName.value = name || 'simple'
 }
-const autoCallback = (param: any) => {
+interface AutoCallbackParam {
+  activeName?: string
+  preheat?: boolean
+  loadingText?: string
+}
+
+const autoCallback = (param: AutoCallbackParam) => {
   activeName.value = param.activeName || 'simple'
-  preheat.value = param.preheat
+  preheat.value = param.preheat ?? false
   if (param.loadingText) {
     loadingText.value = param.loadingText
   }

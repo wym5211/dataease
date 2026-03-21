@@ -321,7 +321,7 @@ export class Line extends G2PlotChartView<LineOptions, G2Line> {
     }
   }
 
-  public setupSeriesColor(chart: ChartObj, data?: any[]): ChartBasicStyle['seriesColor'] {
+  public setupSeriesColor(chart: ChartObj, data?: Datum[]): ChartBasicStyle['seriesColor'] {
     return setUpGroupSeriesColor(chart, data)
   }
 

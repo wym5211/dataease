@@ -128,7 +128,7 @@ const state = reactive({
 })
 const PAGE_CHARTS = ['table-info', 'table-normal']
 // 图表数据不用全响应式
-let chartData = shallowRef<Partial<Chart['data']>>({
+const chartData = shallowRef<Partial<Chart['data']>>({
   fields: []
 })
 
@@ -236,7 +236,7 @@ const debounceRender = debounce(() => {
   const chartView = chartViewManager.getChartView(
     actualChart.render,
     actualChart.type
-  ) as S2ChartView<any>
+  ) as S2ChartView<ChartLibraryType.S2>
   myChart = chartView.drawChart({
     container: containerId,
     chart: toRaw(actualChart),

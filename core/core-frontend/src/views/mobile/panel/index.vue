@@ -38,7 +38,8 @@ const hanedleMessage = event => {
             const {
               mStyle: tStyle,
               mCommonBackground: tCommonBackground,
-              mEvents: tEvents
+              mEvents: tEvents,
+              mPropValue: tPropValue
             } = tabComponent
             tabComponent.style = deepCopy(tStyle || tabComponent.style)
             tabComponent.commonBackground = deepCopy(
@@ -170,13 +171,15 @@ onBeforeMount(() => {
   window.addEventListener('message', hanedleMessage)
   useEmitt({
     name: 'onMobileStatusChange',
-    callback: ({ type, value }) => {
+    callback: payload => {
+      const { type, value } = (payload || {}) as { type: string; value: unknown }
       mobileStatusChange(type, value)
     }
   })
   useEmitt({
     name: 'curComponentChange',
-    callback: ({ type, value }) => {
+    callback: payload => {
+      const { type, value } = (payload || {}) as { type: string; value: unknown }
       curComponentChangeHandle(type, value)
     }
   })

@@ -108,7 +108,7 @@ const resultName = computed(() => {
 })
 
 const result = computed(() => {
-  const list = resultObject.value?.data
+  const list = resultObject.value?.data as any[] | undefined
   let _result = undefined
   if (list && list.length > 0) {
     _result = list[0]
@@ -193,7 +193,7 @@ const thresholdColor = computed(() => {
 })
 
 const formattedResult = computed(() => {
-  let _result = result.value
+  const _result = result.value
 
   if (_result === '-') {
     return _result
@@ -317,7 +317,7 @@ const renderChart = async view => {
       }
 
       indicatorColor.value = indicator.color
-      let suffixColor = indicator.suffixColor
+      const suffixColor = indicator.suffixColor
 
       indicatorClass.value = {
         color: thresholdColor.value.color,
@@ -352,7 +352,7 @@ const renderChart = async view => {
       suffixContent.value = defaultTo(indicator.suffix, '')
     }
     if (indicatorName?.show) {
-      let nameColor = indicatorName.color
+      const nameColor = indicatorName.color
 
       indicatorNameShow.value = true
       indicatorNameClass.value = {
@@ -390,7 +390,7 @@ const calcData = (view, callback) => {
           errMsg.value = res.msg
         } else {
           chartData.value = res?.data as Partial<Chart['data']>
-          emit('onDrillFilters', res?.drillFilters)
+          emit('onDrillFilters', (res as any)?.drillFilters)
 
           dvMainStore.setViewDataDetails(view.id, res)
           renderChart(res)
@@ -560,7 +560,7 @@ const onPointClick = event => {
 
     // 计算鼠标相对于最外层 div 的坐标
     const left = mouseX - offsetX
-    let top = mouseY - offsetY
+    const top = mouseY - offsetY
     // 模拟点击
     const params = {
       x: left,

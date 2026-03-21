@@ -15,7 +15,16 @@ import MarkLine from './MarkLine.vue'
 import Area from './Area.vue'
 import eventBus from '@/utils/eventBus'
 import { changeStyleWithScale } from '@/utils/translate'
-import { ref, onMounted, computed, toRefs, nextTick, onBeforeUnmount, watch } from 'vue'
+import {
+  ref,
+  onMounted,
+  computed,
+  toRefs,
+  nextTick,
+  onBeforeUnmount,
+  watch,
+  type PropType
+} from 'vue'
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { composeStoreWithOut } from '@/store/modules/data-visualization/compose'
 import { contextmenuStoreWithOut } from '@/store/modules/data-visualization/contextmenu'
@@ -67,20 +76,20 @@ const props = defineProps({
     default: true
   },
   canvasStyleData: {
-    type: Object,
+    type: Object as PropType<any>,
     required: true
   },
   componentData: {
-    type: Array,
+    type: Array as PropType<any[]>,
     required: true
   },
   popComponentData: {
-    type: Array,
+    type: Array as PropType<any[]>,
     required: false,
     default: () => []
   },
   canvasViewInfo: {
-    type: Object,
+    type: Object as PropType<Record<string, any>>,
     required: true
   },
   canvasId: {
@@ -276,8 +285,8 @@ const watermarkUpdate = () => {
 const initWatermark = (waterDomId = 'editor-canvas-main') => {
   try {
     if (
-      dvInfo.value.watermarkInfo &&
-      dvInfo.value.watermarkInfo.settingContent &&
+      (dvInfo.value as any).watermarkInfo &&
+      (dvInfo.value as any).watermarkInfo.settingContent &&
       isMainCanvas(canvasId.value)
     ) {
       activeWatermarkCheckUser(waterDomId, canvasId.value, curScale.value)
@@ -372,7 +381,7 @@ let moveTime = 100 //移动动画时间
 
 const itemMaxY = ref(0)
 let itemMaxX = 0
-let snapshotTimer = ref(null)
+const snapshotTimer = ref(null)
 
 // 根据需要需要扩充外部scroll区域也可以进行组合的功能 此方法变更为外部组件调用
 const handleMouseDown = e => {
@@ -615,7 +624,8 @@ const handleInput = (element, value) => {
 }
 
 const getTextareaHeight = (element, text) => {
-  let { lineHeight, fontSize, height } = element.style
+  let { lineHeight } = element.style
+  const { fontSize, height } = element.style
   if (lineHeight === '') {
     lineHeight = 1.5
   }
@@ -669,10 +679,10 @@ function debounce(func, time) {
 
 function scrollScreen(e) {
   if (e.clientY + 50 >= window.innerHeight) {
-    let body = $(document.body)
+    const body = $(document.body)
     body.scrollTop(body.scrollTop() + 20)
   } else if (e.clientY <= 150) {
-    let body = $(document.body)
+    const body = $(document.body)
     body.scrollTop(body.scrollTop() - 20)
   }
 }
@@ -684,9 +694,9 @@ function scrollScreen(e) {
 function resetPositionBox() {
   //根据当前容器的宽度来决定多少列
   itemMaxX = maxCell.value
-  let rows = 36 //初始36行，后面根据需求会自动增加
+  const rows = 36 //初始36行，后面根据需求会自动增加
   for (let i = 0; i < rows; i++) {
-    let row = []
+    const row = []
 
     for (let j = 0; j < maxCell.value; j++) {
       row.push({
@@ -705,7 +715,7 @@ function findPositionX(item) {
   let resultX = 1
   let checkPointYIndex = -1 // -1 没有占用任何Y方向画布
   // 组件宽度
-  let pb = positionBox.value
+  const pb = positionBox.value
   if (width <= 0) return
   // 查找组件最高位置索引 component 规则 y最新为1
   componentData.value.forEach(component => {
@@ -745,7 +755,7 @@ function findPositionX(item) {
  * 填充位置盒子
  */
 function addItemToPositionBox(item) {
-  let pb = positionBox.value
+  const pb = positionBox.value
   if (item.x <= 0 || item.y <= 0) return
   for (let i = item.x - 1; i < item.x - 1 + item.sizeX; i++) {
     for (let j = item.y - 1; j < item.y - 1 + item.sizeY; j++) {
@@ -761,11 +771,11 @@ function addItemToPositionBox(item) {
 }
 
 function fillPositionBox(maxY) {
-  let pb = positionBox.value
+  const pb = positionBox.value
   maxY += 2
   for (let j = 0; j < maxY; j++) {
     if (pb[j] == undefined) {
-      let row = []
+      const row = []
       for (let i = 0; i < itemMaxX; i++) {
         row.push({
           el: false
@@ -781,7 +791,7 @@ function fillPositionBox(maxY) {
 }
 
 function removeItemFromPositionBox(item) {
-  let pb = positionBox.value
+  const pb = positionBox.value
   if (item.x <= 0 || item.y <= 0) return
   for (let i = item.x - 1; i < item.x - 1 + item.sizeX; i++) {
     for (let j = item.y - 1; j < item.y - 1 + item.sizeY; j++) {
@@ -802,16 +812,16 @@ function removeItemFromPositionBox(item) {
  */
 function reCalcCellWidth() {
   //problem
-  let containerWidth = container.value.offsetWidth
-  let cells = Math.round(containerWidth / cellWidth.value)
+  const containerWidth = container.value.offsetWidth
+  const cells = Math.round(containerWidth / cellWidth.value)
   maxCell.value = cells
   itemMaxX = maxCell.value
 }
 function resizePlayer(item, newSize) {
   removeItemFromPositionBox(item)
-  let belowItems = findBelowItems(item)
+  const belowItems = findBelowItems(item)
   _.forEach(belowItems, function (upItem) {
-    let canGoUpRows = canItemGoUp(upItem)
+    const canGoUpRows = canItemGoUp(upItem)
 
     if (canGoUpRows > 0) {
       moveItemUp(upItem, canGoUpRows)
@@ -831,7 +841,7 @@ function resizePlayer(item, newSize) {
   emptyTargetCell(item)
   addItemToPositionBox(item)
   changeItemCoordinate(item)
-  let canGoUpRows = canItemGoUp(item)
+  const canGoUpRows = canItemGoUp(item)
   if (canGoUpRows > 0) {
     moveItemUp(item, canGoUpRows)
   }
@@ -884,9 +894,9 @@ function checkItemPosition(item, position) {
  */
 function movePlayer(item, position) {
   removeItemFromPositionBox(item)
-  let belowItems = findBelowItems(item)
+  const belowItems = findBelowItems(item)
   _.forEach(belowItems, function (upItem) {
-    let canGoUpRows = canItemGoUp(upItem)
+    const canGoUpRows = canItemGoUp(upItem)
     if (canGoUpRows > 0) {
       moveItemUp(upItem, canGoUpRows)
     }
@@ -897,7 +907,7 @@ function movePlayer(item, position) {
   emptyTargetCell(item)
   addItemToPositionBox(item)
   changeItemCoordinate(item)
-  let canGoUpRows = canItemGoUp(item)
+  const canGoUpRows = canItemGoUp(item)
   if (canGoUpRows > 0) {
     moveItemUp(item, canGoUpRows)
   }
@@ -922,9 +932,9 @@ function removeItemComponent(item) {
   if (item && isSameCanvas(item, canvasId.value)) {
     if (isDashboard()) {
       removeItemFromPositionBox(item)
-      let belowItems = findBelowItems(item)
+      const belowItems = findBelowItems(item)
       _.forEach(belowItems, function (upItem) {
-        let canGoUpRows = canItemGoUp(upItem)
+        const canGoUpRows = canItemGoUp(upItem)
         if (canGoUpRows > 0) {
           moveItemUp(upItem, canGoUpRows)
         }
@@ -948,7 +958,7 @@ function removeItemComponent(item) {
 }
 
 function removeItem(index) {
-  let item = componentData.value[index]
+  const item = componentData.value[index]
   if (item && isSameCanvas(item, canvasId.value)) {
     removeItemComponent(item)
     dvMainStore.removeLinkageInfo(item['id'])
@@ -972,19 +982,19 @@ function addItem(item, index) {
   })
   emptyTargetCell(item)
   addItemToPositionBox(item)
-  let canGoUpRows = canItemGoUp(item)
+  const canGoUpRows = canItemGoUp(item)
   if (canGoUpRows > 0) {
     moveItemUp(item, canGoUpRows)
   }
 }
 
 function changeItemCoordinate(item) {
-  let width = cellWidth.value * item.sizeX - baseMarginLeft.value
-  let height = cellHeight.value * item.sizeY - baseMarginTop.value
-  let left = cellWidth.value * (item.x - 1) + baseMarginLeft.value
-  let top = cellHeight.value * (item.y - 1) + baseMarginTop.value
+  const width = cellWidth.value * item.sizeX - baseMarginLeft.value
+  const height = cellHeight.value * item.sizeY - baseMarginTop.value
+  const left = cellWidth.value * (item.x - 1) + baseMarginLeft.value
+  const top = cellHeight.value * (item.y - 1) + baseMarginTop.value
 
-  let coordinate = {
+  const coordinate = {
     x1: left,
     x2: left + width,
     y1: top,
@@ -993,7 +1003,7 @@ function changeItemCoordinate(item) {
     c2: top + height / 2,
     el: item
   }
-  let index = _.findIndex(coordinates.value, function (o) {
+  const index = _.findIndex(coordinates.value, function (o) {
     return o.el._dragId == item._dragId
   })
   if (index != -1) {
@@ -1006,10 +1016,10 @@ function changeItemCoordinate(item) {
  *
  */
 function emptyTargetCell(item) {
-  let belowItems = findBelowItems(item)
+  const belowItems = findBelowItems(item)
   _.forEach(belowItems, function (downItem) {
     if (downItem['_dragId'] == item['_dragId']) return
-    let moveSize = item.y + item.sizeY - downItem['y']
+    const moveSize = item.y + item.sizeY - downItem['y']
     if (moveSize > 0) {
       moveItemDown(downItem, moveSize)
     }
@@ -1037,15 +1047,15 @@ function canItemGoUp(item) {
  */
 function moveItemDown(item, size) {
   removeItemFromPositionBox(item)
-  let belowItems = findBelowItems(item)
+  const belowItems = findBelowItems(item)
   _.forEach(belowItems, function (downItem) {
     if (downItem['_dragId'] == item['_dragId']) return
-    let moveSize = calcDiff(item, downItem, size)
+    const moveSize = calcDiff(item, downItem, size)
     if (moveSize > 0) {
       moveItemDown(downItem, moveSize)
     }
   })
-  let targetPosition = {
+  const targetPosition = {
     y: item.y + size
   }
   setPlayerPosition(item, targetPosition)
@@ -1056,8 +1066,8 @@ function moveItemDown(item, size) {
 
 function setPlayerPosition(item, position) {
   position = position || {}
-  let targetX = position.x || item.x
-  let targetY = position.y || item.y
+  const targetX = position.x || item.x
+  const targetY = position.y || item.y
   item.x = targetX
   item.y = targetY
   if (item.y + item.sizeY > itemMaxY.value) {
@@ -1069,7 +1079,7 @@ function setPlayerPosition(item, position) {
  * 寻找子元素到父元素的最大距离
  */
 function calcDiff(parent, son, size) {
-  let diffs = []
+  const diffs = []
   for (let i = son.x - 1; i < son.x - 1 + son.sizeX; i++) {
     let temp_y = 0
     for (let j = parent.y - 1 + parent.sizeY; j < son.y - 1; j++) {
@@ -1079,14 +1089,14 @@ function calcDiff(parent, son, size) {
     }
     diffs.push(temp_y)
   }
-  let max_diff = Math.max.apply(Math, diffs)
+  const max_diff = Math.max.apply(Math, diffs)
   size = size - max_diff
   return size > 0 ? size : 0
 }
 
 function moveItemUp(item, size) {
   removeItemFromPositionBox(item)
-  let belowItems = findBelowItems(item)
+  const belowItems = findBelowItems(item)
   // item.y -= size;
   setPlayerPosition(item, {
     y: item.y - size
@@ -1094,17 +1104,17 @@ function moveItemUp(item, size) {
   addItemToPositionBox(item)
   changeItemCoordinate(item)
   _.forEach(belowItems, function (upItem) {
-    let moveSize = canItemGoUp(upItem)
+    const moveSize = canItemGoUp(upItem)
     if (moveSize > 0) {
       moveItemUp(upItem, moveSize)
     }
   })
 }
 function findBelowItems(item) {
-  let belowItems = {}
+  const belowItems = {}
   for (let cell = item.x - 1; cell < item.x - 1 + item.sizeX; cell++) {
     for (let row = item.y - 1; row < positionBox.value.length; row++) {
-      let target = positionBox.value[row][cell]
+      const target = positionBox.value[row][cell]
       if (target && target.el) {
         belowItems[target.el._dragId] = target.el
         break
@@ -1182,14 +1192,14 @@ const canvasInit = () => {
     componentPreSort(componentData.value)
   }
   let i = 0
-  let timeId = setInterval(function () {
+  const timeId = setInterval(function () {
     if (i >= componentData.value.length) {
       clearInterval(timeId)
       nextTick(() => {
         moveAnimate.value = true
       })
     } else {
-      let item = componentData.value[i]
+      const item = componentData.value[i]
       addItem(item, i)
       i++
     }
@@ -1198,7 +1208,7 @@ const canvasInit = () => {
 }
 
 const afterInitOk = func => {
-  let timeId = setInterval(() => {
+  const timeId = setInterval(() => {
     if (moveAnimate.value) {
       clearInterval(timeId)
       func()
@@ -1283,14 +1293,14 @@ const onStartMove = (e, item, index) => {
 const onDragging = (e, item) => {
   // item 中的 style 为当前实时的位置
   const infoBoxTemp = infoBox.value
-  let moveItem = _.get(infoBoxTemp, 'moveItem')
+  const moveItem = _.get(infoBoxTemp, 'moveItem')
   scrollScreen(e)
   if (!draggable.value) return
   dragging.value(e, moveItem, moveItem._dragId)
   //problem
   moveItem['isPlayer'] = true
-  let oldX = infoBoxTemp.oldX
-  let oldY = infoBoxTemp.oldY
+  const oldX = infoBoxTemp.oldX
+  const oldY = infoBoxTemp.oldY
 
   let newX = Math.floor(item.style.left / cellWidth.value + 1)
   let newY = Math.floor(item.style.top / cellHeight.value + 1)
@@ -1319,15 +1329,15 @@ const onResizing = (e, item) => {
   const { width, height } = item.style
   // item 中的 style 为当前实时的位置
   const infoBoxTemp = infoBox.value
-  let resizeItem = _.get(infoBoxTemp, 'resizeItem')
+  const resizeItem = _.get(infoBoxTemp, 'resizeItem')
   //调整大小时
   resizing.value(e, resizeItem, resizeItem._dragId)
   resizeItem['isPlayer'] = true
-  let nowSizeX =
+  const nowSizeX =
     width % cellWidth.value > (cellWidth.value / 4) * 3
       ? Math.floor(width / cellWidth.value + 1)
       : Math.floor(width / cellWidth.value)
-  let nowSizeY =
+  const nowSizeY =
     height % cellHeight.value > (cellHeight.value / 4) * 3
       ? Math.floor(height / cellHeight.value + 1)
       : Math.floor(height / cellHeight.value)
@@ -1420,7 +1430,7 @@ const handleDragOver = e => {
   }
   infoBox.value.moveItem.style.left = e.pageX
   infoBox.value.moveItem.style.top = e.pageY + mainScrollTop.value
-  onDragging(e, infoBox.value.moveItem, 0)
+  onDragging(e, infoBox.value.moveItem)
 }
 
 const getMoveItem = () => {

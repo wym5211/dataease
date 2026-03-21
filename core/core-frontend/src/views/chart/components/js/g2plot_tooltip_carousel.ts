@@ -1,4 +1,5 @@
 import { DualAxes, Plot } from '@antv/g2plot'
+import type { View } from '@antv/g2plot/esm/core/view'
 
 /**
  * 使用 Map 来存储实例，键为 chart.container 对象
@@ -74,7 +75,10 @@ class ChartCarouselTooltip {
   private currentIndex = 0
   private values: string[] = []
   // 合并定时器管理
-  private timers = { interval: null, carousel: null }
+  private timers: {
+    interval: ReturnType<typeof setTimeout> | null
+    carousel: ReturnType<typeof setTimeout> | null
+  } = { interval: null, carousel: null }
   private states = { paused: false, destroyed: false }
   // 图表可视性变化
   private observers: Map<string, IntersectionObserver> = new Map()
@@ -333,7 +337,7 @@ class ChartCarouselTooltip {
   /**
    *  计算饼图元素位置
    *  */
-  private getPieTooltipPosition(view, value: string) {
+  private getPieTooltipPosition(view: View, value: string) {
     const piePoint = view
       .scale()
       .getGeometries()[0]
@@ -368,7 +372,7 @@ class ChartCarouselTooltip {
    * @param value
    * @private
    */
-  private getDualAxesTooltipPosition(view, value: string) {
+  private getDualAxesTooltipPosition(view: View, value: string) {
     const xScale = view.getXScale()
     if (!xScale) return { x: 0, y: 0 }
     const values = xScale.values
@@ -394,7 +398,7 @@ class ChartCarouselTooltip {
     this.unHighlightPoint(value)
     this.plot.setState(
       this.getHighlightType(),
-      (data: any) => data[this.config.xField] === value,
+      (data: Record<string, unknown>) => data[this.config.xField] === value,
       true
     )
   }
@@ -406,7 +410,7 @@ class ChartCarouselTooltip {
     if (CHART_CATEGORY.LINE.includes(this.chart.type)) return
     this.plot.setState(
       this.getHighlightType(),
-      (data: any) => data[this.config.xField] !== value,
+      (data: Record<string, unknown>) => data[this.config.xField] !== value,
       false
     )
   }
@@ -469,7 +473,7 @@ class ChartCarouselTooltip {
       if (chartElement) break
     }
     // 绑定鼠标进入和离开事件
-    const addMouseEvent = el => {
+    const addMouseEvent = (el: HTMLElement | null) => {
       el?.addEventListener('mouseenter', () => this.paused())
       el?.addEventListener('mouseleave', ev => {
         setTimeout(() => {
@@ -484,7 +488,6 @@ class ChartCarouselTooltip {
             mouseX <= rect.right - 10 &&
             mouseY >= rect.top + 10 &&
             mouseY <= rect.bottom - 10
-          console.log(isInside)
           if (!isInside) {
             this.paused()
             this.resume()
@@ -672,9 +675,12 @@ class ChartCarouselTooltip {
   /**
    * 防抖
    */
-  private debounce(func: (...args: any[]) => void, delay: number): (...args: any[]) => void {
-    let timeout: number | null = null
-    return (...args: any[]) => {
+  private debounce(
+    func: (...args: unknown[]) => void,
+    delay: number
+  ): (...args: unknown[]) => void {
+    let timeout: ReturnType<typeof setTimeout> | null = null
+    return (...args: unknown[]) => {
       if (timeout) clearTimeout(timeout)
       timeout = window.setTimeout(() => {
         func(...args)

@@ -33,8 +33,10 @@ const scrollTo = offsetTop => {
 }
 
 const anchorPosition = anchor => {
-  const element = document.querySelector(anchor)
-  scrollTo(element.offsetTop)
+  const element = document.querySelector(anchor) as HTMLElement | null
+  if (element) {
+    scrollTo(element.offsetTop)
+  }
 }
 
 const newComponent = ({ category, innerType }) => {
@@ -45,13 +47,21 @@ const handleDragStart = e => {
   e.dataTransfer.setData('id', e.target.dataset.id)
 }
 
+const getChartTitle = (chartInfo: unknown) => {
+  if (
+    chartInfo &&
+    typeof chartInfo === 'object' &&
+    'title' in chartInfo &&
+    typeof (chartInfo as { title?: unknown }).title === 'string'
+  ) {
+    return (chartInfo as { title: string }).title
+  }
+  return ''
+}
+
 const groupActiveChange = category => {
   state.curCategory = category
   anchorPosition('#' + category)
-}
-
-const findUrl = name => {
-  return new URL(`/src/assets/dynamic-background/${name}`, import.meta.url).href
 }
 </script>
 
@@ -82,14 +92,14 @@ const findUrl = name => {
           :class="'item' + groupInfo.span"
           :span="groupInfo.span"
           v-for="chartInfo in groupInfo.details"
-          :key="chartInfo.title"
+          :key="getChartTitle(chartInfo)"
         >
           <div
             v-on:click="newComponent({ category: groupInfo.category, innerType: chartInfo.value })"
             class="item-top"
             draggable="true"
             :data-id="groupInfo.category + '&' + chartInfo.value"
-            :title="chartInfo.title"
+            :title="getChartTitle(chartInfo)"
           >
             <Icon
               v-if="['outer_svg', 'graphical'].includes(chartInfo.type)"
@@ -104,8 +114,8 @@ const findUrl = name => {
             ></DeDecoration>
             <component v-else style="color: #a6a6a6" :is="chartInfo.icon"></component>
           </div>
-          <div v-if="chartInfo.title" class="item-bottom">
-            <span>{{ chartInfo.title }}</span>
+          <div v-if="getChartTitle(chartInfo)" class="item-bottom">
+            <span>{{ getChartTitle(chartInfo) }}</span>
           </div>
         </el-col>
       </el-row>

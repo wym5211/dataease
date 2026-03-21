@@ -88,7 +88,7 @@ export class RangeBar extends G2PlotChartView<BarOptions, Bar> {
       return
     }
     // data
-    const data: Array<any> = cloneDeep(chart.data.data)
+    const data: Datum[] = cloneDeep(chart.data.data)
 
     data.forEach(d => {
       d.tempId = (Math.random() * 10000000).toString()

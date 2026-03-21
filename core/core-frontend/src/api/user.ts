@@ -33,7 +33,7 @@ export const userDelApi = uid => request.post({ url: `/user/delete/${uid}` })
 
 export const queryFormApi = uid => request.get({ url: `/user/queryById/${uid}` })
 
-export const personInfoApi = () => request.get({ url: `/user/personInfo` })
+export const personInfoApi = async () => request.get({ url: `/user/personInfo` })
 
 export const ipInfoApi = () => request.get({ url: `/user/ipInfo` })
 

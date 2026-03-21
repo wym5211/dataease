@@ -17,7 +17,7 @@ const { t } = useI18n()
 const props = withDefaults(
   defineProps<{
     themes?: EditorTheme
-    form: any
+    form: ChartAxisStyle
     propertyInner?: Array<string>
     type?: 'left' | 'right'
     chartType?: string

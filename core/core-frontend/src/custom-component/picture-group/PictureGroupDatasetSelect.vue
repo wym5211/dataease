@@ -10,7 +10,7 @@ import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { useI18n } from '@/hooks/web/useI18n'
 import { useEmbedded } from '@/store/modules/embedded'
 import { useAppStoreWithOut } from '@/store/modules/app'
-import { useRouter } from 'vue-router_2'
+import { useRouter } from 'vue-router'
 import { useCache } from '@/hooks/web/useCache'
 import { XpackComponent } from '@/components/plugin'
 const snapshotStore = snapshotStoreWithOut()
@@ -41,7 +41,7 @@ const onDatasetUpdate = () => {
   nextTick(() => {
     if (view.value.tableId && view.value.id) {
       getFieldByDQ(view.value.tableId, view.value.id, { type: 'table-info' })
-        .then(res => {
+        .then((res: any) => {
           view.value.xAxis = []
           res.quotaList.pop()
           view.value.xAxis.push(...res.dimensionList, ...res.quotaList)
@@ -65,14 +65,14 @@ const addDsWindow = () => {
   }
   const path =
     embeddedStore.getToken && appStore.getIsIframe ? 'dataset-embedded-form' : '/dataset-form'
-  let routeData = router.resolve(path)
+  const routeData = router.resolve(path)
   const openType = wsCache.get('open-backend') === '1' ? '_self' : '_blank'
   const newWindow = window.open(routeData.href, openType)
   initOpenHandler(newWindow)
 }
 
-const openHandler = ref(null)
-const initOpenHandler = newWindow => {
+const openHandler = ref<any>(null)
+const initOpenHandler = (newWindow: Window | null) => {
   if (openHandler?.value) {
     const pm = {
       methodName: 'initOpenHandler',

@@ -77,7 +77,7 @@ const aroundList = [
 ]
 const relativeToCurrentTypeList = computed(() => {
   if (!timeRange.value) return []
-  let index = ['year', 'month', 'date', 'datetime'].indexOf(props.timeGranularity) + 1
+  const index = ['year', 'month', 'date', 'datetime'].indexOf(props.timeGranularity) + 1
   return [
     {
       label: t('dynamic_time.year'),
@@ -435,7 +435,7 @@ watch(
         <div class="setting-label" v-if="dynamicTime">{{ t('template_manage.preview') }}</div>
         <div :class="dynamicTime ? 'setting-value' : 'w100'">
           <component
-            :config="timeRange"
+            :config="(timeRange as any)"
             :timeGranularityMultiple="timeGranularityMultiple"
             ref="inputCom"
             :is="filterTypeCom"

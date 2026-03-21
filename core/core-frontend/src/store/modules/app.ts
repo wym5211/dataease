@@ -49,7 +49,7 @@ export const useAppStore = defineStore('app', {
     getDekey(): string {
       return this.dekey
     },
-    getDesktop(): string {
+    getDesktop(): boolean {
       return this.desktop
     }
   },

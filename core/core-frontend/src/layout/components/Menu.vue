@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { ElMenu } from 'element-plus-secondary'
 import { getCSSVariable } from '@/utils/color'
-import { useRoute, useRouter } from 'vue-router_2'
+import { useRoute, useRouter } from 'vue-router'
 import { isExternal } from '@/utils/validate'
 import { useCache } from '@/hooks/web/useCache'
 import MenuItem from './MenuItem.vue'

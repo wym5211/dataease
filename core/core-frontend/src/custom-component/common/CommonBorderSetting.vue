@@ -12,10 +12,18 @@ const snapshotStore = snapshotStoreWithOut()
 const { canvasStyleData, curComponent } = storeToRefs(dvMainStore)
 const { t } = useI18n()
 
+interface BorderStyleInfo {
+  borderActive?: boolean
+  borderColor?: string
+  borderStyle?: string
+  borderWidth?: number
+  borderRadius?: number
+}
+
 const props = withDefaults(
   defineProps<{
     themes?: EditorTheme
-    styleInfo: any
+    styleInfo: BorderStyleInfo
   }>(),
   {
     themes: 'dark'
@@ -49,7 +57,7 @@ const styleInit = () => {
   }
 }
 
-const styleForm = computed<any>(() => styleInfo.value)
+const styleForm = computed<BorderStyleInfo>(() => styleInfo.value)
 
 const changeStyle = params => {
   snapshotStore.recordSnapshotCache('border-changeStyle')

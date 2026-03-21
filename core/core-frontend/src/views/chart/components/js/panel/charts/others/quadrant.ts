@@ -137,7 +137,9 @@ export class Quadrant extends G2PlotChartView<ScatterOptions, G2Scatter> {
       return
     }
     // data
-    const sourceData: Array<any> = cloneDeep(chart.data.data)
+    const sourceData: Array<{
+      data?: { quotaList?: { id?: string }[]; field?: string; value?: number }[]
+    }> = cloneDeep(chart.data.data)
     const data1 = defaultTo(sourceData[0]?.data, [])
     const data2 = defaultTo(sourceData[1]?.data, [])
     const data3 = defaultTo(sourceData[2]?.data, [])
@@ -441,7 +443,10 @@ export class Quadrant extends G2PlotChartView<ScatterOptions, G2Scatter> {
     return this.configSingleDimensionColor(chart, options)
   }
 
-  public setupSeriesColor(chart: ChartObj, data?: any[]): ChartBasicStyle['seriesColor'] {
+  public setupSeriesColor(
+    chart: ChartObj,
+    data?: { data?: { field?: string; value?: number }[] }[]
+  ): ChartBasicStyle['seriesColor'] {
     const { xAxis, yAxis, yAxisExt } = chart
     if (!(xAxis?.length && yAxis?.length && yAxisExt?.length)) {
       return []

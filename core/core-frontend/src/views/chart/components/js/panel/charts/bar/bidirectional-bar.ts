@@ -319,7 +319,11 @@ export class BidirectionalHorizontalBar extends G2PlotChartView<
   protected configLegend(chart: Chart, options: BidirectionalBarOptions): BidirectionalBarOptions {
     const o = super.configLegend(chart, options)
     if (o.legend) {
-      o.legend.itemName.formatter = (_text: string, _item: any, index: number) => {
+      o.legend.itemName.formatter = (
+        _text: string,
+        _item: { id: string; name: string },
+        index: number
+      ) => {
         const yaxis = chart.yAxis[0]
         const yaxisExt = chart.yAxisExt[0]
         if (index === 0) {
@@ -539,7 +543,10 @@ export class BidirectionalHorizontalBar extends G2PlotChartView<
         })
       }
     }
-    const updateValues = (strategy: 'breakLine' | 'setZero', data: any[]) => {
+    const updateValues = (
+      strategy: 'breakLine' | 'setZero',
+      data: { value: number | null; valueExt: number | null }[]
+    ) => {
       data.forEach(obj => {
         if (obj['value'] === null) {
           obj['value'] = strategy === 'breakLine' ? null : 0

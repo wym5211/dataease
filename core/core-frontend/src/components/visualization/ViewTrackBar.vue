@@ -29,15 +29,15 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, toRefs } from 'vue'
+import { reactive, ref, toRefs, type PropType } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
 const { t } = useI18n()
-const trackButton = ref(null)
+const trackButton = ref<HTMLInputElement | null>(null)
 const emits = defineEmits(['trackClick'])
 
 const props = defineProps({
   trackMenu: {
-    type: Array,
+    type: Array as PropType<string[]>,
     required: true
   },
   isDataVMobile: {
@@ -52,7 +52,9 @@ const props = defineProps({
   }
 })
 const { trackMenu } = toRefs(props)
-const state = reactive({
+const state = reactive<{
+  i18n_map: Record<string, string>
+}>({
   i18n_map: {
     drill: t('visualization.drill'),
     linkage: t('visualization.linkage'),
@@ -76,15 +78,15 @@ const visibleChange = () => {
   })
 }
 // 添加图表标识，用于区分不同图表的 tooltip
-const chartId = ref(null)
+const chartId = ref<string | null>(null)
 const trackButtonClick = (id?: string) => {
   chartId.value = id
   setTimeout(() => {
-    trackButton.value.click()
+    trackButton.value?.click()
   }, 50)
 }
 
-const trackMenuClick = menu => {
+const trackMenuClick = (menu: string) => {
   emits('trackClick', menu)
 }
 

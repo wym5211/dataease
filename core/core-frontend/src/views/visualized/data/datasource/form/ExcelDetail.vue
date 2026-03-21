@@ -25,7 +25,11 @@ import { cloneDeep, debounce } from 'lodash-es'
 import { uploadFile } from '@/api/datasource'
 import { useEmitt } from '@/hooks/web/useEmitt'
 import { iconFieldMap } from '@/components/icon-group/field-list'
-import { boolean } from 'mathjs'
+
+interface StaticMap {
+  index?: string
+  [key: string]: unknown
+}
 
 export interface Param {
   editType: number
@@ -35,8 +39,8 @@ export interface Param {
   name?: string
   creator?: string
   isPlugin?: boolean
-  staticMap?: any
-  configuration?: {}
+  staticMap?: StaticMap
+  configuration?: Record<string, unknown>
 }
 
 export interface Field {
@@ -71,7 +75,7 @@ const props = defineProps({
     type: Object
   },
   isSupportSetKey: {
-    type: boolean,
+    type: Boolean,
     required: true
   }
 })
@@ -178,7 +182,7 @@ const uploadFail = response => {
   activeTab.value = ''
   tabList.value = []
   Object.assign(sheetObj, cloneDeep(defaultSheetObj))
-  let myError = response.toString()
+  const myError = response.toString()
   myError.replace('Error: ', '')
 }
 const tabList = shallowRef([])
@@ -224,12 +228,12 @@ const uploadSuccess = response => {
   sheet && handleTabClick(sheet)
 }
 const saveExcelDs = (params, successCb, finallyCb) => {
-  let validate = true
-  let selectedSheet = []
-  let sheetFileMd5 = []
+  const validate = true
+  const selectedSheet = []
+  const sheetFileMd5 = []
   let effectExtField = false
   let changeFiled = false
-  let selectNode = state.excelData[0]?.sheets
+  const selectNode = state.excelData[0]?.sheets
   for (let i = 0; i < selectNode.length; i++) {
     if (selectNode[i].sheet) {
       if (selectNode[i].effectExtField) {
@@ -315,16 +319,16 @@ const saveExcelDs = (params, successCb, finallyCb) => {
       showClose: false,
       callback: (action: Action) => {
         if (action === 'confirm') {
-          saveExcelData(sheetFileMd5, table, params, successCb, finallyCb)
+          saveExcelData(table, params, successCb, finallyCb)
         }
       }
     })
   } else {
-    saveExcelData(sheetFileMd5, table, params, successCb, finallyCb)
+    saveExcelData(table, params, successCb, finallyCb)
   }
 }
 
-const saveExcelData = (sheetFileMd5, table, params, successCb, finallyCb) => {
+const saveExcelData = (table, params, successCb, finallyCb) => {
   for (let i = 0; i < table.sheets.length; i++) {
     table.sheets[i].data = []
     table.sheets[i].jsonArray = []

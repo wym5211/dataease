@@ -8,6 +8,67 @@ import DrawerTimeFilter from '@/components/drawer-filter/src/DrawerTimeFilter.vu
 import DrawerTreeFilter from '@/components/drawer-filter/src/DrawerTreeFilter.vue'
 import { useI18n } from '@/hooks/web/useI18n'
 const { t } = useI18n()
+
+interface FilterProperty {
+  placeholder?: string
+  checkStrictly?: boolean
+  showCheckbox?: boolean
+  checkOnClickNode?: boolean
+  showType?: string
+  rangeSeparator?: string
+  startPlaceholder?: string
+  endPlaceholder?: string
+  format?: string
+  valueFormat?: string
+  size?: string
+  placement?: string
+}
+
+interface FilterOptionNode {
+  value: string
+  label: string
+  children: FilterOptionNode[]
+  disabled: boolean
+}
+
+interface FilterOptionItemValue {
+  id: string
+  name: string
+}
+
+interface FilterOptionItem {
+  type: string
+  field: string
+  option: Array<FilterOptionNode | FilterOptionItemValue>
+  title: string
+  property: FilterProperty
+  operator?: string
+}
+
+interface TreeConfig {
+  checkStrictly: boolean
+  showCheckbox: boolean
+  checkOnClickNode: boolean
+  placeholder: string
+}
+
+interface TimeConfig {
+  showType: string
+  rangeSeparator: string
+  startPlaceholder: string
+  endPlaceholder: string
+  format: string
+  valueFormat: string
+  size: string
+  placement: string
+}
+
+interface FilterCondition {
+  field: string
+  value: unknown[]
+  operator?: string
+}
+
 const props = defineProps({
   filterOptions: propTypes.arrayOf(
     propTypes.shape({
@@ -20,13 +81,13 @@ const props = defineProps({
   ),
   title: propTypes.string
 })
-const myRefs = ref([])
+const myRefs = ref<unknown[]>([])
 const componentList = computed(() => {
-  return props.filterOptions
+  return (props.filterOptions || []) as FilterOptionItem[]
 })
 
 const state = reactive({
-  conditions: []
+  conditions: [] as FilterCondition[]
 })
 const userDrawer = ref(false)
 
@@ -38,7 +99,7 @@ const cleanrInnerValue = (index: number) => {
   if (!field) {
     return
   }
-  myRefs.value[index]?.clear()
+  ;(myRefs.value[index] as { clear?: () => void })?.clear?.()
   for (let i = 0; i < state.conditions.length; i++) {
     if (state.conditions[i].field === field) {
       state.conditions[i].value = []
@@ -48,7 +109,7 @@ const cleanrInnerValue = (index: number) => {
 const clearInnerTag = (index?: number) => {
   if (isNaN(index)) {
     for (let i = 0; i < componentList.value.length; i++) {
-      myRefs.value[i]?.clear()
+      ;(myRefs.value[i] as { clear?: () => void })?.clear?.()
     }
     return
   }
@@ -56,7 +117,7 @@ const clearInnerTag = (index?: number) => {
   const field = condition?.field
   for (let i = 0; i < componentList.value.length; i++) {
     if (componentList.value[i].field === field) {
-      myRefs.value[i]?.clear()
+      ;(myRefs.value[i] as { clear?: () => void })?.clear?.()
     }
   }
 }
@@ -70,7 +131,7 @@ const clearFilter = (id?: number) => {
   }
   trigger()
 }
-const filterChange = (value, field, operator) => {
+const filterChange = (value: unknown[], field: string, operator?: string) => {
   let exits = false
   let len = state.conditions.length
   while (len--) {
@@ -99,12 +160,24 @@ const emits = defineEmits(['trigger-filter', 'tree-filter-change'])
 const trigger = () => {
   emits('trigger-filter', state.conditions)
 }
-const treeFilterChange = (value, field, operator) => {
+const treeFilterChange = (value: unknown[], field: string, operator?: string) => {
   emits('tree-filter-change', {
     value,
     field,
     operator
   })
+}
+const getTreeOptions = (component: FilterOptionItem): FilterOptionNode[] => {
+  return component.option as FilterOptionNode[]
+}
+const getSelectOptions = (component: FilterOptionItem): FilterOptionItemValue[] => {
+  return component.option as FilterOptionItemValue[]
+}
+const getTreeProperty = (component: FilterOptionItem): TreeConfig => {
+  return component.property as TreeConfig
+}
+const getTimeProperty = (component: FilterOptionItem): TimeConfig => {
+  return component.property as TimeConfig
 }
 defineExpose({
   init,
@@ -126,15 +199,15 @@ defineExpose({
       <drawer-tree-filter
         :ref="el => (myRefs[index] = el)"
         v-if="component.type === 'tree-select'"
-        :option-list="component.option"
+        :option-list="getTreeOptions(component)"
         :title="component.title"
-        :property="component.property"
+        :property="getTreeProperty(component)"
         @filter-change="v => filterChange(v, component.field, 'in')"
       />
       <drawer-filter
         :ref="el => (myRefs[index] = el)"
         v-if="component.type === 'select'"
-        :option-list="component.option"
+        :option-list="getSelectOptions(component)"
         :title="component.title"
         :property="component.property"
         @filter-change="v => filterChange(v, component.field, 'in')"
@@ -142,7 +215,7 @@ defineExpose({
       <drawer-enum-filter
         :ref="el => (myRefs[index] = el)"
         v-if="component.type === 'enum'"
-        :option-list="component.option"
+        :option-list="getSelectOptions(component)"
         :title="component.title"
         @filter-change="v => filterChange(v, component.field, 'in')"
       />
@@ -150,7 +223,7 @@ defineExpose({
         :ref="el => (myRefs[index] = el)"
         v-if="component.type === 'time'"
         :title="component.title"
-        :property="component.property"
+        :property="getTimeProperty(component)"
         @filter-change="v => filterChange(v, component.field, component.operator)"
       />
     </div>

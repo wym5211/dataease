@@ -661,7 +661,7 @@ import { guid } from '@/views/visualized/data/dataset/form/util'
 import treeSort from '@/utils/treeSortUtils'
 const dvMainStore = dvMainStoreWithOut()
 const { dvInfo, canvasViewInfo, componentData } = storeToRefs(dvMainStore)
-const linkJumpInfoTree = ref(null)
+const linkJumpInfoTree = ref<any>(null)
 const { t } = useI18n()
 const dialogShow = ref(false)
 const snapshotStore = snapshotStoreWithOut()
@@ -676,7 +676,7 @@ const selectSourceTips = t('visualization.select_target_resource')
 
 const targetSource = t('visualization.target_dashboard_dataV')
 
-const state = reactive({
+const state = reactive<any>({
   curDataVWeight: 0,
   activeCollapse: 'view',
   loading: false,
@@ -742,7 +742,7 @@ const state = reactive({
 })
 const { wsCache } = useCache()
 
-const outerContentEditor = ref(null)
+const outerContentEditor = ref<any>(null)
 
 const resetParams = () => {
   state.linkJump = null
@@ -754,7 +754,7 @@ const resetParams = () => {
   state.linkJumpInfo = null
 }
 
-const dialogInit = viewItem => {
+const dialogInit = (viewItem: any) => {
   resetParams()
   state.showSelected = false
   dialogShow.value = true
@@ -762,7 +762,7 @@ const dialogInit = viewItem => {
   init(viewItem)
 }
 
-const initCurFilterFieldArray = componentDataCheck => {
+const initCurFilterFieldArray = (componentDataCheck: any[]) => {
   componentDataCheck.forEach(componentItem => {
     if (componentItem.component === 'VQuery' && componentItem.propValue instanceof Array) {
       componentItem.propValue.forEach(filterItem => {
@@ -786,7 +786,7 @@ const initCurFilterFieldArray = componentDataCheck => {
 
 const isIndicator = computed(() => 'indicator' === state.viewType)
 
-const init = viewItem => {
+const init = (viewItem: any) => {
   state.initState = false
   state.viewId = viewItem.id
   state.viewType = viewItem.type
@@ -923,7 +923,7 @@ const save = () => {
       state.loading = false
     })
 }
-const nodeClick = data => {
+const nodeClick = (data: any) => {
   if (!data) {
     return
   }
@@ -949,14 +949,14 @@ const nodeClick = data => {
   codeMirrorContentSet(state.linkJumpInfo.content)
 }
 
-const codeMirrorContentSet = content => {
+const codeMirrorContentSet = (content: string) => {
   nextTick(() => {
     outerContentEditor.value?.editorInit(content)
   })
 }
 
 // 获取当前图表字段 关联仪表板的图表信息列表
-const getPanelViewList = dvId => {
+const getPanelViewList = (dvId: string) => {
   viewTableDetailList(dvId).then(rsp => {
     state.viewIdFieldArrayMap = {}
     state.currentLinkPanelViewArray = rsp.data.visualizationViewTables
@@ -995,7 +995,7 @@ const getPanelViewList = dvId => {
   })
 }
 
-const dvNodeClick = data => {
+const dvNodeClick = (data: any) => {
   if (data.leaf) {
     state.curDataVWeight = data.weight
     state.linkJumpInfo.targetViewInfoList = []
@@ -1014,7 +1014,7 @@ const addLinkJumpField = (type = 'view') => {
   })
 }
 
-const deleteLinkJumpFieldById = targetId => {
+const deleteLinkJumpFieldById = (targetId: string) => {
   if (targetId) {
     let indexResult
     state.linkJumpInfo.targetViewInfoList.forEach((item, index) => {
@@ -1028,7 +1028,7 @@ const deleteLinkJumpFieldById = targetId => {
   }
 }
 
-const fieldIdDisabledCheck = targetViewInfo => {
+const fieldIdDisabledCheck = (targetViewInfo: any) => {
   return (
     (state.viewIdFieldArrayMap[targetViewInfo.targetViewId] &&
       state.viewIdFieldArrayMap[targetViewInfo.targetViewId].length === 1 &&
@@ -1037,7 +1037,7 @@ const fieldIdDisabledCheck = targetViewInfo => {
   )
 }
 
-const viewInfoOnChange = targetViewInfo => {
+const viewInfoOnChange = (targetViewInfo: any) => {
   if (
     state.viewIdFieldArrayMap[targetViewInfo.targetViewId] &&
     state.viewIdFieldArrayMap[targetViewInfo.targetViewId].length === 1 &&
@@ -1048,7 +1048,7 @@ const viewInfoOnChange = targetViewInfo => {
     targetViewInfo.targetFieldId = null
   }
 }
-const sourceFieldCheckedChange = data => {
+const sourceFieldCheckedChange = (data: any) => {
   nextTick(() => {
     linkJumpInfoTree.value.setCurrentKey(data.sourceFieldId)
     nodeClick(data)
@@ -1074,7 +1074,7 @@ const filterNodeMethod = (value, data) => {
 const isEmbedded = computed(() => appStore.getIsDataEaseBi || appStore.getIsIframe)
 const openType = '_blank'
 
-const resourceEdit = async resourceId => {
+const resourceEdit = async (resourceId: string) => {
   if (state.curDataVWeight && state.curDataVWeight < 7) {
     ElMessage.error(t('visualization.no_edit_auth'))
     return
@@ -1101,8 +1101,8 @@ const resourceEdit = async resourceId => {
   initOpenHandler(newWindow)
 }
 
-const openHandler = ref(null)
-const initOpenHandler = newWindow => {
+const openHandler = ref<any>(null)
+const initOpenHandler = (newWindow: Window | null) => {
   if (openHandler?.value) {
     const pm = {
       methodName: 'initOpenHandler',

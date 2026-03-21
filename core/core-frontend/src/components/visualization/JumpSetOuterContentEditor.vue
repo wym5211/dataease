@@ -10,19 +10,62 @@
 <script setup lang="ts">
 import { onBeforeUnmount, reactive, ref, toRefs } from 'vue'
 import CodeMirror from '@/views/visualized/data/dataset/form/CodeMirror.vue'
-const myCm = ref(null)
-const mirror = ref(null)
-const props = defineProps({
-  linkJumpInfoArray: Array,
-  linkJumpInfo: Object
-})
+
+interface LinkJumpInfoItem {
+  sourceFieldId: string
+  sourceFieldName: string
+  [key: string]: unknown
+}
+
+interface LinkJumpInfo {
+  content: string
+  [key: string]: unknown
+}
+
+interface MirrorSelectionRange {
+  from: number
+}
+
+interface MirrorInstance {
+  dispatch: (payload: {
+    changes: { from: number; to?: number; insert: string }
+    selection?: { anchor: number }
+  }) => void
+  viewState: {
+    state: {
+      selection: {
+        ranges: MirrorSelectionRange[]
+      }
+      doc: {
+        length: number
+      }
+    }
+  }
+  state: {
+    doc: {
+      toString: () => string
+    }
+  }
+  destroy?: () => void
+}
+
+interface CodeMirrorComponentRef {
+  codeComInit: () => MirrorInstance
+}
+
+const myCm = ref<CodeMirrorComponentRef | null>(null)
+const mirror = ref<MirrorInstance | null>(null)
+const props = defineProps<{
+  linkJumpInfoArray: LinkJumpInfoItem[]
+  linkJumpInfo: LinkJumpInfo
+}>()
 
 const { linkJumpInfo } = toRefs(props)
 const state = reactive({
-  name2Auto: [],
+  name2Auto: [] as string[],
   content: ''
 })
-const timer = ref(null)
+const timer = ref<ReturnType<typeof setInterval> | null>(null)
 
 const insertFieldToCodeMirror = (value: string) => {
   mirror.value.dispatch({
@@ -31,12 +74,17 @@ const insertFieldToCodeMirror = (value: string) => {
   })
 }
 
-const setNameIdTrans = (from, to, originName, name2Auto?: string[]) => {
+const setNameIdTrans = (
+  from: 'sourceFieldId' | 'sourceFieldName',
+  to: 'sourceFieldId' | 'sourceFieldName',
+  originName: string,
+  name2Auto?: string[]
+) => {
   if (!originName) {
     return originName
   }
   let name2Id = originName
-  const nameIdMap = props.linkJumpInfoArray.reduce((pre, next) => {
+  const nameIdMap = props.linkJumpInfoArray.reduce<Record<string, string>>((pre, next) => {
     pre[next[from]] = next[to]
     return pre
   }, {})
@@ -53,7 +101,7 @@ const setNameIdTrans = (from, to, originName, name2Auto?: string[]) => {
   return name2Id
 }
 
-const editorInit = content => {
+const editorInit = (content: string) => {
   state.name2Auto = []
   if (!mirror.value) {
     mirror.value = myCm.value.codeComInit()
@@ -66,7 +114,9 @@ const editorInit = content => {
       insert: state.content
     }
   })
-  clearTimeout(timer.value)
+  if (timer.value) {
+    clearInterval(timer.value)
+  }
   timer.value = setInterval(() => {
     const content = mirror.value ? mirror.value.state.doc.toString() : ''
     const contentTrans = setNameIdTrans(
@@ -84,7 +134,9 @@ defineExpose({
 })
 
 onBeforeUnmount(() => {
-  clearTimeout(timer.value)
+  if (timer.value) {
+    clearInterval(timer.value)
+  }
   mirror.value && mirror.value.destroy?.()
 })
 </script>

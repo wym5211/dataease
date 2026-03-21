@@ -88,7 +88,9 @@ export const dvMainStore = defineStore('dataVisualization', {
         selfWatermarkStatus: null,
         watermarkInfo: {},
         type: null,
-        mobileLayout: false
+        mobileLayout: false,
+        contentId: '0',
+        weight: 9
       },
       // 图表信息
       canvasViewInfo: {},
@@ -175,10 +177,11 @@ export const dvMainStore = defineStore('dataVisualization', {
       mixPropertiesInner: {},
       batchOptComponentInfo: null,
       batchOptComponents: {},
+      componentViewsData: {},
       // properties changed
       changeProperties: {
-        customStyle: {},
-        customAttr: {}
+        customStyle: {} as any,
+        customAttr: {} as any
       },
       allViewRender: [],
       tabCollisionActiveId: null, // 当前在碰撞的Tab组件ID
@@ -411,7 +414,10 @@ export const dvMainStore = defineStore('dataVisualization', {
       this.componentData = componentData
     },
 
-    addCopyComponent(component, idMap, canvasViewInfoPre = this.canvasViewInfo) {
+    addCopyComponent(component, idMap, canvasViewInfoPre?) {
+      if (!canvasViewInfoPre) {
+        canvasViewInfoPre = this.canvasViewInfo
+      }
       // 查找所属画布
       if (component.canvasId === 'canvas-main') {
         this.componentData.push(component)
@@ -432,7 +438,10 @@ export const dvMainStore = defineStore('dataVisualization', {
       //组件组内部可能还有多个图表
       this.updateCopyCanvasView(idMap, canvasViewInfoPre)
     },
-    updateCopyCanvasView(idMap, canvasViewInfoPre = this.canvasViewInfo) {
+    updateCopyCanvasView(idMap, canvasViewInfoPre?) {
+      if (!canvasViewInfoPre) {
+        canvasViewInfoPre = this.canvasViewInfo
+      }
       // eslint-disable-next-line @typescript-eslint/no-this-alias
       const _this = this
       //组件组内部可能还有多个图表
@@ -454,7 +463,10 @@ export const dvMainStore = defineStore('dataVisualization', {
       }
     },
 
-    addComponent({ component, index, isFromGroup = false, componentData = this.componentData }) {
+    addComponent({ component, index, isFromGroup = false, componentData }) {
+      if (!componentData) {
+        componentData = this.componentData
+      }
       if (isFromGroup) {
         componentData.push(component)
         return
@@ -560,7 +572,10 @@ export const dvMainStore = defineStore('dataVisualization', {
       })
     },
 
-    deleteComponentById(componentId, componentData = this.componentData, deep = false) {
+    deleteComponentById(componentId, componentData?, deep = false) {
+      if (!componentData) {
+        componentData = this.componentData
+      }
       if (componentId) {
         const indexResult = []
         componentData.forEach((component, index) => {
@@ -580,7 +595,10 @@ export const dvMainStore = defineStore('dataVisualization', {
       }
     },
 
-    deleteComponent(index?, componentData = this.componentData) {
+    deleteComponent(index?, componentData?) {
+      if (!componentData) {
+        componentData = this.componentData
+      }
       if (index === undefined) {
         index = this.curComponentIndex
       }
@@ -1007,7 +1025,10 @@ export const dvMainStore = defineStore('dataVisualization', {
     setNowTargetPanelJumpInfo(jumpInfo) {
       this.nowPanelJumpInfoTargetPanel = jumpInfo.baseJumpInfoVisualizationMap
     },
-    setNowPanelOuterParamsInfoV2(outerParamsInfo, dvId = this.dvInfo.id) {
+    setNowPanelOuterParamsInfoV2(outerParamsInfo, dvId?) {
+      if (dvId === undefined || dvId === null) {
+        dvId = this.dvInfo.id
+      }
       this.nowPanelOuterParamsInfoV2[dvId] = outerParamsInfo.outerParamsInfoMap
       this.nowPanelOuterParamsBaseInfoV2[dvId] = outerParamsInfo.outerParamsInfoBaseMap
     },
@@ -1070,7 +1091,10 @@ export const dvMainStore = defineStore('dataVisualization', {
         useEmitt().emitter.emit('query-data-' + viewId)
       })
     },
-    addWebParamsFilter(params, curComponentData = this.componentData) {
+    addWebParamsFilter(params, curComponentData?) {
+      if (!curComponentData) {
+        curComponentData = this.componentData
+      }
       if (params) {
         for (let index = 0; index < curComponentData.length; index++) {
           const element = curComponentData[index]
@@ -1094,12 +1118,13 @@ export const dvMainStore = defineStore('dataVisualization', {
       }
     },
     // 添加外部参数的过滤条件
-    addOuterParamsFilter(
-      paramsPre,
-      curComponentData = this.componentData,
-      source = 'inner',
-      dvId = this.dvInfo.id
-    ) {
+    addOuterParamsFilter(paramsPre, curComponentData?, source = 'inner', dvId?) {
+      if (!curComponentData) {
+        curComponentData = this.componentData
+      }
+      if (dvId === undefined || dvId === null) {
+        dvId = this.dvInfo.id
+      }
       // params 结构 {key1:value1,key2:value2}
       const params = {}
       const paramsVersion = (paramsPre && paramsPre['outerParamsVersion']) || 'v1'
@@ -1612,7 +1637,8 @@ export const dvMainStore = defineStore('dataVisualization', {
         watermarkInfo: {},
         type: null,
         mobileLayout: false,
-        contentId: 0
+        contentId: '0',
+        weight: 9
       }
       this.mainScrollTop = 0
     },
@@ -1685,7 +1711,7 @@ export const dvMainStore = defineStore('dataVisualization', {
         this.canvasState[key] = value
       }
     },
-    createInit(dvType, resourceId?, pid?, watermarkInfo?, preName) {
+    createInit(dvType, resourceId?, pid?, watermarkInfo?, preName?) {
       const optName =
         dvType === 'dashboard' ? t('visualization.new_dashboard') : t('visualization.new_screen')
       const name = preName ? preName : optName
@@ -1745,11 +1771,15 @@ export const dvMainStore = defineStore('dataVisualization', {
         watermarkInfo: {},
         type: null,
         mobileLayout: false,
-        contentId: '0'
+        contentId: '0',
+        weight: 9
       }
       this.canvasStyleData = { ...deepCopy(DEFAULT_CANVAS_STYLE_DATA_DARK), backgroundColor: null }
     },
-    removeGroupArea(curComponentData = this.componentData) {
+    removeGroupArea(curComponentData?) {
+      if (!curComponentData) {
+        curComponentData = this.componentData
+      }
       // 清理临时组件
       const groupAreaHis = curComponentData?.filter(ele => ele?.component === 'GroupArea')
       if (groupAreaHis && groupAreaHis.length > 0) {

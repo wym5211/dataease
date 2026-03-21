@@ -15,7 +15,7 @@ import { BusiTreeRequest } from '@/models/tree/TreeNode'
 import { interactiveStoreWithOut } from '@/store/modules/interactive'
 import DashboardCell from '@/views/mobile/components/DashboardCell.vue'
 import { useI18n } from '@/hooks/web/useI18n'
-import { useRouter } from 'vue-router_2'
+import { useRouter } from 'vue-router'
 import VanSticky from 'vant/es/sticky'
 import VanNavBar from 'vant/es/nav-bar'
 import 'vant/es/nav-bar/style'
@@ -177,7 +177,7 @@ const getTree = async () => {
 }
 
 const setSortType = () => {
-  let sortType = sortList[Number(wsCacheLocal.get('TreeSort-backend')) ?? 1].value
+  const sortType = sortList[Number(wsCacheLocal.get('TreeSort-backend')) ?? 1].value
   const type = wsCacheLocal.get('mobile-sort-type') ?? sortType
   sortTypeChange(type || curSortType.value)
 }

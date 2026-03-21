@@ -7,8 +7,8 @@ import NumberInput from './NumberInput.vue'
 import Tree from './Tree.vue'
 
 interface SelectConfig {
-  selectValue: any
-  defaultValue: any
+  selectValue: string | string[] | undefined
+  defaultValue: string | string[] | undefined
   checkedFieldsMap: object
   displayType: string
   id: string
@@ -67,7 +67,7 @@ provide('$custom-style-filter', props.customStyle)
 
 <template>
   <component
-    :config="config"
+    :config="(config as any)"
     :is-config="false"
     :is="filterTypeCom(config.displayType)"
   ></component>

@@ -78,15 +78,53 @@ import { useI18n } from '@/hooks/web/useI18n'
 const { t } = useI18n()
 const emits = defineEmits(['onTextChange'])
 
-const state = reactive({
-  titleForm: {},
+type TitleStyleChangeKey =
+  | 'show'
+  | 'fontSize'
+  | 'color'
+  | 'hPosition'
+  | 'vPosition'
+  | 'isItalic'
+  | 'isBolder'
+
+interface TitleForm {
+  show: boolean
+  fontSize: number
+  color: string
+  hPosition: 'left' | 'center' | 'right'
+  vPosition: 'top' | 'center' | 'bottom'
+  isItalic: boolean
+  isBolder: boolean
+  modifyName?: TitleStyleChangeKey
+}
+
+interface FontSizeOption {
+  name: string
+  value: number
+}
+
+const state = reactive<{
+  titleForm: TitleForm
+  fontSize: FontSizeOption[]
+  isSetting: boolean
+  predefineColors: string[]
+}>({
+  titleForm: {
+    show: true,
+    fontSize: 14,
+    color: '',
+    hPosition: 'center',
+    vPosition: 'top',
+    isItalic: false,
+    isBolder: false
+  },
   fontSize: [],
   isSetting: false,
   predefineColors: COLOR_PANEL
 })
 
-const changeTitleStyle = modifyName => {
-  state.titleForm['modifyName'] = modifyName
+const changeTitleStyle = (modifyName: TitleStyleChangeKey) => {
+  state.titleForm.modifyName = modifyName
   emits('onTextChange', state.titleForm)
 }
 </script>

@@ -648,7 +648,7 @@ declare interface TotalConfig {
 declare interface CalcTotals {
   aggregation: 'MIN' | 'MAX' | 'AVG' | 'SUM'
   cfg: CalcTotalCfg[]
-  calcFunc?: (...args) => any
+  calcFunc?: (...args: unknown[]) => unknown
 }
 
 /**

@@ -16,13 +16,13 @@
 
 <script lang="ts" setup>
 import { useI18n } from '@/hooks/web/useI18n'
-import { User, Lock, Setting, Grid } from '@element-plus/icons-vue'
+import { User, Lock, Setting, Grid, type Component } from '@element-plus/icons-vue'
 
 type TabType = 'personal' | 'security' | 'preferences' | 'group'
 
 interface TabItem {
   key: TabType
-  icon: any
+  icon: Component
   label: string
 }
 

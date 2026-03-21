@@ -22,7 +22,7 @@ import { Base64 } from 'js-base64'
 import type { Param } from './ExcelDetail.vue'
 import type { Configuration, ApiConfiguration, SyncSetting } from './option'
 import { dsTypes, typeList, nameMap } from './option'
-import { useRouter } from 'vue-router_2'
+import { useRouter } from 'vue-router'
 import { uuid } from 'vue-uuid'
 import { useEmitt } from '@/hooks/web/useEmitt'
 import FinishPage from '../FinishPage.vue'
@@ -39,9 +39,11 @@ interface Node {
   type: DsType
 }
 
-interface Tree {
-  [key: string]: any
+interface StaticMap {
+  index?: string
+  [key: string]: unknown
 }
+
 interface Form {
   name: string
   pid?: string
@@ -54,7 +56,7 @@ interface Form {
   paramsConfiguration?: ApiConfiguration[]
   syncSetting?: SyncSetting
   isPlugin?: boolean
-  staticMap?: any
+  staticMap?: StaticMap
 }
 
 const { t } = useI18n()
@@ -137,7 +139,7 @@ const defaultProps = {
   children: 'dbList',
   label: 'name'
 }
-const filterNode = (value: string, data: Tree) => {
+const filterNode = (value: string, data: { name: string }) => {
   if (!value) return true
   return data.name.toLowerCase().includes(value)
 }
@@ -295,7 +297,15 @@ const continueCreating = () => {
   init(null, pid.value)
 }
 
-const handleShowFinishPage = ({ id, name, pid: pidVal }) => {
+const handleShowFinishPage = ({
+  id,
+  name,
+  pid: pidVal
+}: {
+  id: string
+  name: string
+  pid?: string
+}) => {
   isShowFinishPage()
     .then(res => {
       if (editDs.value || !res.data) {
@@ -352,12 +362,8 @@ const handleSubmit = param => {
 }
 
 const validateDS = () => {
-  const request = JSON.parse(JSON.stringify(form)) as unknown as Omit<
-    Form,
-    'configuration' | 'apiConfiguration'
-  > & {
+  const request = JSON.parse(JSON.stringify(form)) as unknown as Omit<Form, 'configuration'> & {
     configuration: string
-    apiConfiguration: string
   }
   if (currentDsType.value.includes('API')) {
     if (form.apiConfiguration.length === 0) {
@@ -396,11 +402,17 @@ const validateDS = () => {
 const doValidateDs = request => {
   dsLoading.value = true
   if (currentDsType.value === 'ExcelRemote') {
-    let excelRequest = JSON.parse(JSON.stringify(form2.configuration))
+    const excelRequest = JSON.parse(JSON.stringify(form2.configuration)) as {
+      datasourceId?: string | number
+      editType?: number
+      userName?: string
+      passwd?: string
+      [key: string]: unknown
+    }
     excelRequest.datasourceId = form2.id || 0
     excelRequest.editType = form2.editType
-    excelRequest.userName = Base64.encode(excelRequest.userName)
-    excelRequest.passwd = Base64.encode(excelRequest.passwd)
+    excelRequest.userName = Base64.encode(String(excelRequest.userName || ''))
+    excelRequest.passwd = Base64.encode(String(excelRequest.passwd || ''))
     return loadRemoteFile(excelRequest)
       .then(res => {
         dsLoading.value = false
@@ -468,12 +480,8 @@ const typeTitle = computed(() => {
 
 const saveDS = () => {
   isUpdate = false
-  const request = JSON.parse(JSON.stringify(form)) as unknown as Omit<
-    Form,
-    'configuration' | 'apiConfiguration'
-  > & {
+  const request = JSON.parse(JSON.stringify(form)) as unknown as Omit<Form, 'configuration'> & {
     configuration: string
-    apiConfiguration: string
   }
 
   if (currentDsType.value === 'Excel') {
@@ -514,20 +522,26 @@ const saveDS = () => {
     return
   } else if (currentDsType.value.includes('API')) {
     for (let i = 0; i < request.apiConfiguration.length; i++) {
-      if (
-        request.apiConfiguration[i].deTableName === '' ||
-        request.apiConfiguration[i].deTableName === undefined ||
-        request.apiConfiguration[i].deTableName === null
-      ) {
-        request.apiConfiguration[i].deTableName =
-          'api_' +
-          request.apiConfiguration[i].name +
-          '_' +
-          uuid.v1().replaceAll('-', '').substring(0, 10)
+      const apiItem = request.apiConfiguration[i] as ApiConfiguration & {
+        deTableName?: string
+        name?: string
+        jsonFields?: unknown[]
+        fields?: Array<{ value?: unknown[] }>
       }
-      request.apiConfiguration[i].jsonFields = []
-      for (let j = 0; j < request.apiConfiguration[i].fields.length; j++) {
-        request.apiConfiguration[i].fields[j].value = []
+      if (
+        apiItem.deTableName === '' ||
+        apiItem.deTableName === undefined ||
+        apiItem.deTableName === null
+      ) {
+        apiItem.deTableName = `api_${apiItem.name || ''}_${uuid
+          .v1()
+          .replaceAll('-', '')
+          .substring(0, 10)}`
+      }
+      apiItem.jsonFields = []
+      const fields = apiItem.fields || []
+      for (let j = 0; j < fields.length; j++) {
+        fields[j].value = []
       }
     }
     let apiItems = []
@@ -548,7 +562,7 @@ const saveDS = () => {
     })
   } else {
     const validate = detail?.value?.submitForm()
-    request.apiConfiguration = ''
+    request.apiConfiguration = []
     validate(val => {
       if (val) {
         if (currentDsType.value.includes('API')) {
@@ -568,7 +582,7 @@ const saveDS = () => {
 
 const doSaveDs = request => {
   if (editDs.value && form.id) {
-    let options = {
+    const options = {
       confirmButtonType: 'danger',
       type: 'warning',
       autofocus: false,
@@ -576,7 +590,7 @@ const doSaveDs = request => {
       tip: ''
     }
     checkRepeat(request).then(res => {
-      let method = request.id === '' ? save : update
+      const method = request.id === '' ? save : update
       if (res) {
         ElMessageBox.confirm(t('datasource.has_same_ds'), options as ElMessageBoxOptions).then(
           () => {
@@ -623,6 +637,7 @@ const defaultForm = {
   name: '',
   description: '',
   type: 'API',
+  copy: false,
   apiConfiguration: [],
   paramsConfiguration: [],
   enableDataFill: false
@@ -663,7 +678,7 @@ watch(
   { deep: true }
 )
 
-const init = (nodeInfo: Form | Param, id?: string, res?: object, supportSetKey: boolean) => {
+const init = (nodeInfo: Form | Param | null, id?: string, res?: object, supportSetKey = false) => {
   isPlugin.value = nodeInfo?.isPlugin
   pluginIndex.value = isPlugin.value ? nodeInfo?.staticMap?.index : null
   isSupportSetKey.value = supportSetKey
@@ -887,7 +902,7 @@ defineExpose({
             :plugin-index="pluginIndex"
             :editDs="editDs"
             :active-step="activeApiStep"
-            :is-supportSetKey="isSupportSetKey"
+            :is-support-set-key="isSupportSetKey"
             v-if="
               activeStep !== 0 &&
               currentDsType &&
@@ -915,16 +930,14 @@ defineExpose({
           </plugin-component>
           <template v-if="activeStep !== 0 && currentDsType == 'Excel'">
             <excel-detail
-              :editDs="editDs"
-              :is-supportSetKey="isSupportSetKey"
+              :is-support-set-key="isSupportSetKey"
               ref="excel"
               :param="form2"
             ></excel-detail>
           </template>
           <template v-if="activeStep !== 0 && currentDsType == 'ExcelRemote'">
             <excel-remote-detail
-              :editDs="editDs"
-              :is-supportSetKey="isSupportSetKey"
+              :is-support-set-key="isSupportSetKey"
               ref="excelRemote"
               :active-step="activeApiStep"
               :form="form2"

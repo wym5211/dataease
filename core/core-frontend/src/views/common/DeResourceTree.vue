@@ -84,7 +84,7 @@ const props = defineProps({
 const defaultProps = {
   children: 'children',
   label: 'name',
-  disabled: (data: any) => data.extraFlag1 === 0
+  disabled: (data: BusiTreeNode) => data.extraFlag1 === 0
 }
 const mounted = ref(false)
 const rootManage = ref(false)
@@ -92,7 +92,7 @@ const anyManage = ref(false)
 const { curCanvasType, showPosition } = toRefs(props)
 const resourceLabel =
   curCanvasType.value === 'dataV' ? t('work_branch.big_data_screen') : t('work_branch.dashboard')
-const newResourceLabel =
+const _newResourceLabel =
   curCanvasType.value === 'dataV' ? t('visualization.new_screen') : t('visualization.new_dashboard')
 const selectedNodeKey = ref(null)
 const filterText = ref(null)

@@ -113,7 +113,7 @@ const resetForm = () => {
     name: '',
     code: '',
     description: '',
-    status: '1' as any // 使用字符串 '1' 作为默认值
+    status: '1' as unknown as number // 使用字符串 '1' 作为默认值，Element Plus radio 使用字符串
   }
   formRef.value?.clearValidate()
 }

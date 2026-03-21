@@ -17,7 +17,7 @@ interface RouteMeta extends Record<string | number | symbol, unknown> {
   roles?: string[]
 }
 
-type Component<T = any> =
+type Component<T = unknown> =
   | ReturnType<typeof defineComponent>
   | (() => Promise<typeof import('*.vue')>)
   | (() => Promise<T>)

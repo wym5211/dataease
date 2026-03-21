@@ -965,8 +965,10 @@ function getValue(field, filedValueMap, rowData) {
   }
 }
 
+type TableRow = Record<string, unknown>
+
 export function handleTableEmptyStrategy(chart: Chart) {
-  let newData = (chart.data?.tableRow || []) as Record<string, any>[]
+  let newData = (chart.data?.tableRow || []) as TableRow[]
   let intersectionArr = []
   const senior = parseJson(chart.senior)
   let emptyDataStrategy = senior?.functionCfg?.emptyDataStrategy
@@ -2894,7 +2896,7 @@ export const calculateGroupHeaderHeight = (newChart, tableHeader, basicStyle) =>
 }
 
 // 获取最里层的叶子节点
-const getLeafKeys = (columns: any[]): string[] => {
+const getLeafKeys = (columns: Record<string, unknown>[]): string[] => {
   const keys: string[] = []
   columns.forEach(col => {
     if (col && typeof col === 'object' && Array.isArray(col.children) && col.children.length > 0) {
@@ -2906,7 +2908,7 @@ const getLeafKeys = (columns: any[]): string[] => {
   return keys
 }
 // 根据 key 查找节点
-const findNodeByKey = (columns: any[], key: string): any | null => {
+const findNodeByKey = (columns: Record<string, unknown>[], key: string): Record<string, unknown> | null => {
   for (const col of columns) {
     if (col.key === key) return col
     if (col.children) {
@@ -2948,6 +2950,6 @@ const calculateGroupHeaderMaxTextHeight = (
   )
 }
 
-export const isNumeric = (value: any): boolean => {
+export const isNumeric = (value: unknown): boolean => {
   return !isNaN(parseFloat(value)) && isFinite(value)
 }

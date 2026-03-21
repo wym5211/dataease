@@ -179,7 +179,7 @@ const initTableColumnWidth = () => {
   if (!COLUMN_WIDTH_TYPE.includes(props.chart.type)) {
     return
   }
-  let { xAxis, yAxis, customAttr } = JSON.parse(JSON.stringify(props.chart))
+  const { xAxis, yAxis, customAttr } = JSON.parse(JSON.stringify(props.chart))
   let allAxis = xAxis
   if (props.chart.type === 'table-normal') {
     allAxis = allAxis.concat(yAxis)
@@ -326,7 +326,7 @@ const heatMapTypeOptions = [
  */
 const mergeCell = computed(() => {
   if (COLUMN_WIDTH_TYPE.includes(props.chart.type)) {
-    let { customAttr } = JSON.parse(JSON.stringify(props.chart))
+    const { customAttr } = JSON.parse(JSON.stringify(props.chart))
     const { tableCell } = customAttr
     return tableCell.mergeCells
   }

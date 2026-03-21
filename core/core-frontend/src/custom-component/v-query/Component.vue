@@ -138,12 +138,12 @@ const btnStyle = computed(() => {
 })
 
 function rgbaTo16color(color) {
-  let val = color
+  const val = color
     .replace(/rgba?\(/, '')
     .replace(/\)/, '')
     .replace(/[\s+]/g, '')
     .split(',')
-  let a = parseFloat(val[3] || 1),
+  const a = parseFloat(val[3] || 1),
     r = Math.floor(a * parseInt(val[0]) + (1 - a) * 255),
     g = Math.floor(a * parseInt(val[1]) + (1 - a) * 255),
     b = Math.floor(a * parseInt(val[2]) + (1 - a) * 255)

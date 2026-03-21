@@ -33,7 +33,7 @@ export const usePermissionStore = defineStore('permission', {
     getIsAddRouters(): boolean {
       return this.isAddRouters
     },
-    getCurrentPath(): boolean {
+    getCurrentPath(): string {
       return this.currentPath
     }
   },

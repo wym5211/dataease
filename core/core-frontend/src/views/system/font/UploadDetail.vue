@@ -93,7 +93,7 @@ const onChange = file => {
 }
 
 const uploadFail = response => {
-  let myError = response.toString()
+  const myError = response.toString()
   myError.replace('Error: ', '')
 }
 

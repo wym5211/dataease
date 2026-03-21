@@ -2,13 +2,16 @@ import { i18n } from '@/plugins/vue-i18n'
 import { useLocaleStoreWithOut } from '@/store/modules/locale'
 import { setHtmlPageLang } from '@/plugins/vue-i18n/helper'
 import { PATH_URL } from '@/config/axios/service'
+import type { LocaleDropdownType } from 'types/localeDropdown'
+import type { WritableComputedRef } from 'vue'
+
 const setI18nLanguage = (locale: LocaleType) => {
   const localeStore = useLocaleStoreWithOut()
 
   if (i18n.mode === 'legacy') {
     i18n.global.locale = locale
   } else {
-    ;(i18n.global.locale as any).value = locale
+    ;(i18n.global.locale as WritableComputedRef<LocaleType>).value = locale
   }
   localeStore.setCurrentLocale({
     lang: locale
@@ -16,7 +19,12 @@ const setI18nLanguage = (locale: LocaleType) => {
   setHtmlPageLang(locale)
 }
 
-const loadRemoteI18n = async (option: any) => {
+interface RemoteI18nOption {
+  lang: string
+  name: string
+}
+
+const loadRemoteI18n = async (option: RemoteI18nOption) => {
   const name = option.lang.replace('-', '_')
   const path =
     PATH_URL.startsWith('./') && PATH_URL.length > 2
@@ -38,10 +46,13 @@ export const useLocale = () => {
       const localeStore = useLocaleStoreWithOut()
       const currentLocale = localeStore.getCurrentLocale
       const localeMap = await localeStore.getLocaleMap
-      const cMap: any = localeMap.find(item => {
+      const cMap: LocaleDropdownType | undefined = localeMap.find(item => {
         return item.lang === currentLocale.lang
       })
-      langModule = await loadRemoteI18n(cMap)
+      if (!cMap) {
+        throw new Error(`Locale not found: ${currentLocale.lang}`)
+      }
+      langModule = await loadRemoteI18n(cMap as RemoteI18nOption)
     }
     // const langModule = await import(`../../locales/${locale}.ts`)
 

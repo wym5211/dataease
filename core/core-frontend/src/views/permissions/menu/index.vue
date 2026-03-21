@@ -158,6 +158,21 @@ import { usePermissionStore } from '@/stores/permission'
 import { roleList as roleListApi } from '@/api/permissions/role'
 import type { MenuItem, RoleItem } from '@/stores/permission'
 
+interface RoleListResponse {
+  code?: number
+  data?: RoleItem[]
+  records?: RoleItem[]
+}
+
+interface BackendRole {
+  id: string | number
+  name: string
+  code?: string
+  roleAlias?: string
+  description?: string
+  createTime?: string
+}
+
 const permissionStore = usePermissionStore()
 
 // 本地状态：从数据库加载的角色列表
@@ -190,23 +205,31 @@ const menuTree = computed<MenuItem[]>(() => {
 onMounted(async () => {
   // 加载角色数据
   try {
-    const res = (await roleListApi({ page: 1, pageSize: 1000 })) as any
+    const res = (await roleListApi({ page: 1, pageSize: 1000 })) as RoleListResponse | RoleItem[]
 
     // 后端返回格式：{code: 0, data: [...]} 或直接是数组
     // 优先检查 data 字段，其次是 records，最后是直接数组
-    const roles = Array.isArray(res) ? res : res?.records || res?.data || []
+    const roles: BackendRole[] = Array.isArray(res)
+      ? res
+      : (res as RoleListResponse).records || (res as RoleListResponse).data || []
 
     // 适配后端返回的数据格式，将 Long 类型的 id 转换为 string
-    roleOptions.value = roles.map((role: any) => ({
+    roleOptions.value = roles.map((role: BackendRole) => ({
       id: String(role.id),
       name: role.name,
       code: role.code || role.roleAlias,
       description: role.description,
       createTime: role.createTime
     }))
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('加载角色列表失败:', error)
-    const errorMsg = error?.response?.data?.msg || error?.msg || error?.message || '未知错误'
+    const errorObj = error as {
+      response?: { data?: { msg?: string } }
+      msg?: string
+      message?: string
+    }
+    const errorMsg =
+      errorObj?.response?.data?.msg || errorObj?.msg || errorObj?.message || '未知错误'
     ElMessage.error(`加载角色列表失败: ${errorMsg}`)
   }
 
@@ -237,21 +260,17 @@ const handleSearch = () => {
 const handleTreeCheck = (data: MenuItem, checked: { checkedKeys: string[] }) => {
   // 直接根据当前的选中状态更新 store，避免依赖 watch 导致过滤时状态丢失
   const isChecked = checked.checkedKeys.includes(data.id)
-  console.log('[DEBUG] handleTreeCheck - id:', data.id, 'checked:', isChecked)
   permissionStore.updatePermission(data.id, isChecked)
 }
 
 const expandAll = () => {
-  console.log('[DEBUG] expandAll called')
   const keys = getAllNodeKeys(menuTree.value)
-  console.log('[DEBUG] Keys to expand:', keys)
   expandedKeys.value = [...keys]
-  console.log('[DEBUG] expandedKeys after:', expandedKeys.value)
   // 强制刷新 tree - 使用 Object.values 遍历
   nextTick(() => {
     const store = menuTreeRef.value?.store
     if (store?.nodesMap) {
-      Object.values(store.nodesMap).forEach((node: any) => {
+      Object.values(store.nodesMap).forEach((node: { isLeaf?: boolean; expanded: boolean }) => {
         if (node && !node.isLeaf) {
           node.expanded = true
         }
@@ -261,13 +280,12 @@ const expandAll = () => {
 }
 
 const collapseAll = () => {
-  console.log('[DEBUG] collapseAll called')
   expandedKeys.value = []
   // 强制刷新 tree - 使用 Object.values 遍历
   nextTick(() => {
     const store = menuTreeRef.value?.store
     if (store?.nodesMap) {
-      Object.values(store.nodesMap).forEach((node: any) => {
+      Object.values(store.nodesMap).forEach((node: { expanded: boolean }) => {
         if (node) {
           node.expanded = false
         }
@@ -314,13 +332,12 @@ const saveChanges = async () => {
       type: 'warning'
     })
 
-    console.log('[DEBUG] Saving changes for role:', selectedRole.value)
     await permissionStore.savePermissionChanges(selectedRole.value)
     ElMessage.success('权限保存成功')
-  } catch (error: any) {
-    console.error('[DEBUG] Save failed:', error)
+  } catch (error: unknown) {
     if (error !== 'cancel') {
-      ElMessage.error('权限保存失败: ' + (error.message || '未知错误'))
+      const errorMessage = error instanceof Error ? error.message : '未知错误'
+      ElMessage.error('权限保存失败: ' + errorMessage)
     }
   }
 }

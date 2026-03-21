@@ -55,7 +55,7 @@ import CreatDsGroup from './form/CreatDsGroup.vue'
 import type { Tree } from '../dataset/form/CreatDsGroup.vue'
 import { previewData, getById } from '@/api/datasource'
 import { useI18n } from '@/hooks/web/useI18n'
-import { useRoute, useRouter } from 'vue-router_2'
+import { useRoute, useRouter } from 'vue-router'
 import DatasetDetail from '@/views/visualized/data/dataset/DatasetDetail.vue'
 import { timestampFormatDate } from '@/views/visualized/data/dataset/form/util'
 import EmptyBackground from '@/components/empty-background/src/EmptyBackground.vue'
@@ -297,7 +297,7 @@ const handleLoadExcel = data => {
 }
 
 const validateDS = () => {
-  let nodeTmpInfo = reactive<Node>(cloneDeep(defaultInfo))
+  const nodeTmpInfo = reactive<Node>(cloneDeep(defaultInfo))
   Object.assign(nodeTmpInfo, cloneDeep(nodeInfo))
   validateById(nodeTmpInfo.id as number)
     .then(res => {
@@ -346,7 +346,7 @@ const formatSimpleCron = (info?: SyncSetting) => {
   if (endTime) {
     end = dayjs(new Date(endTime)).format('YYYY-MM-DD HH:mm:ss')
   }
-  let strArr = []
+  const strArr = []
   switch (syncRate) {
     case 'RIGHTNOW':
       strArr.push(t('dataset.execute_once'))
@@ -692,7 +692,7 @@ const handleNodeClick = data => {
     return
   }
   return getSimpleDs(data.id).then(res => {
-    let {
+    const {
       name,
       createBy,
       id,
@@ -700,16 +700,14 @@ const handleNodeClick = data => {
       creator,
       type,
       pid,
-      configuration,
       syncSetting,
-      apiConfigurationStr,
-      paramsStr,
       fileName,
       size,
       description,
       lastSyncTime,
       enableDataFill
     } = res.data
+    let { configuration, apiConfigurationStr, paramsStr } = res.data
     if (configuration) {
       configuration = JSON.parse(symmetricDecrypt(configuration, symmetricKey.value))
     }
@@ -829,10 +827,10 @@ const editDatasource = (editType?: number) => {
       return Promise.reject(error)
     })
     .then(res => {
-      let arr = pluginDs.value.filter(ele => {
+      const arr = pluginDs.value.filter(ele => {
         return ele.type == res.data.type
       })
-      let {
+      const {
         name,
         createBy,
         id,
@@ -840,16 +838,14 @@ const editDatasource = (editType?: number) => {
         creator,
         type,
         pid,
-        configuration,
         syncSetting,
-        apiConfigurationStr,
-        paramsStr,
         fileName,
         size,
         description,
         lastSyncTime,
         enableDataFill
       } = res.data
+      let { configuration, apiConfigurationStr, paramsStr } = res.data
       if (configuration) {
         configuration = JSON.parse(symmetricDecrypt(configuration, symmetricKey.value))
       }
@@ -859,7 +855,7 @@ const editDatasource = (editType?: number) => {
       if (apiConfigurationStr) {
         apiConfigurationStr = JSON.parse(symmetricDecrypt(apiConfigurationStr, symmetricKey.value))
       }
-      let datasource = reactive<Node>(cloneDeep(defaultInfo))
+      const datasource = reactive<Node>(cloneDeep(defaultInfo))
       Object.assign(datasource, {
         name,
         pid,
@@ -904,7 +900,7 @@ const { handleDrop, allowDrop, handleDragStart } = treeDraggble(
 
 const handleCopy = async data => {
   getById(data.id).then(res => {
-    let {
+    const {
       name,
       createBy,
       id,
@@ -912,17 +908,15 @@ const handleCopy = async data => {
       creator,
       type,
       pid,
-      configuration,
       syncSetting,
-      apiConfigurationStr,
-      paramsStr,
       fileName,
       size,
       description,
       lastSyncTime,
       enableDataFill
     } = res.data
-    let arr = pluginDs.value.filter(ele => {
+    let { configuration, apiConfigurationStr, paramsStr } = res.data
+    const arr = pluginDs.value.filter(ele => {
       return ele.type == res.data.type
     })
     if (configuration) {
@@ -934,7 +928,7 @@ const handleCopy = async data => {
     if (apiConfigurationStr) {
       apiConfigurationStr = JSON.parse(symmetricDecrypt(apiConfigurationStr, symmetricKey.value))
     }
-    let datasource = reactive<Node>(cloneDeep(defaultInfo))
+    const datasource = reactive<Node>(cloneDeep(defaultInfo))
     Object.assign(datasource, {
       name,
       pid,
@@ -990,7 +984,7 @@ const operation = (cmd: string, data: Tree, nodeType: string) => {
     return
   }
   if (cmd === 'delete') {
-    let options = {
+    const options = {
       confirmButtonText: t('common.sure'),
       cancelButtonText: t('common.cancel'),
       confirmButtonType: 'danger',
@@ -1080,7 +1074,8 @@ const handleClick = (tabName: TabPaneName) => {
       tableData.value = []
       if (nodeInfo.type.startsWith('Excel')) {
         listDatasourceTables({ datasourceId: nodeInfo.id }).then(res => {
-          tabList.value = res.data.map(ele => {
+          const datasourceTables = Array.isArray(res.data) ? res.data : []
+          tabList.value = datasourceTables.map(ele => {
             const { name, tableName } = ele
             return {
               value: name,
@@ -1091,30 +1086,31 @@ const handleClick = (tabName: TabPaneName) => {
             activeTab.value = tabList.value[0].value
             handleTabClick(activeTab)
           }
-          tableData.value = res.data
+          tableData.value = datasourceTables
         })
       }
       break
     case 'table':
       tableData.value = []
       listDatasourceTables({ datasourceId: nodeInfo.id }).then(res => {
-        tableData.value = res.data
+        tableData.value = Array.isArray(res.data) ? res.data : []
         initSearch()
         if (nodeInfo.type.startsWith('API') || nodeInfo.type === 'ExcelRemote') {
           getTableStatus({ datasourceId: nodeInfo.id }).then(res => {
+            const tableStatusList = Array.isArray(res.data) ? res.data : []
             for (let i = 0; i < state.filterTable.length; i++) {
-              for (let j = 0; j < res.data.length; j++) {
-                if (state.filterTable[i].tableName === res.data[j].tableName) {
-                  state.filterTable[i].lastUpdateTime = res.data[j].lastUpdateTime
-                  state.filterTable[i].status = res.data[j].status
+              for (let j = 0; j < tableStatusList.length; j++) {
+                if (state.filterTable[i].tableName === tableStatusList[j].tableName) {
+                  state.filterTable[i].lastUpdateTime = tableStatusList[j].lastUpdateTime
+                  state.filterTable[i].status = tableStatusList[j].status
                 }
               }
             }
             for (let i = 0; i < tableData.value.length; i++) {
-              for (let j = 0; j < res.data.length; j++) {
-                if (tableData.value[i].tableName === res.data[j].tableName) {
-                  tableData.value[i].lastUpdateTime = res.data[j].lastUpdateTime
-                  tableData.value[i].status = res.data[j].status
+              for (let j = 0; j < tableStatusList.length; j++) {
+                if (tableData.value[i].tableName === tableStatusList[j].tableName) {
+                  tableData.value[i].lastUpdateTime = tableStatusList[j].lastUpdateTime
+                  tableData.value[i].status = tableStatusList[j].status
                 }
               }
             }

@@ -11,9 +11,14 @@
 import { toRefs } from 'vue'
 import { imgUrlTrans } from '@/utils/imgUtils'
 
+interface UrlInfo {
+  url: string
+  name: string
+}
+
 const props = withDefaults(
   defineProps<{
-    urlInfo: any
+    urlInfo: UrlInfo
     active: boolean
   }>(),
   {}

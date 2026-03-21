@@ -34,11 +34,11 @@ const props = defineProps({
   }
 })
 
-const quotaFields = computed<Array<any>>(() => {
+const quotaFields = computed<ChartViewField[]>(() => {
   return props.quotaData.filter(ele => ele.summary !== '' && ele.id !== '-1')
 })
 
-const quotaExtFields = computed<Array<any>>(() => {
+const quotaExtFields = computed<ChartViewField[]>(() => {
   return props.quotaExtData.filter(ele => ele.summary !== '' && ele.id !== '-1')
 })
 

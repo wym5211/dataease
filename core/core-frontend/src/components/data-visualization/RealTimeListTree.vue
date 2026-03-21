@@ -154,7 +154,7 @@ const shiftDataPush = curClickIndex => {
   dvMainStore.setCurComponent({ component: null, index: null })
 }
 
-const hiddenAreaOnClick = (e, element) => {
+const hiddenAreaOnClick = element => {
   let indexResult
   componentData.value.forEach((component, index) => {
     if (element.id === component.id) {
@@ -192,6 +192,9 @@ const onClick = (e, index) => {
   setCurComponent(index)
   composeStore.setLaterIndex(index)
 }
+const getPropValueArray = component => {
+  return Array.isArray(component?.propValue) ? component.propValue : []
+}
 const setCurComponent = index => {
   dvMainStore.setCurComponent({ component: componentData.value[index], index })
 }
@@ -200,10 +203,10 @@ const expandClick = component => {
   component['expand'] = !component['expand']
 }
 
-let nameEdit = ref(false)
-let editComponentId = ref('')
-let inputName = ref('')
-let nameInput = ref(null)
+const nameEdit = ref(false)
+const editComponentId = ref('')
+const inputName = ref('')
+const nameInput = ref(null)
 let curEditComponent = null
 const editComponentName = item => {
   curEditComponent = curComponent.value
@@ -447,7 +450,7 @@ const canvasChange = () => {
                     (curComponent && curComponent?.id === element?.id) ||
                     areaData.components.includes(element)
                 }"
-                @click="hiddenAreaOnClick($event, element)"
+                @click="hiddenAreaOnClick(element)"
               >
                 <div style="width: 22px; padding-left: 3px"></div>
                 <el-icon class="component-icon">
@@ -474,10 +477,7 @@ const canvasChange = () => {
                     effect="dark"
                     :hide-timeout="0"
                   >
-                    <span
-                      :class="'dropdownMore-' + index"
-                      @click="hiddenAreaOnClick($event, element)"
-                    >
+                    <span :class="'dropdownMore-' + index" @click="hiddenAreaOnClick(element)">
                       <el-icon class="component-base">
                         <Icon name="dv-more"><dvMore class="svg-icon opt-icon" /></Icon>
                       </el-icon>
@@ -599,7 +599,10 @@ const canvasChange = () => {
                     effect="dark"
                     :hide-timeout="0"
                   >
-                    <span :class="'dropdownMore-' + index" @click="onClick(transformIndex(index))">
+                    <span
+                      :class="'dropdownMore-' + index"
+                      @click="onClick($event, transformIndex(index))"
+                    >
                       <el-icon class="component-base">
                         <Icon name="dv-more"><dvMore class="svg-icon opt-icon" /></Icon>
                       </el-icon>
@@ -633,14 +636,16 @@ const canvasChange = () => {
                 </el-dropdown>
               </div>
               <div v-if="getComponent(index)?.component === 'Group' && getComponent(index)?.expand">
-                <real-time-group :component-data="getComponent(index).propValue"></real-time-group>
+                <real-time-group
+                  :component-data="getPropValueArray(getComponent(index))"
+                ></real-time-group>
               </div>
               <div
                 v-if="getComponent(index)?.component === 'DeTabs' && getComponent(index)?.expand"
               >
                 <real-time-tab
                   :tab-element="getComponent(index)"
-                  :component-data="getComponent(index).propValue"
+                  :component-data="getPropValueArray(getComponent(index))"
                 ></real-time-tab>
               </div>
             </div>

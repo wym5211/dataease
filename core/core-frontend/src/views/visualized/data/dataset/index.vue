@@ -48,7 +48,7 @@ import {
 import { HandleMore } from '@/components/handle-more'
 import { Icon } from '@/components/icon-custom'
 import { useMoveLine } from '@/hooks/web/useMoveLine'
-import { useRouter, useRoute } from 'vue-router_2'
+import { useRouter, useRoute } from 'vue-router'
 import CreatDsGroup from './form/CreatDsGroup.vue'
 import type { BusiTreeNode, BusiTreeRequest } from '@/models/tree/TreeNode'
 import {
@@ -695,7 +695,7 @@ const operation = (cmd: string, data: BusiTreeNode, nodeType: string) => {
     return
   }
   if (cmd === 'delete') {
-    let options = {
+    const options = {
       confirmButtonType: 'danger',
       type: 'warning',
       autofocus: false,

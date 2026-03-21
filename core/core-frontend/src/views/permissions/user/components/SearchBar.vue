@@ -54,9 +54,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { Search } from '@element-plus/icons-vue'
-import { getUserOptions } from '../api'
 import type { Role } from '../types'
 
 interface SearchForm {

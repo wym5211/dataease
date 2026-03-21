@@ -47,7 +47,7 @@ const beforeClose = () => {
   dialogFormVisible.value = false
 }
 const emits = defineEmits(['saveTime'])
-const formatValue = (val: any) => {
+const formatValue = (val: Date | string) => {
   if (!val) return ''
   return dayjs(val).format(formatMap[form.type])
 }

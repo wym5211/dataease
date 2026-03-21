@@ -141,7 +141,7 @@ const hanedleMessage = event => {
     componentData.value.forEach(ele => {
       const com = event.data.value[ele.id]
       if (!!com) {
-        const { x, y, sizeX, sizeY, style, propValue, events, commonBackground } = com
+        const { x, y, sizeX, sizeY, style, propValue: _propValue, events, commonBackground } = com
         ele.mx = x
         ele.my = y
         ele.mSizeX = sizeX
@@ -154,7 +154,6 @@ const hanedleMessage = event => {
             tabItem.componentData?.forEach(tabComponent => {
               const {
                 style: tStyle,
-                propValue: tPropValue,
                 events: tEvents,
                 commonBackground: tCommonBackground
               } = com.tab[tabComponent.id]

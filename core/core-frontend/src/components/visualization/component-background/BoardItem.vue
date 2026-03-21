@@ -19,10 +19,11 @@
 <script setup lang="ts">
 import { iconBoardMap } from '@/components/icon-group/board-list'
 import { toRefs } from 'vue'
+import type { BoardItemData } from './Types'
 
 const props = withDefaults(
   defineProps<{
-    item: any
+    item: BoardItemData
     active: boolean
     themes?: EditorTheme
     innerImageColor: string
@@ -34,7 +35,7 @@ const props = withDefaults(
 
 const { item, innerImageColor, active, themes } = toRefs(props)
 
-const mainIconClass = itemUrl => {
+const mainIconClass = (itemUrl: BoardItemData): string => {
   return itemUrl.url.replace('board/', '').replace('.svg', '')
 }
 </script>

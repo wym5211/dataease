@@ -252,7 +252,7 @@ const permissionStore = usePermissionStore()
 const router = useRouter()
 
 // 直接使用 store 的计算属性（在模板中自动解包）
-const roleList = computed(() => permissionStore.roleList as any)
+const roleList = computed(() => permissionStore.roleList as RoleItem[])
 const hasChanges = computed(() => Boolean(permissionStore.hasAnyChanges))
 const changeSummary = computed(() => permissionStore.changeSummary)
 
@@ -288,11 +288,11 @@ const resourceTypeLabel = computed(() => {
 
 const relatedMenus = computed(() => {
   if (!selectedNode.value) return []
-  const getRelatedMenus = (permissionStore as any).getRelatedMenus
-  if (typeof getRelatedMenus !== 'function') {
+  const store = permissionStore as { getRelatedMenus?: (id: string) => ResourceItem[] }
+  if (typeof store.getRelatedMenus !== 'function') {
     return []
   }
-  return getRelatedMenus(selectedNode.value.id) || []
+  return store.getRelatedMenus(selectedNode.value.id) || []
 })
 
 const treeProps = {
@@ -334,7 +334,7 @@ const filterNode = (value: string, data: ResourceItem) => {
   return data.name.toLowerCase().includes(value.toLowerCase())
 }
 
-const handleCheckChange = (data: ResourceItem, checkedInfo: any) => {
+const handleCheckChange = (data: ResourceItem, checkedInfo: { checkedKeys: string[] }) => {
   if (!checkedInfo || !Array.isArray(checkedInfo.checkedKeys)) {
     return
   }
@@ -430,8 +430,17 @@ const formatDate = (value?: string | number): string => {
   return date.toLocaleString('zh-CN')
 }
 
+interface TreeNode {
+  level: number
+  expanded: boolean
+  isLeaf?: boolean
+}
+
 const setTreeExpandedState = (expanded: boolean) => {
-  const treeInstance = resourceTreeRef.value as any
+  const treeInstance = resourceTreeRef.value as {
+    setExpandedKeys?: (keys: string[]) => void
+    store?: { nodesMap: Record<string, TreeNode> }
+  }
   const setExpandedKeys = treeInstance?.setExpandedKeys
   if (typeof setExpandedKeys === 'function') {
     const expandedKeys = expanded ? getAllNodeKeys(resourceTree.value) : []
@@ -439,7 +448,7 @@ const setTreeExpandedState = (expanded: boolean) => {
     return
   }
   const nodesMap = treeInstance?.store?.nodesMap || {}
-  Object.values(nodesMap).forEach((node: any) => {
+  Object.values(nodesMap).forEach((node: TreeNode) => {
     if (node && node.level > 0) {
       node.expanded = expanded
     }

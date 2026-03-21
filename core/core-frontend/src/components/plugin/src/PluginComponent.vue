@@ -33,7 +33,14 @@ const generateRamStr = (len: number) => {
   return randomStr
 }
 
-const importProxy = (bytesArray: any[]) => {
+import type { Component } from 'vue'
+
+interface VueComponent {
+  default: Component
+  __esModule?: boolean
+}
+
+const importProxy = (bytesArray: number[][]) => {
   const promise = import(
     `../../../../../../../extensions/${formatArray(bytesArray[8])}/${formatArray(
       bytesArray[9]
@@ -42,7 +49,7 @@ const importProxy = (bytesArray: any[]) => {
     )}.vue`
   )
   promise
-    .then((res: any) => {
+    .then((res: VueComponent) => {
       plugin.value = res.default
     })
     .catch(e => {
@@ -69,7 +76,7 @@ const loadComponent = () => {
   const saltKey = `${key},${moduleNameKey}`
   loadPluginApi(saltKey)
     .then(response => {
-      let code = response.data
+      const code = response.data
       const byteArray = execute(code, key)
       storeCacheProxy(byteArray)
       importProxy(byteArray)
@@ -82,8 +89,8 @@ const loadComponent = () => {
       loading.value = false
     })
 }
-const storeCacheProxy = byteArray => {
-  const result = []
+const storeCacheProxy = (byteArray: number[][]) => {
+  const result: number[][] = []
   byteArray.forEach(item => {
     result.push([...item])
   })

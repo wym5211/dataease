@@ -6,11 +6,7 @@
       type="file"
       accept=".jpeg,.jpg,.png,.gif,.svg"
       hidden
-      @click="
-        e => {
-          e.target.value = ''
-        }
-      "
+      @click="onInputClick"
       @change="reUpload"
     />
     <el-form size="small" label-position="top" style="width: 100%">
@@ -402,7 +398,7 @@
 <script setup lang="ts">
 import { queryVisualizationBackground } from '@/api/visualization/visualizationBackground'
 import { COLOR_PANEL } from '@/views/chart/components/editor/util/chart'
-import { computed, effect, nextTick, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { imgUrlTrans } from '@/utils/imgUtils'
 import { snapshotStoreWithOut } from '@/store/modules/data-visualization/snapshot'
 import { beforeUploadCheck, uploadFileResult } from '@/api/staticResource'
@@ -410,6 +406,7 @@ import { useI18n } from '@/hooks/web/useI18n'
 import { deepCopy } from '@/utils/utils'
 import elementResizeDetectorMaker from 'element-resize-detector'
 import { ElMessage } from 'element-plus-secondary'
+import type { UploadFile } from 'element-plus-secondary'
 import BoardItem from '@/components/visualization/component-background/BoardItem.vue'
 import ImgViewDialog from '@/custom-component/ImgViewDialog.vue'
 import BorderOptionPrefix from '@/components/visualization/component-background/BorderOptionPrefix.vue'
@@ -424,7 +421,7 @@ const props = withDefaults(
     componentPosition?: string
     editPosition?: string
     themes?: EditorTheme
-    commonBackgroundPop: any
+    commonBackgroundPop: CommonBackground
     backgroundColorPickerWidth?: number
     backgroundBorderSelectWidth?: number
   }>(),
@@ -437,7 +434,7 @@ const props = withDefaults(
   }
 )
 
-import { State } from '@/components/visualization/component-background/Types'
+import { State, CommonBackground } from '@/components/visualization/component-background/Types'
 import { ShorthandMode } from '@/Types'
 
 const state = reactive<State>({
@@ -474,6 +471,22 @@ const sizeMessage = () => {
   ElMessage.error('图片大小不能超过15M')
 }
 
+const onInputClick = (e: MouseEvent) => {
+  const target = e.target as HTMLInputElement | null
+  if (target) {
+    target.value = ''
+  }
+}
+
+const createUploadFile = (url: string): UploadFile => {
+  return {
+    name: 'background',
+    status: 'success',
+    uid: Date.now(),
+    url
+  }
+}
+
 const reUpload = e => {
   const file = e.target.files[0]
   if (file.size > maxImageSize) {
@@ -482,7 +495,7 @@ const reUpload = e => {
   }
   uploadFileResult(file, fileUrl => {
     state.commonBackground.outerImage = fileUrl
-    state.fileList = [{ url: imgUrlTrans(state.commonBackground.outerImage) }]
+    state.fileList = [createUploadFile(imgUrlTrans(state.commonBackground.outerImage))]
     onBackgroundChange()
   })
 }
@@ -519,7 +532,7 @@ const init = () => {
   updateInnerPadding()
   updateBorderRadius()
   if (state.commonBackground.outerImage) {
-    state.fileList = [{ url: imgUrlTrans(state.commonBackground.outerImage) }]
+    state.fileList = [createUploadFile(imgUrlTrans(state.commonBackground.outerImage))]
   } else {
     state.fileList = []
   }

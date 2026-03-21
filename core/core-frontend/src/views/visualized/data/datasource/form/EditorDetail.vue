@@ -26,7 +26,6 @@ import Cron from '@/components/cron/src/Cron.vue'
 import { ComponentPublicInstance } from 'vue'
 import { XpackComponent } from '@/components/plugin'
 import { iconFieldMap } from '@/components/icon-group/field-list'
-import { boolean } from 'mathjs'
 const { t } = useI18n()
 const prop = defineProps({
   form: {
@@ -58,11 +57,11 @@ const prop = defineProps({
     type: Number
   },
   isSupportSetKey: {
-    type: boolean,
+    type: Boolean,
     required: true
   },
   pluginDs: {
-    type: [],
+    type: Array,
     required: true
   },
   pluginIndex: {
@@ -70,7 +69,7 @@ const prop = defineProps({
     required: true
   },
   isPlugin: {
-    type: boolean,
+    type: Boolean,
     required: true
   }
 })
@@ -202,28 +201,30 @@ const authMethodList = [
   }
 ]
 
-const validateSshHost = (_: any, value: any, callback: any) => {
+type ValidateCallback = (error?: Error) => void
+
+const validateSshHost = (_: unknown, value: string, callback: ValidateCallback) => {
   if ((value === undefined || value === null || value === '') && form.value.configuration.useSSH) {
     callback(new Error(t('data_source.cannot_be_empty')))
   }
   return callback()
 }
 
-const validateSshPort = (_: any, value: any, callback: any) => {
+const validateSshPort = (_: unknown, value: string, callback: ValidateCallback) => {
   if ((value === undefined || value === null || value === '') && form.value.configuration.useSSH) {
     callback(new Error(t('data_source.cannot_be_empty_de')))
   }
   return callback()
 }
 
-const validateSshUserName = (_: any, value: any, callback: any) => {
+const validateSshUserName = (_: unknown, value: string, callback: ValidateCallback) => {
   if ((value === undefined || value === null || value === '') && form.value.configuration.useSSH) {
     callback(new Error(t('data_source.cannot_be_empty_de_name')))
   }
   return callback()
 }
 
-const validateSshPassword = (_: any, value: any, callback: any) => {
+const validateSshPassword = (_: unknown, value: string, callback: ValidateCallback) => {
   if (
     (value === undefined || value === null || value === '') &&
     form.value.configuration.useSSH &&
@@ -234,7 +235,7 @@ const validateSshPassword = (_: any, value: any, callback: any) => {
   return callback()
 }
 
-const validateSshkey = (_: any, value: any, callback: any) => {
+const validateSshkey = (_: unknown, value: string, callback: ValidateCallback) => {
   if (
     (value === null || value === '' || value === undefined) &&
     form.value.configuration.useSSH &&
@@ -429,11 +430,11 @@ const addApiItem = item => {
   } else {
     apiItem = cloneDeep(defaultApiItem)
     apiItem.type = activeName.value
-    let serialNumber1 =
+    const serialNumber1 =
       form.value.apiConfiguration.length > 0
         ? form.value.apiConfiguration[form.value.apiConfiguration.length - 1].serialNumber + 1
         : 0
-    let serialNumber2 =
+    const serialNumber2 =
       form.value.paramsConfiguration && form.value.paramsConfiguration.length > 0
         ? form.value.paramsConfiguration[form.value.paramsConfiguration.length - 1].serialNumber + 1
         : 0

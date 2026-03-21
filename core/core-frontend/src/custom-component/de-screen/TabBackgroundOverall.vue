@@ -6,10 +6,20 @@ const emits = defineEmits(['onTitleBackgroundChange'])
 const { t } = useI18n()
 const activeName = ref('activeBackground')
 
+interface TabTitleBackground {
+  active: Record<string, unknown>
+  inActive: Record<string, unknown>
+  multiply: boolean
+}
+
+interface TabElement {
+  titleBackground: TabTitleBackground
+}
+
 const props = withDefaults(
   defineProps<{
     themes?: EditorTheme
-    element: any
+    element: TabElement
   }>(),
   {
     showStyle: true,
@@ -19,7 +29,10 @@ const props = withDefaults(
 
 const { element } = toRefs(props)
 
-const onTitleBackgroundChange = (params, paramsName) => {
+const onTitleBackgroundChange = (
+  params: Record<string, unknown> | null,
+  paramsName: 'active' | 'inActive' | null
+) => {
   // do change
   if (params) {
     element.value.titleBackground[paramsName] = params

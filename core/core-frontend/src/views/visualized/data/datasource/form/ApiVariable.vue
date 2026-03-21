@@ -14,6 +14,7 @@ export interface Item {
   value: string
   description: string
   type: string
+  originName?: string
 }
 const props = defineProps({
   keyPlaceholder: propTypes.string.def(''),
@@ -21,6 +22,7 @@ const props = defineProps({
   description: propTypes.string.def(''),
   type: propTypes.string.def(''),
   isReadOnly: propTypes.bool.def(false),
+  needMock: propTypes.bool.def(false),
   parameters: {
     type: Array as PropType<Item[]>,
     default: () => []
@@ -38,9 +40,6 @@ const props = defineProps({
 const { t } = useI18n()
 const keyText = computed(() => {
   return props.keyPlaceholder || t('datasource.key')
-})
-const valueText = computed(() => {
-  return props.valuePlaceholder || t('datasource.value')
 })
 
 const { parameters, suggestions } = toRefs(props)
@@ -103,7 +102,7 @@ const createFilter = (queryString: string) => {
 const changeNameType = element => {
   element.value = ''
 }
-const activeName = inject('api-active-name')
+inject('api-active-name')
 const options = [
   {
     label: t('data_source.parameter'),
@@ -183,7 +182,7 @@ const timeFunLists = [
                     v-model="element.type"
                     :disabled="isReadOnly"
                     class="kv-type"
-                    @change="typeChange(item)"
+                    @change="typeChange(element)"
                   >
                     <el-option value="text" />
                     <el-option value="json" />
@@ -218,9 +217,9 @@ const timeFunLists = [
               >
                 <el-option
                   v-for="item in valueList"
-                  :key="item.originName"
+                  :key="item.originName || item.value"
                   :label="item.name"
-                  :value="item.originName"
+                  :value="item.originName || item.value"
                 />
               </el-select>
               <el-select
@@ -230,7 +229,7 @@ const timeFunLists = [
               >
                 <el-option
                   v-for="item in timeFunLists"
-                  :key="item.originName"
+                  :key="item.value"
                   :label="item.label"
                   :value="item.value"
                 />
@@ -242,7 +241,7 @@ const timeFunLists = [
               >
                 <el-option
                   v-for="item in pageParams"
-                  :key="item.originName"
+                  :key="item.value"
                   :label="item.label"
                   :value="item.value"
                 />

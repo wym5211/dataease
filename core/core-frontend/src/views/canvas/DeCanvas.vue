@@ -191,8 +191,8 @@ const scaleInit = () => {
   nextTick(() => {
     if (canvasOut.value) {
       //div容器获取tableBox.value.clientWidth
-      let canvasWidth = canvasOut.value.clientWidth
-      let canvasHeight = canvasOut.value.clientHeight
+      const canvasWidth = canvasOut.value.clientWidth
+      const canvasHeight = canvasOut.value.clientHeight
       scaleWidth.value = Math.floor((canvasWidth * 100) / canvasStyleData.value.width)
       scaleHeight.value = Math.floor((canvasHeight * 100) / canvasStyleData.value.height)
       scaleMin.value = Math.min(scaleWidth.value, scaleHeight.value)

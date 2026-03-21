@@ -105,7 +105,7 @@ const setLayOut = () => {
   svgHeight.value = `${shadowHeight * 24 + (shadowHeight + 1) * 32 + 48}px`
 }
 const dfsNodeList = computed(() => {
-  let nodeListLocation = []
+  const nodeListLocation = []
   shadowWidth = 0
   shadowHeight = 0
   dfsNode(state.nodeList, nodeListLocation)
@@ -382,7 +382,7 @@ const delUpdateDsFieldsFake = (id, arr: Node[]) => {
 const confirmEditUnion = () => {
   delUpdateDsFieldsFake(currentNode.value.id, state.nodeList)
   const currentIds = currentNode.value.currentDsFields.map(ele => ele.id)
-  let ids = fakeDelId.filter(ele => !currentIds.includes(ele))
+  const ids = fakeDelId.filter(ele => !currentIds.includes(ele))
   fakeDelId = []
   if (!!ids.length) {
     const idArr = allfields.value.reduce((pre, next) => {
@@ -614,7 +614,7 @@ function elementInteractArea(pos1, pos2) {
 }
 
 const possibleNodeAreaList = computed(() => {
-  let flatArr = []
+  const flatArr = []
   leafNode(dfsNodeList.value, flatArr)
   return flatArr.filter(ele => !ele.isShadow)
 })
@@ -623,7 +623,7 @@ const leafNode = (arr, leafList) => {
   arr.forEach((ele, index) => {
     const fromX = ele.x * 300 + 24
     const fromY = ele.y * 56 + 24
-    let toX = fromX + 200
+    const toX = fromX + 200
     let toY = fromY + 56
     const next = arr[index + 1]
     if (next) {
@@ -647,7 +647,7 @@ const leafNode = (arr, leafList) => {
 }
 
 const flatNodeList = computed(() => {
-  let flatArr = []
+  const flatArr = []
   flatNode(dfsNodeList.value, flatArr)
   return flatArr
 })
@@ -662,7 +662,7 @@ const flatNode = (arr, flatNodeList) => {
 }
 
 const flatPathList = computed(() => {
-  let flatArr = []
+  const flatArr = []
   const [root = {}] = dfsNodeList.value
   flatLine(root, flatArr)
   return flatArr
@@ -814,7 +814,7 @@ const dragover_handler = ev => {
     return
   }
 
-  let resultList = possibleNodeAreaList.value.map(ele => {
+  const resultList = possibleNodeAreaList.value.map(ele => {
     const { fromX, fromY, toX, toY, isLeaf = false, tableName } = ele
     return [
       elementInteractArea(
@@ -858,7 +858,7 @@ const dragover_handler = ev => {
     return max ? pre : next
   })
 
-  let maxArr = resultList[maxIndex]
+  const maxArr = resultList[maxIndex]
 
   if (Array.isArray(state.visualNodeParent?.children)) {
     const shadowIndex = state.visualNodeParent.children.findIndex(ele => ele.isShadow)
@@ -883,7 +883,7 @@ const dragenter_handler = ev => {
 
 const drop_handler = ev => {
   ev.preventDefault()
-  let data = ev.dataTransfer.getData('text')
+  const data = ev.dataTransfer.getData('text')
   const { tableName, type, datasourceId, name: noteName } = JSON.parse(data) as Table
   const extraData = {
     info: JSON.stringify({

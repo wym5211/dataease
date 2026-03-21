@@ -21,11 +21,16 @@ const { wsCache } = useCache('localStorage')
 const userStore = useUserStoreWithOut()
 const { t } = useI18n()
 
+interface StateObj {
+  datasetTree?: Tree[]
+  [key: string]: unknown
+}
+
 const props = withDefaults(
   defineProps<{
     themes?: EditorTheme
     modelValue?: string | number
-    stateObj: any
+    stateObj: StateObj
     disabled?: boolean
     viewId: string
     sourceType?: string

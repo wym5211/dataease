@@ -17,7 +17,7 @@ import { Icon } from '@/components/icon-custom'
 
 const props = withDefaults(
   defineProps<{
-    url: any
+    url: string
     innerImageColor: string
   }>(),
   {}
@@ -25,7 +25,7 @@ const props = withDefaults(
 
 const { innerImageColor } = toRefs(props)
 
-const mainIconClass = url => {
+const mainIconClass = (url: string): string => {
   return url.replace('board/', '').replace('.svg', '')
 }
 </script>

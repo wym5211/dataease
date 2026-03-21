@@ -26,7 +26,10 @@ const props = defineProps({
 
 const activeName = ref('left')
 
-const state = reactive<any>({
+const state = reactive<{
+  axisForm: ChartAxisStyle
+  subAxisForm: ChartAxisStyle
+}>({
   axisForm: JSON.parse(JSON.stringify(DEFAULT_YAXIS_STYLE)),
   subAxisForm: JSON.parse(JSON.stringify(DEFAULT_YAXIS_EXT_STYLE))
 })

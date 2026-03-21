@@ -1,6 +1,6 @@
 import request from '@/config/axios'
 
-export const getTaskLogListApi = (current: number, size: number, data: any) => {
+export const getTaskLogListApi = (current: number, size: number, data: Record<string, unknown>) => {
   return request.post({
     url: `/sync/task/log/pager/${current}/${size}`,
     data: data

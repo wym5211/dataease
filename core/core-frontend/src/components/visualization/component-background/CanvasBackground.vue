@@ -6,11 +6,7 @@
       type="file"
       accept=".jpeg,.jpg,.png,.gif,.svg"
       hidden
-      @click="
-        e => {
-          e.target.value = ''
-        }
-      "
+      @click="onInputClick"
       @change="reUpload"
     />
     <el-form size="small" label-position="top" style="width: 100%; margin-bottom: 16px">
@@ -191,11 +187,19 @@ const state = reactive({
   predefineColors: COLOR_PANEL
 })
 
+interface WatermarkInfo {
+  settingContent?: {
+    enable?: boolean
+    enablePanelCustom?: boolean
+  }
+}
+
 const showWatermarkSetting = computed(() => {
+  const watermarkInfo = (dvInfo.value as { watermarkInfo?: WatermarkInfo }).watermarkInfo
   return (
-    dvInfo.value.watermarkInfo &&
-    dvInfo.value.watermarkInfo?.settingContent?.enable &&
-    dvInfo.value.watermarkInfo?.settingContent?.enablePanelCustom
+    watermarkInfo &&
+    watermarkInfo?.settingContent?.enable &&
+    watermarkInfo?.settingContent?.enablePanelCustom
   )
 })
 
@@ -205,6 +209,13 @@ const goFile = () => {
 
 const sizeMessage = () => {
   ElMessage.success(t('visualization.pic_size_error'))
+}
+
+const onInputClick = (e: MouseEvent) => {
+  const target = e.target as HTMLInputElement | null
+  if (target) {
+    target.value = ''
+  }
 }
 
 const reUpload = e => {

@@ -7,9 +7,13 @@ import request from '@/config/axios'
 import dvInfo from '@/assets/svg/dv-info.svg'
 const { t } = useI18n()
 
+interface LabelTooltip {
+  key: string
+  val: string
+}
 const props = defineProps({
   labelTooltips: {
-    type: Array as PropType<any[]>,
+    type: Array as PropType<LabelTooltip[]>,
     default: () => []
   }
 })

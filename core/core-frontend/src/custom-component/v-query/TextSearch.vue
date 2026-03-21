@@ -121,7 +121,11 @@ const lineWidth = computed(() => {
   return { width: getCustomWidth() - 15 + 'px', background: customStyle.border }
 })
 
-const handleKeyEnter = ($event: any = {}) => {
+interface KeyboardEventLike {
+  isComposing?: boolean
+}
+
+const handleKeyEnter = ($event: KeyboardEventLike = {}) => {
   if ($event?.isComposing) {
     return
   }
@@ -170,7 +174,7 @@ onBeforeUnmount(() => {
         :placeholder="placeholderText"
         @blur="handleValueChange"
         ref="pre"
-        @keydown.enter.exact.prevent="($event: any) => handleKeyEnter($event)"
+        @keydown.enter.exact.prevent="($event: KeyboardEvent) => handleKeyEnter($event)"
         class="condition-value-input"
         v-model="config.conditionValueF"
       />
@@ -196,7 +200,7 @@ onBeforeUnmount(() => {
         @blur="handleValueChange"
         ref="next"
         :placeholder="placeholderText"
-        @keydown.enter.exact.prevent="($event: any) => handleKeyEnter($event)"
+        @keydown.enter.exact.prevent="($event: KeyboardEvent) => handleKeyEnter($event)"
         class="condition-value-input"
         v-model="config.conditionValueS"
       />

@@ -36,7 +36,7 @@ interface AppearanceState {
   showDemoTips?: boolean
   demoTipsContent?: string
   community: boolean
-  fontList: Array<{ name: string; id: string; isDefault: boolean }>
+  fontList: Array<{ name: string; id: string; isDefault: boolean; fileTransName?: string }>
 }
 const { wsCache } = useCache()
 export const useAppearanceStore = defineStore('appearanceStore', {
@@ -165,7 +165,7 @@ export const useAppearanceStore = defineStore('appearanceStore', {
       const res = await list()
       this.fontList = res || []
     },
-    setCurrentFont(name) {
+    setCurrentFont(name: string) {
       const currentFont = this.fontList.find(ele => ele.name === name)
       if (currentFont) {
         let fontStyleElement = document.querySelector(`[id="de-custom_font${name}"]`)
@@ -257,7 +257,7 @@ export const useAppearanceStore = defineStore('appearanceStore', {
         }
         return
       }
-      const data: AppearanceState = { loaded: false, community: true }
+      const data: AppearanceState = { loaded: false, community: true, fontList: [] }
       let isCommunity = false
       resData.forEach(item => {
         data[item.pkey] = item.pval

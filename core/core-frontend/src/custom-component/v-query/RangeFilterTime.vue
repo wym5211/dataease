@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { toRefs, computed, PropType, watch } from 'vue'
+import { type DatePickType } from 'element-plus-secondary'
 import { type TimeRange } from './time-format'
 import { useI18n } from '@/hooks/web/useI18n'
 import DynamicTime from './DynamicTimeFiltering.vue'
@@ -25,7 +26,7 @@ const props = defineProps({
     })
   },
   timeGranularityMultiple: {
-    type: String,
+    type: String as PropType<DatePickType>,
     default: 'yearrange'
   }
 })
@@ -74,7 +75,7 @@ const aroundList = [
 ]
 const relativeToCurrentTypeList = computed(() => {
   if (!timeRange.value) return []
-  let index =
+  const index =
     ['yearrange', 'monthrange', 'daterange', 'datetimerange'].indexOf(
       props.timeGranularityMultiple
     ) + 1
@@ -457,7 +458,7 @@ watch(
         <div class="setting-label" v-if="dynamicTime">{{ t('template_manage.preview') }}</div>
         <div :class="dynamicTime ? 'setting-value' : 'w100'">
           <component
-            :config="timeRange"
+            :config="(timeRange as any)"
             :timeGranularityMultiple="timeGranularityMultiple"
             ref="inputCom"
             :is="filterTypeCom"

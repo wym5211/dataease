@@ -330,7 +330,7 @@ const initLocalCanvasData = async callback => {
 const previewScaleChange = () => {
   state.scaleHistory = canvasStyleData.value.scale
   nextTick(() => {
-    let canvasWidth = dvLayout.value.clientWidth
+    const canvasWidth = dvLayout.value.clientWidth
     const previewScale = (canvasWidth * 100) / canvasStyleData.value.width
     canvasStyleData.value.scale = previewScale
   })
@@ -455,7 +455,7 @@ onMounted(async () => {
       }
     })
   } else {
-    let url = '#/screen/index'
+    const url = '#/screen/index'
     window.open(url, '_self')
   }
   initScroll()

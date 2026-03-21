@@ -426,7 +426,7 @@ export class ColumnLineMix extends G2PlotChartView<DualAxesOptions, DualAxes> {
     return tempOption
   }
 
-  public setupSubSeriesColor(chart: ChartObj, data?: any[]): ChartBasicStyle['seriesColor'] {
+  public setupSubSeriesColor(chart: ChartObj, data?: ChartData[]): ChartBasicStyle['seriesColor'] {
     const result: ChartBasicStyle['seriesColor'] = []
     const seriesSet = new Set<string>()
     const colors = chart.customAttr.basicStyle.subColors ?? CHART_MIX_DEFAULT_BASIC_STYLE.subColors
@@ -592,7 +592,11 @@ export class ColumnLineMix extends G2PlotChartView<DualAxesOptions, DualAxes> {
       const left = cloneDeep(chart.data?.left?.data)
       const right = cloneDeep(chart.data?.right?.data)
 
-      o.legend.itemName.formatter = (text: string, item: any, index: number) => {
+      o.legend.itemName.formatter = (
+        text: string,
+        item: { viewId?: string; id?: string },
+        index: number
+      ) => {
         let name = undefined
         if (item.viewId === 'left-axes-view' && text === 'value') {
           name = left[0]?.categories[0]
@@ -736,7 +740,7 @@ export class GroupColumnLineMix extends ColumnLineMix {
     return tempOption
   }
 
-  public setupSeriesColor(chart: ChartObj, data?: any[]): ChartBasicStyle['seriesColor'] {
+  public setupSeriesColor(chart: ChartObj, data?: ChartData[]): ChartBasicStyle['seriesColor'] {
     const result: ChartBasicStyle['seriesColor'] = []
     const seriesSet = new Set<string>()
     const colors = chart.customAttr.basicStyle.colors
@@ -849,7 +853,7 @@ export class StackColumnLineMix extends ColumnLineMix {
     return tempOption
   }
 
-  public setupSeriesColor(chart: ChartObj, data?: any[]): ChartBasicStyle['seriesColor'] {
+  public setupSeriesColor(chart: ChartObj, data?: ChartData[]): ChartBasicStyle['seriesColor'] {
     const result: ChartBasicStyle['seriesColor'] = []
     const seriesSet = new Set<string>()
     const colors = chart.customAttr.basicStyle.colors
@@ -967,7 +971,7 @@ export class DualLineMix extends ColumnLineMix {
     return tempOption
   }
 
-  public setupSeriesColor(chart: ChartObj, data?: any[]): ChartBasicStyle['seriesColor'] {
+  public setupSeriesColor(chart: ChartObj, data?: ChartData[]): ChartBasicStyle['seriesColor'] {
     const result: ChartBasicStyle['seriesColor'] = []
     const seriesSet = new Set<string>()
     const colors = chart.customAttr.basicStyle.colors

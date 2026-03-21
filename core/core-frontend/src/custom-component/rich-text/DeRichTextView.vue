@@ -385,7 +385,7 @@ const assignment = content => {
       on.forEach(itm => {
         if (dataRowFiledName.value.includes(decodeHTMLEntities(itm))) {
           const ele = itm.slice(1, -1)
-          let value =
+          const value =
             dataRowNameSelect.value[ele] !== undefined ? dataRowNameSelect.value[ele] : null
           let targetValue = !!value ? value : state.emptyValue
           if (thresholdStyleInfo && thresholdStyleInfo[ele]) {
@@ -421,7 +421,7 @@ const decodeHTMLEntities = text => {
   return textarea.value
 }
 
-const encodeHTMLEntities = text => {
+const _encodeHTMLEntities = text => {
   if (!text) return text
 
   const textarea = document.createElement('textarea')
@@ -547,7 +547,7 @@ const editCursor = () => {
       plugins: 'table',
       setup: function (editor) {
         editor.on('init', function () {
-          console.info('====init====')
+          // TinyMCE initialized
         })
       }
     })
@@ -663,7 +663,7 @@ const initCurFields = chartDetails => {
     }, {})
     const rowData = chartDetails.data.tableRow[0]
     if (chartDetails.type === 'rich-text') {
-      let yAxis = JSON.parse(JSON.stringify(chartDetails.yAxis))
+      const yAxis = JSON.parse(JSON.stringify(chartDetails.yAxis))
       const yDataeaseNames = []
       const yDataeaseNamesCfg = []
       yAxis.forEach(yItem => {
@@ -716,8 +716,8 @@ const conditionAdaptor = (chart: Chart) => {
   if (conditions?.length > 0) {
     for (let i = 0; i < conditions.length; i++) {
       const field = conditions[i]
-      let defaultValueColor = 'none'
-      let defaultBgColor = 'none'
+      const defaultValueColor = 'none'
+      const defaultBgColor = 'none'
       res[field.field.name] = {
         color: mappingColor(
           dataRowNameSelectSource.value[field.field.name],

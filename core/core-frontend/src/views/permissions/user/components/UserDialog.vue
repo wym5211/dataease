@@ -85,11 +85,11 @@ import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus-secondary'
 import type { FormInstance, FormRules } from 'element-plus-secondary'
 import { createUser, updateUser } from '../api'
-import type { UserForm, Role, Group } from '../types'
+import type { UserForm, Role, Group, User } from '../types'
 
 interface Props {
   modelValue: boolean
-  user?: any
+  user?: User
   roleOptions: Role[]
   groupOptions: Group[]
 }

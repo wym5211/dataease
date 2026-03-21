@@ -117,7 +117,9 @@ export const enumValueObj = async (data: EnumValue): Promise<Record<string, stri
   })
 }
 
-export const enumValueDs = async (data: any): Promise<Record<string, string>[]> => {
+export const enumValueDs = async (
+  data: Record<string, unknown>
+): Promise<Record<string, string>[]> => {
   return request.post({ url: '/datasetData/enumValueDs', data }).then(res => {
     return res?.data
   })
@@ -178,7 +180,7 @@ type DatasourceTreeParams = {
 export const getDatasourceList = async (
   params?: number | DatasourceTreeParams
 ): Promise<IResponse> => {
-  const data: Record<string, any> = { busiFlag: 'datasource' }
+  const data: Record<string, unknown> = { busiFlag: 'datasource' }
   if (typeof params === 'number') {
     data.weight = params
   } else if (params) {

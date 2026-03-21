@@ -357,10 +357,10 @@ export function refreshOtherComponent(dvId, busiFlag) {
   )
   if (refreshComponentList && refreshComponentList.length > 0) {
     const refreshIdList = refreshComponentList.map(ele => ele.id)
-    findById(dvId, busiFlag, {}).then(rsp => {
-      const canvasInfo = rsp.data
-      const canvasDataResult = JSON.parse(canvasInfo.componentData)
-      const canvasDataResultMap = canvasDataResult.reduce((acc, comp) => {
+    findById(dvId, busiFlag, { source: 'main', taskId: null }).then((rsp: any) => {
+      const canvasInfo = rsp.data as any
+      const canvasDataResult = JSON.parse(canvasInfo.componentData) as any[]
+      const canvasDataResultMap = canvasDataResult.reduce((acc: any, comp: any) => {
         acc[comp.id] = comp
         return acc
       }, {})
@@ -396,21 +396,22 @@ export function initCanvasDataPrepare(dvId, params, callBack) {
   const copyFlag = busiFlag != null && busiFlag.includes('-copy')
   const busiFlagCustom = copyFlag ? busiFlag.split('-')[0] : busiFlag
   const method = copyFlag ? findCopyResource : findById
-  let attachInfo = { source: params.source ? params.source : 'main' }
-  if (dvMainStore.canvasAttachInfo && !!dvMainStore.canvasAttachInfo.taskId) {
-    attachInfo = { source: 'report', taskId: dvMainStore.canvasAttachInfo.taskId }
+  const canvasAttachInfo = dvMainStore.canvasAttachInfo as any
+  let attachInfo: any = { source: params.source ? params.source : 'main' }
+  if (canvasAttachInfo && !!canvasAttachInfo.taskId) {
+    attachInfo = { source: 'report', taskId: canvasAttachInfo.taskId }
     const showWatermarkExist =
-      dvMainStore.canvasAttachInfo.hasOwnProperty('showWatermark') &&
-      typeof dvMainStore.canvasAttachInfo.showWatermark !== 'undefined' &&
-      dvMainStore.canvasAttachInfo.showWatermark !== null
+      canvasAttachInfo.hasOwnProperty('showWatermark') &&
+      typeof canvasAttachInfo.showWatermark !== 'undefined' &&
+      canvasAttachInfo.showWatermark !== null
     if (showWatermarkExist) {
-      const enable = dvMainStore.canvasAttachInfo.showWatermark === 'true'
+      const enable = canvasAttachInfo.showWatermark === 'true'
       attachInfo['showWatermark'] = enable
     }
   }
   attachInfo['resourceTable'] = params.resourceTable ? params.resourceTable : 'core'
-  method(dvId, busiFlagCustom, attachInfo).then(res => {
-    const canvasInfo = res.data
+  method(dvId, busiFlagCustom, attachInfo).then((res: any) => {
+    const canvasInfo = res.data as any
     const watermarkInfo = {
       ...canvasInfo.watermarkInfo,
       settingContent: canvasInfo.watermarkInfo?.settingContent
@@ -437,8 +438,8 @@ export function initCanvasDataPrepare(dvId, params, callBack) {
     }
     const canvasVersion = canvasInfo.version
 
-    const canvasDataResult = JSON.parse(canvasInfo.componentData)
-    const canvasStyleResult = JSON.parse(canvasInfo.canvasStyleData)
+    const canvasDataResult: any = JSON.parse(canvasInfo.componentData)
+    const canvasStyleResult: any = JSON.parse(canvasInfo.canvasStyleData)
     const canvasViewInfoPreview = canvasInfo.canvasViewInfo
     historyAdaptor(canvasStyleResult, canvasDataResult, canvasInfo, attachInfo, canvasVersion)
     const curPreviewGap =
@@ -478,7 +479,7 @@ export async function initCanvasData(dvId, params, callBack) {
   )
 }
 
-export async function backCanvasData(dvId, mobileViewInfo, busiFlag, callBack) {
+export async function backCanvasData(dvId, _mobileViewInfo, busiFlag, callBack) {
   initCanvasDataPrepare(
     dvId,
     { busiFlag },
@@ -542,7 +543,6 @@ export function initCanvasDataMobile(dvId, params, callBack) {
           mEvents,
           mCommonBackground,
           style,
-          propValue,
           events,
           commonBackground
         } = ele
@@ -660,8 +660,8 @@ export async function canvasSaveWithParams(params, callBack) {
   let dsNameCheck = 'success'
   if (appData.value) {
     await appCanvasNameCheck({
-      datasetFolderPid: canvasInfo.datasetFolderPid,
-      datasetFolderName: canvasInfo.datasetFolderName
+      datasetFolderPid: (canvasInfo as any).datasetFolderPid,
+      datasetFolderName: (canvasInfo as any).datasetFolderName
     }).then(rsp => {
       dsNameCheck = rsp.data
     })
@@ -946,13 +946,13 @@ export function findParentIdByChildIdRecursive(tree, targetChildId) {
 }
 
 export async function decompressionPre(params, callBack) {
-  let deTemplateData
+  let deTemplateData: any
   await decompression(params)
-    .then(response => {
-      const deTemplateDataTemp = response.data
-      const sourceComponentData = JSON.parse(deTemplateDataTemp['componentData'])
+    .then((response: any) => {
+      const deTemplateDataTemp = response.data as any
+      const sourceComponentData = JSON.parse(deTemplateDataTemp['componentData']) as any[]
       const appData = deTemplateDataTemp['appData']
-      const sourceCanvasStyle = JSON.parse(deTemplateDataTemp['canvasStyleData'])
+      const sourceCanvasStyle: any = JSON.parse(deTemplateDataTemp['canvasStyleData'])
       sourceComponentData.forEach(componentItem => {
         // 2 为基础版本 此处需要增加仪表板矩阵密度
         if (
@@ -1075,7 +1075,6 @@ export function findComponentById(componentId) {
 
 export function onInitReady(params, eventName = 'canvas_init_ready') {
   try {
-    console.info('event:' + eventName)
     const targetPm = {
       type: 'dataease-embedded-interactive',
       eventName: eventName,

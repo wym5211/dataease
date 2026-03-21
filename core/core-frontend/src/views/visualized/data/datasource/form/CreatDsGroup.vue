@@ -11,6 +11,15 @@ import { cloneDeep } from 'lodash-es'
 import nothingTree from '@/assets/img/nothing-tree.png'
 import { useCache } from '@/hooks/web/useCache'
 import { filterFreeFolder } from '@/utils/utils'
+interface DatasourceRequest {
+  id?: string
+  name?: string
+  type?: string
+  apiConfiguration?: string
+  configuration?: object
+  syncSetting?: object
+}
+
 export interface Tree {
   name: string
   value?: string | number
@@ -23,7 +32,7 @@ export interface Tree {
   type?: string
   createTime: number
   children?: Tree[]
-  request: any
+  request: DatasourceRequest | null
 }
 const { t } = useI18n()
 const { wsCache } = useCache()
@@ -281,7 +290,7 @@ const saveDataset = () => {
       }
       loading.value = true
       if (request) {
-        let options = {
+        const options = {
           confirmButtonType: 'danger',
           type: 'warning',
           autofocus: false,
@@ -290,7 +299,7 @@ const saveDataset = () => {
         }
         request.apiConfiguration = ''
         checkRepeat(request).then(res => {
-          let method = request.id === '' ? save : update
+          const method = request.id === '' ? save : update
           if (!request.type.startsWith('API') && request.type !== 'ExcelRemote') {
             request.syncSetting = null
           }

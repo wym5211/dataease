@@ -11,19 +11,19 @@ const relationList = ref([])
 
 const svgRealinePath = computed(() => {
   const lg = relationList.value.length
-  let a = { x: 0, y: 0, child: relationList.value }
+  const a = { x: 0, y: 0, child: relationList.value }
   a.y = Math.floor(dfsXY(a, 0) / 2)
   if (!lg) return ''
-  let path = calculateDepth(a)
+  const path = calculateDepth(a)
   return path
 })
 
 const svgDashinePath = computed(() => {
   const lg = relationList.value.length
-  let a = { x: 0, y: 0, child: relationList.value }
+  const a = { x: 0, y: 0, child: relationList.value }
   a.y = Math.floor(dfsXY(a, 0) / 2)
   if (!lg) return `M48 20 L68 20`
-  let path = calculateDepthDash(a)
+  const path = calculateDepthDash(a)
   return path
 })
 
@@ -146,8 +146,8 @@ const calculateDepthDash = obj => {
     const { x, y } = obj
     path += `M${48 + x * 68} ${y * 41.4 + 20} L${88 + x * 68} ${y * 41.4 + 20}`
   } else if (obj.child?.length) {
-    let y = Math.max(dfsY(obj, 0), dfs(obj.child, 0) + getY(obj.child) - 1)
-    let parent = (dfs(obj.child, 0) * 41.4) / 2 + (getY(obj.child) || 0) * 41.4
+    const y = Math.max(dfsY(obj, 0), dfs(obj.child, 0) + getY(obj.child) - 1)
+    const parent = (dfs(obj.child, 0) * 41.4) / 2 + (getY(obj.child) || 0) * 41.4
     const { x } = obj
     path += `M${24 + x * 68} ${parent} L${24 + x * 68} ${y * 41.4 + 20} L${64 + x * 68} ${
       y * 41.4 + 20
@@ -167,8 +167,8 @@ const calculateDepth = obj => {
   obj.child.forEach((item, index) => {
     const { y: siblingLg, z } = item
     if (item.child?.length) {
-      let parent = (dfs(obj.child, 0) * 41.4) / 2 + (getY(obj.child) || 0) * 41.4
-      let children = (dfs(item.child, 0) * 41.4) / 2 + getY(item.child) * 41.4
+      const parent = (dfs(obj.child, 0) * 41.4) / 2 + (getY(obj.child) || 0) * 41.4
+      const children = (dfs(item.child, 0) * 41.4) / 2 + getY(item.child) * 41.4
       let path1 = 0
       let path2 = 0
       if (parent < children) {
@@ -242,7 +242,7 @@ const dfsXY = (obj, count) => {
   obj.child.forEach(ele => {
     ele.x = obj.x + 1
     if (ele.child?.length) {
-      let l = dfs(ele.child, 0)
+      const l = dfs(ele.child, 0)
       ele.y = Math.floor(l / 2) + count
       count = dfsXY(ele, count)
     } else {

@@ -17,7 +17,9 @@ const defaultForm = {
 }
 const pwdForm = reactive(cloneDeep(defaultForm))
 
-const validatePwd = (_: any, value: any, callback: any) => {
+import type { FormItemRule } from 'element-plus-secondary'
+
+const validatePwd = (_: FormItemRule, value: string, callback: (error?: Error) => void) => {
   if (value === pwdForm.pwd) {
     callback(new Error(t('system.be_the_same')))
   }
@@ -32,7 +34,7 @@ const validatePwd = (_: any, value: any, callback: any) => {
   }
 }
 
-const validateConfirmPwd = (_: any, value: any, callback: any) => {
+const validateConfirmPwd = (_: FormItemRule, value: string, callback: (error?: Error) => void) => {
   if (value !== pwdForm.newPwd) {
     callback(new Error(t('system.twice_are_inconsistent')))
   } else {

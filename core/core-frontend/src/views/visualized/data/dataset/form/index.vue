@@ -46,7 +46,7 @@ import EmptyBackground from '@/components/empty-background/src/EmptyBackground.v
 import { Icon } from '@/components/icon-custom'
 import { useWindowSize } from '@vueuse/core'
 import CalcFieldEdit from './CalcFieldEdit.vue'
-import { useRoute, useRouter } from 'vue-router_2'
+import { useRoute, useRouter } from 'vue-router'
 import UnionEdit from './UnionEdit.vue'
 import type { FormInstance } from 'element-plus-secondary'
 import type { BusiTreeNode } from '@/models/tree/TreeNode'
@@ -519,7 +519,7 @@ const delFieldById = arr => {
 
 const delFieldByIdFake = (arr, fakeAllfields) => {
   const delId = [...arr]
-  let idList = []
+  const idList = []
   while (delId.length) {
     const [targetId] = delId
     delId.shift()
@@ -743,7 +743,7 @@ const initEdite = async () => {
   try {
     const res = await getDatasetDetails(copyId || id)
     loading.value = false
-    let arr = []
+    const arr = []
     const { pid, name } = res || {}
     nodeInfo = {
       id: res?.id || null,
@@ -959,7 +959,7 @@ const confirmEditUnion = () => {
   const { node, parent } = fieldUnion.value
   const to = node.id
   const from = parent.id
-  let unionFieldsLost = node.unionFields.some(ele => {
+  const unionFieldsLost = node.unionFields.some(ele => {
     const { currentField, parentField } = ele
     return !currentField || !parentField
   })
@@ -980,7 +980,7 @@ const confirmEditUnion = () => {
   dfsFieldsTips(arr, datasetDrag.value.getNodeList(), [node.id, parent.id])
   arr = [...arr, ...node.currentDsFields, ...parent.currentDsFields]
   const delIdArr = getDelIdArr(arr, allfields.value)
-  let fakeAllfields = diffArr(arr, allfields.value)
+  const fakeAllfields = diffArr(arr, allfields.value)
   const idList = delFieldByIdFake(delIdArr, fakeAllfields)
   if (!!idList.length) {
     const idArr = allfields.value.reduce((pre, next) => {
@@ -1041,7 +1041,7 @@ const equalMin = [
   }
 ]
 
-const validatePass = (_: any, value: any, callback: any) => {
+const validatePass = (_: unknown, value: unknown, callback: (error?: Error) => void) => {
   if (!value || !value.length) {
     callback(new Error(t('chart.value_can_not_empty')))
   } else {
@@ -1383,7 +1383,7 @@ const getDatasource = (weight?: number) => {
 }
 
 const resetDfsFields = (arr, idMap) => {
-  for (let i in arr) {
+  for (const i in arr) {
     const id = guid()
     idMap[arr[i].currentDs.id] = id
     arr[i].currentDs.id = id
@@ -1395,7 +1395,7 @@ const resetDfsFields = (arr, idMap) => {
 
 const resetAllfieldsId = arr => {
   const idMap = {}
-  for (let i in allfields.value) {
+  for (const i in allfields.value) {
     const id = guid()
     idMap[allfields.value[i].id] = id
     allfields.value[i].id = id
@@ -1525,7 +1525,7 @@ const setDeTypeSelection = () => {
     ...quotaTable.value.getSelectionRows()
   ]
   deTypeSelection.value = fieldSelection.value.map(ele => ele.deExtractType)
-  let deTypes = fieldSelection.value.map(ele => ele.deType)
+  const deTypes = fieldSelection.value.map(ele => ele.deType)
   const [obj] = fieldSelection.value
   nextTick(() => {
     dimensionsSelection.value = dimensionsTable.value.getSelectionRows().map(ele => ele.id)

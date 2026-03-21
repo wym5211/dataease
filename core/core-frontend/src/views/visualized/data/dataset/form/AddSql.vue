@@ -260,7 +260,7 @@ const gridDataLoading = ref(false)
 
 const getNodeField = ({ datasourceId, tableName }) => {
   gridDataLoading.value = true
-  let info = {
+  const info = {
     table: tableName,
     sql: ''
   }
@@ -405,7 +405,7 @@ const close = () => {
 }
 
 const handleClose = () => {
-  let sqlNew = setNameIdTrans('name', 'id', codeCom.value.state.doc.toString())
+  const sqlNew = setNameIdTrans('name', 'id', codeCom.value.state.doc.toString())
 
   if (changeFlag || sql !== sqlNew || !sqlNew.trim()) {
     ElMessageBox.confirm(t('chart.tips'), {
@@ -516,11 +516,11 @@ const parseVariable = () => {
     const names = []
     const reg = new RegExp('\\$\\[[^\\]]+\\]', 'gim')
     for (let index = 0; index < variableMatch.length; index++) {
-      let sqlItem = variableMatch[index].substring(10, variableMatch[index].length - 1)
+      const sqlItem = variableMatch[index].substring(10, variableMatch[index].length - 1)
       const match = sqlItem.match(reg)
       if (match !== null) {
         for (let matchIndex = 0; matchIndex < match.length; matchIndex++) {
-          let name = match[matchIndex].substring(2, match[matchIndex].length - 1)
+          const name = match[matchIndex].substring(2, match[matchIndex].length - 1)
           if (names.indexOf(name) < 0) {
             names.push(name)
             let obj = undefined
@@ -555,7 +555,7 @@ const parseVariable = () => {
     const names = []
     if (match !== null) {
       for (let index = 0; index < match.length; index++) {
-        let name = match[index].substring(2, match[index].length - 1)
+        const name = match[index].substring(2, match[index].length - 1)
         if (names.indexOf(name) < 0) {
           names.push(name)
           let obj = undefined

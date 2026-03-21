@@ -43,7 +43,8 @@ const codeTips = ref(t('system.at_the_end'))
 const pidChange = () => {
   state.form.code = null
 }
-const validateCode = (_: any, value: any, callback: any) => {
+import type { FormItemRule } from 'element-plus-secondary'
+const validateCode = (_: FormItemRule, value: string, callback: (error?: Error) => void) => {
   const isCountry = !formatPid.value
   if (isCountry) {
     const reg = /^[0-9]\d{2}$/

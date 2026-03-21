@@ -2,7 +2,7 @@
 import { useI18n } from '@/hooks/web/useI18n'
 import EmptyBackground from '../empty-background/src/EmptyBackground.vue'
 
-const { t } = useI18n()
+const { t: _t } = useI18n()
 </script>
 
 <template>

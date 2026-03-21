@@ -90,8 +90,15 @@ const animationClassData = [
   }
 ]
 
+interface AnimationItem {
+  label: string
+  value: string
+  pending?: boolean
+  animationTime?: number
+}
+
 animationClassData.forEach(item => {
-  item.children.forEach((e: any) => {
+  item.children.forEach((e: AnimationItem) => {
     // 是否在运行动画
     e.pending = false
 

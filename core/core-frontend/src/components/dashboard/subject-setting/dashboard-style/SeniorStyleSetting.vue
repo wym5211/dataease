@@ -56,7 +56,13 @@ import eventBus from '@/utils/eventBus'
 const { t } = useI18n()
 const dvMainStore = dvMainStoreWithOut()
 const snapshotStore = snapshotStoreWithOut()
-const seniorStyleSetting = computed<any>(() => {
+interface SeniorStyleSetting {
+  linkageIconColor: string
+  drillLayerColor: string
+  pagerColor: string
+}
+
+const seniorStyleSetting = computed<SeniorStyleSetting>(() => {
   return dvMainStore.canvasStyleData.component.seniorStyleSetting
 })
 

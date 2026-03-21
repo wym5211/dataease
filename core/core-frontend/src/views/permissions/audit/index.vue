@@ -242,15 +242,21 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
-import { ElMessage, ElMessageBox } from 'element-plus-secondary'
+import { ElMessage } from 'element-plus-secondary'
 import { Search, Refresh, Download } from '@element-plus/icons-vue'
 import type { ElTable } from 'element-plus-secondary'
 
 const { t } = useI18n()
 
 // 数据定义
+interface PermissionValue {
+  permissions?: string[]
+  sharePermission?: boolean
+  [key: string]: string | boolean | string[] | undefined
+}
+
 interface AuditLog {
   id: string
   operationType: string
@@ -259,8 +265,8 @@ interface AuditLog {
   targetName: string
   resourceName: string
   permission: string
-  oldValue?: any
-  newValue?: any
+  oldValue?: PermissionValue
+  newValue?: PermissionValue
   operatorId: string
   operatorName: string
   operatorIp?: string
@@ -359,26 +365,20 @@ const mockAuditLogs: AuditLog[] = [
   }
 ]
 
-// 计算属性
-const selectedIds = computed(() => {
-  return selectedAudits.value.map(audit => audit.id)
-})
-
 // 方法定义
 const loadAuditLogs = async () => {
   loading.value = true
   try {
     // TODO: 调用API获取审计日志
-    const params = {
-      page: currentPage.value,
-      pageSize: pageSize.value,
-      startDate: dateRange.value?.[0],
-      endDate: dateRange.value?.[1],
-      ...searchForm
-    }
+    // const params = {
+    //   page: currentPage.value,
+    //   pageSize: pageSize.value,
+    //   startDate: dateRange.value?.[0],
+    //   endDate: dateRange.value?.[1],
+    //   ...searchForm
+    // }
 
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 500))
+    // TODO: 接入真实API后移除模拟数据
 
     auditLogs.value = mockAuditLogs
     totalRecords.value = mockAuditLogs.length
@@ -471,9 +471,8 @@ const handleExport = () => {
   ElMessage.success(t('permissions.export_success'))
 }
 
-const rollbackPermissionChange = async (auditId: string) => {
+const rollbackPermissionChange = async (_auditId: string) => {
   // TODO: 调用API回滚权限变更
-  console.log('回滚权限变更:', auditId)
   return Promise.resolve()
 }
 
@@ -517,11 +516,6 @@ const getPermissionLabel = (permission: string) => {
 const formatDateTime = (dateStr: string) => {
   if (!dateStr) return '-'
   return new Date(dateStr).toLocaleString('zh-CN')
-}
-
-const formatDate = (dateStr: string) => {
-  if (!dateStr) return '-'
-  return new Date(dateStr).toLocaleDateString('zh-CN')
 }
 
 // 初始化

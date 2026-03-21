@@ -16,10 +16,9 @@ import { propTypes } from '@/utils/propTypes'
 import { downloadCanvas2 } from '@/utils/imgUtils'
 import { isLink, setTitle } from '@/utils/utils'
 import EmptyBackground from '../../components/empty-background/src/EmptyBackground.vue'
-import { useRoute } from 'vue-router_2'
+import { useRoute } from 'vue-router'
 import { filterEnumMapSync } from '@/utils/componentUtils'
 import CanvasOptBar from '@/components/visualization/CanvasOptBar.vue'
-import DvPreview from '@/views/data-visualization/DvPreview.vue'
 const routeWatch = useRoute()
 
 const dvMainStore = dvMainStoreWithOut()
@@ -259,7 +258,7 @@ const prepareForPrint = async () => {
 }
 
 // 暴露方法给外部调用打印
-const handlePrint = async () => {
+const _handlePrint = async () => {
   await prepareForPrint()
   window.print()
 }

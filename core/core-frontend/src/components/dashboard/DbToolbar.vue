@@ -79,9 +79,9 @@ const {
 const dvModel = 'dashboard'
 const multiplexingRef = ref(null)
 const fullScreeRef = ref(null)
-let nameEdit = ref(false)
-let inputName = ref('')
-let nameInput = ref(null)
+const nameEdit = ref(false)
+const inputName = ref('')
+const nameInput = ref(null)
 const state = reactive({
   preBatchComponentData: [],
   preBatchCanvasViewInfo: {}
@@ -356,14 +356,17 @@ const backHandler = (url: string) => {
 const multiplexingCanvasOpen = () => {
   multiplexingRef.value.dialogInit()
 }
+const saveCanvasEventHandler = (payload?: { withPublish?: boolean; status?: unknown }) => {
+  saveCanvasWithCheck(payload?.withPublish, payload?.status)
+}
 onMounted(() => {
   eventBus.on('preview', previewInner)
-  eventBus.on('save', saveCanvasWithCheck)
+  eventBus.on('save', saveCanvasEventHandler)
   eventBus.on('clearCanvas', clearCanvas)
 })
 onBeforeUnmount(() => {
   eventBus.off('preview', previewInner)
-  eventBus.off('save', saveCanvasWithCheck)
+  eventBus.off('save', saveCanvasEventHandler)
   eventBus.off('clearCanvas', clearCanvas)
   dvMainStore.setAppDataInfo(null)
 })

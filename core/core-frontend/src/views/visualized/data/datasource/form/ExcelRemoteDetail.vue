@@ -18,7 +18,6 @@ import { iconFieldMap } from '@/components/icon-group/field-list'
 import { Icon } from '@/components/icon-custom'
 import { ElForm, ElMessage, ElMessageBox } from 'element-plus-secondary'
 import Cron from '@/components/cron/src/Cron.vue'
-import { boolean } from 'mathjs'
 import SheetTabs from '@/views/visualized/data/datasource/SheetTabs.vue'
 import { loadRemoteFile, save, update } from '@/api/datasource'
 import { Base64 } from 'js-base64'
@@ -26,6 +25,11 @@ import { useEmitt } from '@/hooks/web/useEmitt'
 import { CustomPassword } from '@/components/custom-password'
 import { fieldType as fieldTypeLowercase } from '@/utils/attr'
 const { t } = useI18n()
+interface StaticMap {
+  index?: string
+  [key: string]: unknown
+}
+
 export interface Param {
   editType: number
   pid?: string
@@ -34,7 +38,7 @@ export interface Param {
   name?: string
   creator?: string
   isPlugin?: boolean
-  staticMap?: any
+  staticMap?: StaticMap
 }
 
 export interface Field {
@@ -70,7 +74,7 @@ const props = defineProps({
     type: Object
   },
   isSupportSetKey: {
-    type: boolean,
+    type: Boolean,
     required: true
   },
   activeStep: {
@@ -206,9 +210,9 @@ const submitSyncSettingForm = () => {
 }
 
 const validateExcel = () => {
-  let selectedSheet = []
-  let sheetFileMd5 = []
-  let selectNode = state.excelData[0]?.sheets
+  const selectedSheet = []
+  const sheetFileMd5 = []
+  const selectNode = state.excelData[0]?.sheets
   if (selectNode === undefined) {
     ElMessage({
       message: t('datasource.file_not_empty'),
@@ -556,12 +560,12 @@ const disabledFieldLength = item => {
 }
 
 const saveExcelDs = (params, successCb, finallyCb) => {
-  let validate = true
-  let selectedSheet = []
-  let sheetFileMd5 = []
+  const validate = true
+  const selectedSheet = []
+  const sheetFileMd5 = []
   let effectExtField = false
   let changeFiled = false
-  let selectNode = state.excelData[0]?.sheets
+  const selectNode = state.excelData[0]?.sheets
   for (let i = 0; i < selectNode.length; i++) {
     if (selectNode[i].sheet) {
       if (selectNode[i].effectExtField) {
@@ -614,7 +618,7 @@ const saveExcelDs = (params, successCb, finallyCb) => {
     return
   }
 
-  let table = {}
+  let table: Record<string, any> = {}
   if (params) {
     form.value.name = params.name
   }
@@ -648,12 +652,12 @@ const saveExcelDs = (params, successCb, finallyCb) => {
       showClose: false,
       callback: (action: Action) => {
         if (action === 'confirm') {
-          saveExcelData(sheetFileMd5, table, params, successCb, finallyCb)
+          saveExcelData(table, params, successCb, finallyCb)
         }
       }
     })
   } else {
-    saveExcelData(sheetFileMd5, table, params, successCb, finallyCb)
+    saveExcelData(table, params, successCb, finallyCb)
   }
 }
 
@@ -683,7 +687,7 @@ const fieldTypeToStr = {
   2: 'LONG',
   3: 'DOUBLE'
 }
-const saveExcelData = (sheetFileMd5, table, params, successCb, finallyCb) => {
+const saveExcelData = (table, params, successCb, finallyCb) => {
   for (let i = 0; i < table.configuration.sheets.length; i++) {
     table.configuration.sheets[i].data = []
     table.configuration.sheets[i].jsonArray = []

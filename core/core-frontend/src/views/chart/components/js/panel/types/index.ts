@@ -20,8 +20,8 @@ export enum ChartLibraryType {
 }
 export abstract class ChartWrapper<O> {
   chartInstance: O
-  abstract render: () => any
-  abstract destroy: () => any
+  abstract render: () => void
+  abstract destroy: () => void
 }
 export abstract class AbstractChartView {
   render: ChartRenderType
@@ -41,13 +41,13 @@ export abstract class AbstractChartView {
     return chart
   }
 
-  protected defaultData: any[]
+  protected defaultData: Record<string, unknown>[]
 
   protected constructor(
     render: ChartRenderType,
     library: ChartLibraryType,
     name: string,
-    defaultData?: any[]
+    defaultData?: Record<string, unknown>[]
   ) {
     this.render = render
     this.library = library
@@ -73,7 +73,7 @@ export interface AntVDrawOptions<O> {
    * 事件回调函数
    * @param args 事件参数
    */
-  action?: (...args: any[]) => any
+  action?: (...args: unknown[]) => void
 }
 
 export abstract class AntVAbstractChartView extends AbstractChartView {
@@ -113,7 +113,11 @@ export abstract class AntVAbstractChartView extends AbstractChartView {
       title: `${t('chart.xAxis')}`
     }
   }
-  protected constructor(library: ChartLibraryType, name: string, defaultData?: any[]) {
+  protected constructor(
+    library: ChartLibraryType,
+    name: string,
+    defaultData?: Record<string, unknown>[]
+  ) {
     super(ChartRenderType.ANT_V, library, name, defaultData)
   }
 }
@@ -122,7 +126,7 @@ export abstract class AntVAbstractChartView extends AbstractChartView {
  * Echarts 图表的抽象类
  */
 export abstract class EchartsChartView extends AbstractChartView {
-  protected constructor(name: string, defaultData: any[]) {
+  protected constructor(name: string, defaultData: Record<string, unknown>[]) {
     super(ChartRenderType.ECHARTS, ChartLibraryType.ECHARTS, name, defaultData)
   }
 }

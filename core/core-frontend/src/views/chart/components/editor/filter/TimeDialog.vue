@@ -124,7 +124,8 @@ const relativeToCurrentList = computed(() => {
 
 const relativeToCurrentTypeList = computed(() => {
   if (!curComponent.value) return []
-  let index = ['year', 'month', 'date', 'datetime'].indexOf(curComponent.value.timeGranularity) + 1
+  const index =
+    ['year', 'month', 'date', 'datetime'].indexOf(curComponent.value.timeGranularity) + 1
   return [
     {
       label: '年',

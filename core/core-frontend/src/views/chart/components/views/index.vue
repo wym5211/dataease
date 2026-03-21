@@ -55,10 +55,17 @@ import request from '@/config/axios'
 import { store } from '@/store'
 import { clearExtremum } from '@/views/chart/components/js/extremumUitl'
 import DePreviewPopDialog from '@/components/visualization/DePreviewPopDialog.vue'
-import { useRoute } from 'vue-router_2'
+import { useRoute } from 'vue-router'
 const route = useRoute()
 const { wsCache } = useCache()
-const chartComponent = ref<any>()
+import type { ComponentInstance } from '@/views/chart/components/views/components/ChartComponentG2Plot.vue'
+import type { ComponentInstance as _ChartComponentS2Instance } from '@/views/chart/components/views/components/ChartComponentS2.vue'
+
+type ChartComponentInstance =
+  | ComponentInstance<typeof ChartComponentG2Plot>
+  | ComponentInstance<typeof ChartComponentS2>
+
+const chartComponent = ref<ChartComponentInstance>()
 const { t } = useI18n()
 const dvMainStore = dvMainStoreWithOut()
 const { emitter } = useEmitt()
@@ -595,7 +602,7 @@ const queryData = debounce((firstLoad = false) => {
   }
   const searched = dvMainStore.firstLoadMap.includes(element.value.id)
   const queryFilter = filter(searched ? false : firstLoad)
-  let params = cloneDeep(view.value)
+  const params = cloneDeep(view.value)
   params['chartExtRequest'] = queryFilter
   chartExtRequest.value = queryFilter
   calcData(params)

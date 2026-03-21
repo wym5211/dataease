@@ -20,7 +20,7 @@ const mapStore = useMapStoreWithOut()
 export type L7DrawConfig<P> = AntVDrawOptions<P>
 export interface L7Config extends ILayer {
   handleConfig?: (arg0: Scene) => void
-  [key: string]: string | any
+  [key: string]: string | unknown
 }
 export class L7Wrapper<
   O extends L7Config | Array<L7Config>,
@@ -82,7 +82,7 @@ export abstract class L7ChartView<
   S extends Scene,
   O extends L7Config
 > extends AntVAbstractChartView {
-  public abstract drawChart(drawOption: L7DrawConfig<O>): L7Wrapper<O, S> | any
+  public abstract drawChart(drawOption: L7DrawConfig<O>): L7Wrapper<O, S> | undefined
 
   protected configEmptyDataStrategy(chart: Chart, options: O): O {
     const { functionCfg } = parseJson(chart.senior)
@@ -107,7 +107,7 @@ export abstract class L7ChartView<
     return options
   }
 
-  protected configZoomButton(chart: Chart, plot: S, mapKey?: any) {
+  protected configZoomButton(chart: Chart, plot: S, mapKey?: unknown) {
     configL7Zoom(chart, plot, mapKey)
   }
 
@@ -123,7 +123,7 @@ export abstract class L7ChartView<
     return options
   }
 
-  protected constructor(name: string, defaultData: any[]) {
+  protected constructor(name: string, defaultData: Record<string, unknown>[]) {
     super(ChartLibraryType.L7, name, defaultData)
   }
 

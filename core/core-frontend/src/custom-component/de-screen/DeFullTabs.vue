@@ -78,11 +78,11 @@ const props = defineProps({
 })
 const emit = defineEmits(['command'])
 
-function handleCommand(e: any) {
+function handleCommand(e: string | number | object) {
   const name = generateID()
-  let obj = null
+  let obj: DropdownProps | undefined = undefined
   if (e) {
-    obj = props.dropdownMenus.find((item: any) => item.command === e)
+    obj = props.dropdownMenus.find((item: DropdownProps) => item.command === e)
   }
   emit('command', name, obj)
 }

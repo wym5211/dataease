@@ -330,10 +330,34 @@ const snapshotStore = snapshotStoreWithOut()
 
 const { canvasStyleData } = storeToRefs(dvMainStore)
 
+interface ComponentStyle {
+  opacity?: number
+  fontSize?: number
+  activeFontSize?: number
+  letterSpacing?: number
+  scrollSpeed?: number
+  fontWeight?: 'normal' | 'bold'
+  fontStyle?: 'normal' | 'italic'
+  textAlign?: 'left' | 'center' | 'right'
+  color?: string
+  fontFamily?: string
+  textDecoration?: 'none' | 'underline'
+  backdropFilter?: string
+  backgroundColor?: string
+  headFontColor?: string
+  headFontActiveColor?: string
+  headHorizontalPosition?: 'left' | 'center' | 'right'
+}
+
+interface StyleSetElement {
+  id: string
+  style: ComponentStyle
+}
+
 const props = withDefaults(
   defineProps<{
     themes?: EditorTheme
-    element: any
+    element: StyleSetElement
   }>(),
   {
     themes: 'dark'
@@ -423,7 +447,7 @@ const backdropBlurList = [
   { name: '30', value: 'blur(30px)' }
 ]
 
-const styleForm = computed<any>(() => element.value.style)
+const styleForm = computed<ComponentStyle>(() => element.value.style)
 const state = reactive({
   fontSize: [],
   isSetting: false,

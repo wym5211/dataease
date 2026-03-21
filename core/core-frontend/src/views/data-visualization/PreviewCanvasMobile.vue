@@ -155,8 +155,8 @@ const loadCanvasDataAsync = async (dvId, dvType) => {
       }
       initBrowserTimer()
     }
-  ).catch(err => {
-    console.log(err)
+  ).catch(_err => {
+    // ignore error
   })
 }
 

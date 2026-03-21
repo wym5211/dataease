@@ -227,7 +227,7 @@ const handleCurrentPlaceholderCustomChange = () => {
   }
 }
 
-const handleCurrentPlaceholderChange = () => {
+const _handleCurrentPlaceholderChange = () => {
   snapshotStore.recordSnapshotCacheToMobile('propValue')
 }
 

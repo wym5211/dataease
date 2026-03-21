@@ -11,11 +11,19 @@ interface TableColumn {
   label: string
   type?: string
 }
+interface ShortcutDataItem {
+  id: string
+  name: string
+  type: string
+  creator: string
+  lastEditor: string
+  lastEditTime: number
+}
 interface BusiRecord {
   columnList: TableColumn[]
   url: string
   busiList: string[]
-  dataCache?: any[]
+  dataCache?: ShortcutDataItem[]
 }
 class ShortcutOption {
   busiFlag: string

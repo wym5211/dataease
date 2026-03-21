@@ -6,10 +6,12 @@
     "moduleResolution": "Node",
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
-    "strictFunctionTypes": false,
+    // 启用严格的函数类型检查
+    "strictFunctionTypes": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "experimentalDecorators": true,
+    // 暂时关闭隐式 any 检查，分阶段治理历史代码
     "noImplicitAny": false,
     "noEmit": true,
     "baseUrl": "./",
@@ -21,9 +23,18 @@
       "vite-plugin-svg-icons/client",
       "element-plus-secondary/global",
     ],
+    // 添加更多严格检查选项
+    "strict": false, // 暂不启用完全严格模式，逐步迁移
+    "noImplicitThis": true, // 禁止隐式 this
+    "strictNullChecks": false, // 暂不启用，后续逐步开启
+    "strictBindCallApply": true, // 严格检查 bind/call/apply
+    "skipLibCheck": true // 跳过库文件检查，提升编译速度
   },
   "include": [
-    "src/**/*",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.d.ts",
+    "src/**/*.vue",
     "electron-main/**/*.ts",
     "types/**/*.d.ts",
     "types"
@@ -32,5 +43,6 @@
     "dist",
     "lib",
     "node_modules",
+    "src/**/*.vue.js",
   ]
 }

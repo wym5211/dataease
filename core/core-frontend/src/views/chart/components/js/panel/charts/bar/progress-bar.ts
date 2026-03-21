@@ -114,7 +114,7 @@ export class ProgressBar extends G2PlotChartView<BarOptions, G2Progress> {
       return 0
     }
     // data
-    const sourceData: Array<any> = cloneDeep(chart.data.data)
+    const sourceData: Datum[] = cloneDeep(chart.data.data)
     const data1 = defaultTo(sourceData[0]?.data, [])
     const data2 = defaultTo(sourceData[1]?.data, [])
     const currentData = data2.map(item => {

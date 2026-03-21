@@ -343,7 +343,7 @@ export class StackArea extends Area {
     const position =
       labelAttr.position === 'top' ? -2 - basicStyle.lineSymbolSize : 8 + basicStyle.lineSymbolSize
     const label: Label = {
-      position: labelAttr.position as any,
+      position: labelAttr.position as 'top' | 'bottom' | 'middle',
       offsetY: position,
       layout,
       style: {
@@ -365,7 +365,7 @@ export class StackArea extends Area {
   protected configColor(chart: Chart, options: AreaOptions): AreaOptions {
     return this.configStackColor(chart, options)
   }
-  public setupSeriesColor(chart: ChartObj, data?: any[]): ChartBasicStyle['seriesColor'] {
+  public setupSeriesColor(chart: ChartObj, data?: Datum[]): ChartBasicStyle['seriesColor'] {
     return setUpStackSeriesColor(chart, data)
   }
   protected configTooltip(chart: Chart, options: AreaOptions): AreaOptions {

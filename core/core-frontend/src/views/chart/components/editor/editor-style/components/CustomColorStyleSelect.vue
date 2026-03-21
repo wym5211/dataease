@@ -20,7 +20,7 @@ const props = withDefaults(
     themes?: EditorTheme
     modelValue: {
       basicStyleForm: ChartBasicStyle
-      customColor: any
+      customColor: string
       colorIndex: number
     }
     propertyInner?: Array<string>
@@ -43,13 +43,24 @@ const changeChartType = () => {
 }
 
 const seriesColorPickerRef = ref<InstanceType<typeof ElColorPicker>>()
-const seriesColorState = reactive({
+interface SeriesColorItem {
+  id: string
+  name: string
+  color: string
+}
+
+const seriesColorState = reactive<{
+  seriesColor: SeriesColorItem[]
+  curSeriesColor: SeriesColorItem
+  curColorIndex: number
+  seriesColorPickerId: string
+}>({
   seriesColor: [],
   curSeriesColor: {
     id: '',
     name: '',
     color: ''
-  } as any,
+  },
   curColorIndex: 0,
   seriesColorPickerId: 'body'
 })
@@ -145,7 +156,7 @@ const setupSeriesColor = () => {
     })
   }
 }
-const switchSeriesColor = (seriesColor, index) => {
+const switchSeriesColor = (seriesColor: SeriesColorItem, index: number) => {
   seriesColorPickerRef.value?.hide()
   seriesColorState.curSeriesColor = cloneDeep(seriesColor)
   seriesColorState.curColorIndex = index
@@ -216,7 +227,7 @@ function selectColorCase(option) {
 }
 
 const changeColorOption = (option?) => {
-  let isGradient = option?.value?.endsWith('_split_gradient') || isColorGradient.value
+  const isGradient = option?.value?.endsWith('_split_gradient') || isColorGradient.value
   const getColorItems = isGradient ? getMapColorCases(colorCases) : colorCases
   const items = getColorItems.filter(
     ele => ele.value === state.value.basicStyleForm[colorSchemeName.value]
@@ -255,8 +266,8 @@ const switchColorCase = () => {
   const colors = basicStyleForm[colorsName.value]
 
   if (isColorGradient.value) {
-    let startColor = colorIndex === 0 ? customColor : colors[0]
-    let endColor = colorIndex === 0 ? colors[8] : customColor
+    const startColor = colorIndex === 0 ? customColor : colors[0]
+    const endColor = colorIndex === 0 ? colors[8] : customColor
     basicStyleForm[colorsName.value] = stepsColor(startColor, endColor, 9, 1)
   } else {
     colors[colorIndex] = customColor

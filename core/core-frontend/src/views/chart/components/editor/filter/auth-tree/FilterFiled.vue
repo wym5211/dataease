@@ -314,7 +314,7 @@ const addFields = () => {
   showTextArea.value = false
 }
 const timeDialog = ref()
-const showTimeDialog = (obj: any) => {
+const showTimeDialog = (obj: { deType: number; timeType?: string; timeValue?: string }) => {
   if (obj.deType !== 1) return
   timeDialog.value.init(obj.timeType, obj.timeValue)
 }

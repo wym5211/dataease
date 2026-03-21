@@ -105,13 +105,13 @@ const changeMapSymbol = () => {
 }
 
 const customSymbolicMapSizeRange = computed(() => {
-  let { extBubble } = JSON.parse(JSON.stringify(props.chart))
+  const { extBubble } = JSON.parse(JSON.stringify(props.chart))
   return ['symbolic-map'].includes(props.chart.type) && extBubble?.length > 0
 })
 const mapCustomRangeValidate = prop => {
   const { mapSymbolSizeMax = '0', mapSymbolSizeMin = '1' } = state.basicStyleForm
-  let max = parseInt(mapSymbolSizeMax)
-  let min = parseInt(mapSymbolSizeMin)
+  const max = parseInt(mapSymbolSizeMax)
+  const min = parseInt(mapSymbolSizeMin)
   state.basicStyleForm.mapSymbolSizeMin = Math.max(min, 0)
   state.basicStyleForm.mapSymbolSizeMax = Math.max(max, 1)
   if (max < min) {

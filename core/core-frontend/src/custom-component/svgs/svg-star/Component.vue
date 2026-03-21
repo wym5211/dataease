@@ -30,19 +30,19 @@ const props = defineProps({
     }
   }
 })
-const { propValue, element } = toRefs(props)
+const { propValue: _propValue, element } = toRefs(props)
 const points = ref('')
 
 watch(
   () => element.value.style.width,
-  val => {
+  _val => {
     draw()
   }
 )
 
 watch(
   () => element.value.style.height,
-  val => {
+  _val => {
     draw()
   }
 )

@@ -3,7 +3,7 @@ import { ref, computed, onMounted, reactive, watch } from 'vue'
 import { interactiveStoreWithOut } from '@/store/modules/interactive'
 import { useI18n } from '@/hooks/web/useI18n'
 import { shortcutOption } from '@/views/workbranch/ShortcutOption'
-import { useRouter } from 'vue-router_2'
+import { useRouter } from 'vue-router'
 import { useCache } from '@/hooks/web/useCache'
 import Workbranch from '@/views/mobile/components/Workbranch.vue'
 import request from '@/config/axios'
@@ -37,7 +37,8 @@ const loadTableData = () => {
   shortcutOption
     .loadData({ type: 'panel', keyword: '', asc: false })
     .then(res => {
-      state.tableData = (res.data || []).filter(ele => ele.extFlag === 1)
+      const rows = Array.isArray(res.data) ? res.data : []
+      state.tableData = rows.filter(ele => ele.extFlag === 1)
     })
     .finally(() => {
       emits('setLoading', false)
@@ -53,7 +54,8 @@ const loadShareTableData = () => {
       data: { type: 'panel', keyword: '', asc: false }
     })
     .then(res => {
-      state.tableData = (res.data || []).filter(ele => ele.extFlag === 1)
+      const rows = Array.isArray(res.data) ? res.data : []
+      state.tableData = rows.filter(ele => ele.extFlag === 1)
     })
     .finally(() => {
       emits('setLoading', false)

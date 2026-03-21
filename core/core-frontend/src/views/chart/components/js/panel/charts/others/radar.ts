@@ -210,7 +210,8 @@ export class Radar extends G2PlotChartView<RadarOptions, G2Radar> {
     const customStyle = parseJson(chart.customStyle)
     const basicStyle = customAttr.basicStyle
     const misc = customStyle.misc
-    let label: any = {
+    type AxisLabel = false | { style: { fill: string; fontSize: number } }
+    let label: AxisLabel = {
       style: {
         fill: misc.color,
         fontSize: misc.fontSize

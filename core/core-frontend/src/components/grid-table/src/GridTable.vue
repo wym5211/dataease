@@ -6,6 +6,7 @@ import TableBody from './TableBody.vue'
 import { propTypes } from '@/utils/propTypes'
 import { useI18n } from '@/hooks/web/useI18n'
 const { t } = useI18n()
+type EmptyImgType = 'input' | 'select' | 'table' | 'none' | 'noneWhite' | 'tree' | 'error'
 const props = defineProps({
   columns: propTypes.arrayOf(propTypes.string),
   isSearch: propTypes.bool.def(false),
@@ -81,8 +82,11 @@ const state = reactive({
   tableAttrs: {}
 })
 
-const imgType = computed(() => {
-  return props.emptyImg ? props.emptyImg : props.isSearch ? 'tree' : 'noneWhite'
+const imgType = computed<EmptyImgType>(() => {
+  if (props.emptyImg) {
+    return props.emptyImg as EmptyImgType
+  }
+  return props.isSearch ? 'tree' : 'noneWhite'
 })
 const table = ref(null)
 

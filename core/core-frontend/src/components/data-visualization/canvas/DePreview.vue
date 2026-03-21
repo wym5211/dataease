@@ -8,6 +8,7 @@ import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { storeToRefs } from 'pinia'
 import elementResizeDetectorMaker from 'element-resize-detector'
 import UserViewEnlarge from '@/components/visualization/UserViewEnlarge.vue'
+import { logger } from '@/utils/logger'
 import CanvasOptBar from '@/components/visualization/CanvasOptBar.vue'
 import { isDashboard, isMainCanvas, refreshOtherComponent } from '@/utils/canvasUtils'
 import { activeWatermarkCheckUser } from '@/components/watermark/watermark'
@@ -180,12 +181,12 @@ const baseComponentData = computed(() =>
   )
 )
 const canvasStyle = computed(() => {
-  let style = {}
+  let style: Record<string, string | number> = {}
   if (isMainCanvas(canvasId.value) && !isDashboard()) {
     style['overflowY'] = 'hidden !important'
   }
   if (canvasStyleData.value && canvasStyleData.value.width && isMainCanvas(canvasId.value)) {
-    style = getCanvasStyle(canvasStyleData.value)
+    style = getCanvasStyle(canvasStyleData.value) as Record<string, string | number>
     if (screenAdaptor.value === 'keep') {
       style['height'] = canvasStyleData.value?.height + 'px'
       style['width'] = canvasStyleData.value?.width + 'px'
@@ -301,8 +302,8 @@ const resetLayout = () => {
   nextTick(() => {
     if (previewCanvas.value) {
       //div容器获取tableBox.value.clientWidth
-      let canvasWidth = previewCanvas.value.clientWidth
-      let canvasHeight = previewCanvas.value.clientHeight
+      const canvasWidth = previewCanvas.value.clientWidth
+      const canvasHeight = previewCanvas.value.clientHeight
       scaleWidthPoint.value = (canvasWidth * 100) / canvasStyleData.value.width
       if (dashboardScaleWithWidth.value) {
         scaleHeightPoint.value = scaleWidthPoint.value * 0.7
@@ -403,7 +404,7 @@ const initWatermark = (waterDomId = 'preview-canvas-main') => {
 // 目标校验： 需要校验targetSourceId 是否是当前可视化资源ID
 const winMsgHandle = event => {
   const msgInfo = event.data
-  console.info('Received Message: ' + JSON.stringify(msgInfo))
+  logger.debug('Received Message: ' + JSON.stringify(msgInfo))
   if (msgInfo?.targetSourceId === dvInfo.value.id + '' && isMainCanvas(canvasId.value))
     if (msgInfo.type === 'attachParams') {
       winMsgOuterParamsHandle(msgInfo)
@@ -464,7 +465,7 @@ const handleMouseDown = () => {
 
 const onPointClick = param => {
   try {
-    console.info('de_inner_params send')
+    logger.debug('de_inner_params send')
     if (window['dataease-embedded-host'] && openHandler?.value) {
       const pm = {
         methodName: 'embeddedInteractive',
@@ -475,7 +476,7 @@ const onPointClick = param => {
       }
       openHandler.value.invokeMethod(pm)
     } else {
-      console.info('de_inner_params send to host')
+      logger.debug('de_inner_params send to host')
       const targetPm = {
         type: 'dataease-embedded-interactive',
         eventName: 'de_inner_params',

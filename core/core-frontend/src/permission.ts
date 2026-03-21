@@ -1,18 +1,26 @@
 import router from './router'
 import { useUserStoreWithOut } from '@/store/modules/user'
 import { useAppStoreWithOut } from '@/store/modules/app'
-import type { RouteRecordRaw } from 'vue-router_2'
+import type { RouteRecordRaw } from 'vue-router'
 import { getDefaultSettings } from '@/api/common'
 import { useNProgress } from '@/hooks/web/useNProgress'
 import { usePermissionStoreWithOut, pathValid, getFirstAuthMenu } from '@/store/modules/permission'
 import { usePageLoading } from '@/hooks/web/usePageLoading'
 import { getRoleRouters } from '@/api/common'
 import { useCache } from '@/hooks/web/useCache'
-import { isMobile, checkPlatform, isLarkPlatform, isPlatformClient } from '@/utils/utils'
+import { checkPlatform } from '@/utils/utils'
 import { interactiveStoreWithOut } from '@/store/modules/interactive'
 import { useAppearanceStoreWithOut } from '@/store/modules/appearance'
 import { useEmbedded } from '@/store/modules/embedded'
 import { useLoading } from '@/hooks/web/useLoading'
+import { whiteList, embeddedWindowWhiteList, embeddedRouteWhiteList } from '@/router/whitelist'
+import {
+  checkMobileRedirect,
+  buildRedirectQuery,
+  isEmbeddedAccess,
+  isPublicAccess
+} from '@/router/guards'
+
 const appearanceStore = useAppearanceStoreWithOut()
 const { wsCache } = useCache()
 const permissionStore = usePermissionStoreWithOut()
@@ -24,168 +32,157 @@ const { start, done } = useNProgress()
 const { open } = useLoading()
 const { loadStart, loadDone } = usePageLoading()
 
-const whiteList = ['/login', '/de-link', '/chart-view', '/admin-login', '/401'] // 不重定向白名单
-const embeddedWindowWhiteList = ['/dvCanvas', '/dashboard', '/preview', '/dataset-embedded-form']
-const embeddedRouteWhiteList = ['/dataset-embedded', '/dataset-form', '/dataset-embedded-form']
 router.beforeEach(async (to, from, next) => {
+  // 特殊路径加载动画
   if (['/chart-view'].includes(to.path) || to.path.startsWith('/de-link/')) {
     open()
   }
   start()
   loadStart()
+
   const platform = checkPlatform()
   // 始终重新获取后端模式，避免缓存与后端实际模式不一致导致的问题
   await appStore.setAppModel()
-  const isDesktop = appStore.getDesktop
-  if (isMobile() && !['/chart-view'].includes(to.path)) {
+  const isDesktop = !!appStore.getDesktop
+
+  // 移动端重定向检查
+  if (checkMobileRedirect(to, isDesktop)) {
     done()
     loadDone()
-    if (to.name === 'link') {
-      let linkQuery = ''
-      if (Object.keys(to.query)) {
-        const tempQuery = Object.keys(to.query)
-          .map(key => key + '=' + to.query[key])
-          .join('&')
-        if (tempQuery) {
-          linkQuery = '?' + tempQuery
-        }
-      }
-      let pathname = window.location.pathname
-      pathname = pathname.replace('casbi/', '')
-      pathname = pathname.replace('oidc/', '')
-      pathname = pathname.substring(0, pathname.length - 1)
-      const prefix = window.origin + pathname
-      let toPath = to.fullPath
-      if (toPath.includes('?')) {
-        toPath = to.fullPath.substring(0, to.fullPath.lastIndexOf('?'))
-      }
-      window.location.href = (prefix + '/mobile.html#' + toPath + linkQuery).replace(/\+/g, '%2B')
-    } else if (
-      wsCache.get('user.token') ||
-      isDesktop ||
-      (!isPlatformClient() && !isLarkPlatform())
-    ) {
-      let pathname = window.location.pathname
-      pathname = pathname.substring(0, pathname.length - 1)
-      let url = window.origin + pathname + '/mobile.html#/index'
-      if (location.hash?.startsWith('#/preview')) {
-        url = window.origin + pathname + '/mobile.html' + location.hash
-      }
-      if (window.location.search) {
-        url += window.location.search
-      }
-      window.location.href = url
-    }
+    return
   }
-  await appearanceStore.setAppearance()
-  await appearanceStore.setFontList()
-  const defaultSort = await getDefaultSettings()
+  // 设置外观和默认配置（并行执行）
+  const [, , defaultSort] = await Promise.all([
+    appearanceStore.setAppearance(),
+    appearanceStore.setFontList(),
+    getDefaultSettings()
+  ])
   wsCache.set('TreeSort-backend', defaultSort['basic.defaultSort'] ?? '1')
   wsCache.set('open-backend', defaultSort['basic.defaultOpen'] ?? '0')
+
+  // 已登录用户的路由处理
   if ((wsCache.get('user.token') || isDesktop) && !to.path.startsWith('/de-link/')) {
-    if (!userStore.getUid) {
-      await userStore.setUser()
-    }
-    if (to.path === '/login') {
-      if (!permissionStore.getIsAddRouters) {
-        let roleRouters = (await getRoleRouters()) || []
-        if (isDesktop) {
-          roleRouters = roleRouters.filter(item => item.name !== 'system')
-        }
-        const routers: any[] = roleRouters as AppCustomRouteRecordRaw[]
-        routers.forEach(item => (item['top'] = true))
-        await permissionStore.generateRoutes(routers as AppCustomRouteRecordRaw[])
-        permissionStore.getAddRouters.forEach(route => {
-          router.addRoute(route as unknown as RouteRecordRaw)
-        })
-        permissionStore.setIsAddRouters(true)
-        await interactiveStore.initInteractive(true)
-      }
-      next({ path: '/workbranch/index' })
-      return
-    } else {
-      permissionStore.setCurrentPath(to.path)
-      if (permissionStore.getIsAddRouters) {
-        let str = ''
-        if (((from.query.redirect as string) || '?').split('?')[0] === to.path) {
-          str = ((window.location.hash as string) || '?').split('?').reverse()[0]
-          if (str.includes('redirect=')) {
-            str = ''
-          }
-        }
-        if (str) {
-          to.fullPath += '?' + str
-          to.query = str.split('&').reduce((pre, itx) => {
-            const [key, val] = itx.split('=')
-            pre[key] = val
-            return pre
-          }, {})
-        }
-        if (!pathValid(to.path) && to.path !== '/404' && !to.path.startsWith('/de-link')) {
-          const firstPath = getFirstAuthMenu()
-          next({ path: firstPath || '/404' })
-          return
-        }
-        next()
-        return
-      }
-
-      let roleRouters = (await getRoleRouters()) || []
-      if (isDesktop) {
-        roleRouters = roleRouters.filter(item => item.name !== 'system')
-      }
-      const routers: any[] = roleRouters as AppCustomRouteRecordRaw[]
-      routers.forEach(item => (item['top'] = true))
-      await permissionStore.generateRoutes(routers as AppCustomRouteRecordRaw[])
-
-      permissionStore.getAddRouters.forEach(route => {
-        router.addRoute(route as unknown as RouteRecordRaw) // 动态添加可访问路由表
-      })
-
-      permissionStore.setIsAddRouters(true)
-      await interactiveStore.initInteractive(true)
-
-      if (!pathValid(to.path) && to.path !== '/404' && !to.path.startsWith('/de-link')) {
-        const firstPath = getFirstAuthMenu()
-        next({ path: firstPath || '/404' })
-        return
-      }
-
-      // 从登录页跳转时，跳转到第一个有权限的页面
-      if (from.path === '/login') {
-        const firstPath = getFirstAuthMenu()
-        next({ path: firstPath || '/workbranch/index' })
-        return
-      }
-
-      next({ ...to, replace: true })
-    }
-  } else {
-    const embeddedStore = useEmbedded()
-    if (
-      embeddedStore.getToken &&
-      appStore.getIsIframe &&
-      embeddedRouteWhiteList.includes(to.path)
-    ) {
-      if (to.path.includes('/dataset-form')) {
-        next({ path: '/dataset-embedded-form', query: to.query })
-        return
-      }
-      permissionStore.setCurrentPath(to.path)
-      next()
-    } else if (
-      (!platform && embeddedWindowWhiteList.includes(to.path)) ||
-      whiteList.includes(to.path) ||
-      to.path.startsWith('/de-link/')
-    ) {
-      await appearanceStore.setFontList()
-      permissionStore.setCurrentPath(to.path)
-      next()
-    } else {
-      next(`/login?redirect=${to.fullPath || to.path}`) // 否则全部重定向到登录页
-    }
+    await handleAuthenticatedRoute(to, from, next, isDesktop)
+    return
   }
+
+  // 未登录用户的路由处理
+  await handleUnauthenticatedRoute(to, next, platform)
 })
+
+/**
+ * 处理已认证用户的路由
+ */
+async function handleAuthenticatedRoute(to, from, next, isDesktop: boolean) {
+  // 确保用户信息已加载
+  if (!userStore.getUid) {
+    await userStore.setUser()
+  }
+
+  // 登录页重定向到工作台
+  if (to.path === '/login') {
+    await initializeRouters(isDesktop)
+    next({ path: '/workbranch/index' })
+    return
+  }
+
+  permissionStore.setCurrentPath(to.path)
+
+  // 路由已初始化
+  if (permissionStore.getIsAddRouters) {
+    const queryStr = buildRedirectQuery(to, from)
+    if (queryStr) {
+      to.fullPath += '?' + queryStr
+      to.query = queryStr.split('&').reduce((pre, itx) => {
+        const [key, val] = itx.split('=')
+        pre[key] = val
+        return pre
+      }, {})
+    }
+
+    // 检查路径权限
+    if (!pathValid(to.path) && to.path !== '/404' && !to.path.startsWith('/de-link')) {
+      const firstPath = getFirstAuthMenu()
+      next({ path: firstPath || '/404' })
+      return
+    }
+    next()
+    return
+  }
+
+  // 初始化路由
+  await initializeRouters(isDesktop)
+
+  // 检查路径权限
+  if (!pathValid(to.path) && to.path !== '/404' && !to.path.startsWith('/de-link')) {
+    const firstPath = getFirstAuthMenu()
+    next({ path: firstPath || '/404' })
+    return
+  }
+
+  // 从登录页跳转时，跳转到第一个有权限的页面
+  if (from.path === '/login') {
+    const firstPath = getFirstAuthMenu()
+    next({ path: firstPath || '/workbranch/index' })
+    return
+  }
+
+  next({ ...to, replace: true })
+}
+
+/**
+ * 处理未认证用户的路由
+ */
+async function handleUnauthenticatedRoute(to, next, platform) {
+  const embeddedStore = useEmbedded()
+
+  // 嵌入式访问检查
+  if (isEmbeddedAccess(to, embeddedStore.getToken, appStore.getIsIframe, embeddedRouteWhiteList)) {
+    if (to.path.includes('/dataset-form')) {
+      next({ path: '/dataset-embedded-form', query: to.query })
+      return
+    }
+    permissionStore.setCurrentPath(to.path)
+    next()
+    return
+  }
+
+  // 公开访问路径检查
+  if (isPublicAccess(to, platform, embeddedWindowWhiteList, whiteList)) {
+    await appearanceStore.setFontList()
+    permissionStore.setCurrentPath(to.path)
+    next()
+    return
+  }
+
+  // 重定向到登录页
+  next(`/login?redirect=${to.fullPath || to.path}`)
+}
+
+/**
+ * 初始化动态路由
+ */
+async function initializeRouters(isDesktop: boolean) {
+  if (permissionStore.getIsAddRouters) {
+    return
+  }
+
+  let roleRouters = (await getRoleRouters()) || []
+  if (isDesktop) {
+    roleRouters = roleRouters.filter(item => item.name !== 'system')
+  }
+
+  const routers: AppCustomRouteRecordRaw[] = roleRouters as AppCustomRouteRecordRaw[]
+  routers.forEach(item => (item['top'] = true))
+  await permissionStore.generateRoutes(routers as AppCustomRouteRecordRaw[])
+
+  permissionStore.getAddRouters.forEach(route => {
+    router.addRoute(route as unknown as RouteRecordRaw)
+  })
+
+  permissionStore.setIsAddRouters(true)
+  await interactiveStore.initInteractive(true)
+}
 
 router.afterEach(() => {
   done()

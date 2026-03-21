@@ -5,12 +5,14 @@ import { storeToRefs } from 'pinia'
 import { toRefs } from 'vue'
 const dvMainStore = dvMainStoreWithOut()
 const { curComponent } = storeToRefs(dvMainStore)
-const props = defineProps({
-  themes: {
-    type: String,
-    default: 'dark'
+const props = withDefaults(
+  defineProps<{
+    themes?: EditorTheme
+  }>(),
+  {
+    themes: 'dark'
   }
-})
+)
 
 const { themes } = toRefs(props)
 </script>

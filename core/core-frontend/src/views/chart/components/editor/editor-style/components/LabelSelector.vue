@@ -27,11 +27,11 @@ const props = defineProps({
     required: true
   },
   dimensionData: {
-    type: Array<any>,
+    type: Array as PropType<Axis[]>,
     required: false
   },
   quotaData: {
-    type: Array<any>,
+    type: Array as PropType<Axis[]>,
     required: false
   },
   themes: {
@@ -39,11 +39,11 @@ const props = defineProps({
     default: 'dark'
   },
   allFields: {
-    type: Array<any>,
+    type: Array as PropType<Axis[]>,
     required: false
   },
   propertyInner: {
-    type: Array<string>
+    type: Array as PropType<string[]>
   }
 })
 const dvMainStore = dvMainStoreWithOut()
@@ -462,7 +462,7 @@ watch(
     if (!showProperty('showFields')) {
       return
     }
-    let result = []
+    const result = []
     state.labelForm.showFields?.forEach(field => {
       if (allFields.value?.map(i => i.value).includes(field)) {
         result.push(field)

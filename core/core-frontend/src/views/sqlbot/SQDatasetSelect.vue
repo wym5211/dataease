@@ -18,7 +18,19 @@ const props = defineProps({
   }
 })
 
-const newChat = (param?: any) => {
+interface SqlbotHandler {
+  [key: string]: {
+    createConversation: (param?: unknown) => void
+  }
+}
+
+declare global {
+  interface Window {
+    sqlbot_assistant_handler?: SqlbotHandler
+  }
+}
+
+const newChat = (param?: unknown) => {
   const handler = window['sqlbot_assistant_handler']
   if (handler && handler[props.assistantId]) {
     handler[props.assistantId].createConversation(param)
@@ -39,7 +51,16 @@ onMounted(() => {
   init()
 })
 
-const state = reactive({
+interface DatasetInfo {
+  tableId: string
+  tableName: string
+  dsId: string
+}
+const state = reactive<{
+  baseDatasetInfo: DatasetInfo[]
+  curDatasetInfo: DatasetInfo | null
+  curDatasetId: string | null
+}>({
   baseDatasetInfo: [],
   curDatasetInfo: null,
   curDatasetId: null
@@ -47,7 +68,7 @@ const state = reactive({
 
 const datasetSelect = () => {
   state.baseDatasetInfo.forEach(datasetInfo => {
-    if (datasetInfo.tableId === state.curDatasetId) {
+    if (datasetInfo.tableId === state.curDatasetId && state.curDatasetInfo) {
       localStorage.setItem('dsId', state.curDatasetInfo.dsId)
       localStorage.setItem('tableId', state.curDatasetInfo.tableId)
       newChat()

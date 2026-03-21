@@ -47,7 +47,7 @@ const showProperty = prop => props.propertyInner?.includes(prop)
 const init = () => {
   const chart = JSON.parse(JSON.stringify(props.chart))
   if (chart.senior) {
-    let senior = parseJson(chart.senior)
+    const senior = parseJson(chart.senior)
     if (senior.functionCfg) {
       state.functionForm = senior.functionCfg
     }

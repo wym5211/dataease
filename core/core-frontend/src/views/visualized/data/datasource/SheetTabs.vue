@@ -18,7 +18,7 @@ const activeTabIndex = ref(0)
 const emits = defineEmits(['TabClick'])
 const { activeTab } = toRefs(props)
 const handleTabClick = tab => {
-  let tabDom = document.getElementById(`tab-${tab.value}`)
+  const tabDom = document.getElementById(`tab-${tab.value}`)
   if (tabDom.offsetLeft + tabDom.offsetWidth > tabWrapper.value.offsetWidth) {
     tabWrapper.value.scrollLeft =
       tabDom.offsetLeft + tabDom.offsetWidth - tabWrapper.value.offsetWidth
@@ -48,13 +48,13 @@ watch(
 )
 
 const prevClick = () => {
-  let domWrapper = tabWrapper.value
+  const domWrapper = tabWrapper.value
   if (!domWrapper.scrollLeft) return
   domWrapper.scrollLeft -= 30
 }
 
 const nextClick = () => {
-  let domWrapper = tabWrapper.value
+  const domWrapper = tabWrapper.value
   domWrapper.scrollLeft += 30
 }
 </script>

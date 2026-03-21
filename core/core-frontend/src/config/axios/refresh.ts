@@ -2,6 +2,7 @@ import { useCache } from '@/hooks/web/useCache'
 import { refreshApi } from '@/api/login'
 import { useUserStoreWithOut } from '@/store/modules/user'
 import { useRequestStoreWithOut } from '@/store/modules/request'
+import { logger } from '@/utils/logger'
 
 import { isLink } from '@/utils/utils'
 const { wsCache } = useCache()
@@ -25,8 +26,10 @@ const isExpired = () => {
   return Date.now() - time > expTimeConstants
 }
 
-const delayExecute = (token: string) => {
-  const cachedRequestList = requestStore.getRequestList
+const delayExecute = (token: string | null) => {
+  const cachedRequestList = requestStore.getRequestList as unknown as Array<
+    (token: string | null) => void
+  >
   cachedRequestList.forEach(cb => {
     cb(token)
   })
@@ -40,11 +43,11 @@ const setRefreshStatus = (status: boolean) => {
   wsCache.set('de-global-refresh', status, { exp: 5 })
 }
 
-const cacheRequest = cb => {
+const cacheRequest = (cb: (token: string | null) => void) => {
   requestStore.addCacheRequest(cb)
 }
 
-export const configHandler = config => {
+export const configHandler = (config: any) => {
   const desktop = wsCache.get('app.desktop')
   if (desktop) {
     return config
@@ -54,12 +57,12 @@ export const configHandler = config => {
   }
   // 直接从 localStorage 获取原始值
   const rawToken = localStorage.getItem('user.token')
-  console.log('[DEBUG] Raw from localStorage:', rawToken?.substring(0, 100))
+  logger.debug('Raw from localStorage:', rawToken?.substring(0, 100))
   let token = null
   if (rawToken) {
     try {
       const parsed = JSON.parse(rawToken)
-      console.log('[DEBUG] Parsed type:', typeof parsed, JSON.stringify(parsed)?.substring(0, 100))
+      logger.debug('Parsed type:', typeof parsed, JSON.stringify(parsed)?.substring(0, 100))
       // WebStorageCache 格式: {c: createTime, e: expireTime, v: value}
       if (parsed && parsed.v) {
         let innerToken = parsed.v
@@ -79,7 +82,7 @@ export const configHandler = config => {
       token = rawToken // 解析失败，直接使用原始值
     }
   }
-  console.log('[DEBUG] Final token:', token ? token.substring(0, 50) + '...' : 'null')
+  logger.debug('Final token:', token ? token.substring(0, 50) + '...' : 'null')
   if (token) {
     config.headers['X-DE-TOKEN'] = token
     const expired = isExpired()

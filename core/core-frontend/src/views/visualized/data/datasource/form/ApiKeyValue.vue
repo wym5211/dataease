@@ -13,6 +13,8 @@ export interface Item {
   value: string
   description: string
   type: string
+  nameType?: string
+  originName?: string
 }
 const props = defineProps({
   keyPlaceholder: propTypes.string.def(''),
@@ -39,9 +41,6 @@ const { t } = useI18n()
 const keyText = computed(() => {
   return props.keyPlaceholder || t('datasource.key')
 })
-const valueText = computed(() => {
-  return props.valuePlaceholder || t('datasource.value')
-})
 
 const { suggestions, items } = toRefs(props)
 
@@ -56,7 +55,7 @@ onBeforeMount(() => {
   }
 })
 
-const activeName = inject('api-active-name')
+inject('api-active-name')
 
 const remove = (index: number) => {
   if (isDisable()) return
@@ -176,9 +175,9 @@ const timeFunLists = [
               >
                 <el-option
                   v-for="item in valueList"
-                  :key="item.originName"
+                  :key="item.originName || item.value"
                   :label="item.name"
-                  :value="item.originName"
+                  :value="item.originName || item.value"
                 />
               </el-select>
               <el-select
@@ -188,7 +187,7 @@ const timeFunLists = [
               >
                 <el-option
                   v-for="item in timeFunLists"
-                  :key="item.originName"
+                  :key="item.value"
                   :label="item.label"
                   :value="item.value"
                 />

@@ -485,7 +485,7 @@ export class HorizontalStackBar extends HorizontalBar {
 
     return this.configStackColor(chart, options)
   }
-  public setupSeriesColor(chart: ChartObj, data?: any[]): ChartBasicStyle['seriesColor'] {
+  public setupSeriesColor(chart: ChartObj, data?: Datum[]): ChartBasicStyle['seriesColor'] {
     return setUpStackSeriesColor(chart, data)
   }
 

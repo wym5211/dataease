@@ -18,11 +18,52 @@ const snapshotStore = snapshotStoreWithOut()
 const { t } = useI18n()
 const emits = defineEmits(['onAttrChange'])
 
+interface CommonAttrElement {
+  collapseName?: string
+  commonBackground?: Record<string, unknown>
+  titleBackground?: { enable: boolean } & Record<string, unknown>
+  component: string
+  innerType?: string
+  carousel?: { enable: boolean; time: number }
+  events?: { checked: boolean; type: string; typeList: { key: string; label: string }[] }
+  style: {
+    borderStyle?: string
+    borderActive?: boolean
+    showTabTitle?: boolean
+  } & Record<string, unknown>
+}
+interface TabTitleBackground {
+  active: Record<string, unknown>
+  inActive: Record<string, unknown>
+  multiply: boolean
+}
+interface TabElement {
+  titleBackground: TabTitleBackground
+}
+interface StyleSetElement {
+  id: string
+  style: Record<string, unknown>
+}
+interface CarouselElement {
+  id: string
+  carousel: {
+    enable: boolean
+    time: number | null
+  }
+  innerType?: string
+}
+interface EventsInfo {
+  checked: boolean
+  type: string
+  typeList: { key: string; label: string }[]
+  jump: { value: string; type: string }
+}
+
 const props = withDefaults(
   defineProps<{
     type?: 'light' | 'dark'
     themes?: EditorTheme
-    element: any
+    element: CommonAttrElement
     showStyle?: boolean
     backgroundColorPickerWidth?: number
     backgroundBorderSelectWidth?: number
@@ -38,10 +79,10 @@ const props = withDefaults(
 const { themes, element } = toRefs(props)
 const dvMainStore = dvMainStoreWithOut()
 const { dvInfo, batchOptStatus, mobileInPc } = storeToRefs(dvMainStore)
-const activeName = ref(element.value.collapseName)
+const activeName = ref<string | string[] | undefined>(element.value.collapseName)
 
 const onChange = () => {
-  element.value.collapseName = activeName
+  element.value.collapseName = activeName.value as string
 }
 
 const positionComponentShow = computed(() => {
@@ -52,7 +93,7 @@ const dashboardActive = computed(() => {
   return dvInfo.value.type === 'dashboard'
 })
 
-const onBackgroundChange = val => {
+const onBackgroundChange = (val: { enable: boolean } & Record<string, unknown>) => {
   element.value.commonBackground = val
   snapshotStore.recordSnapshotCacheToMobile('commonBackground')
   emits('onAttrChange', { custom: 'commonBackground' })
@@ -62,19 +103,23 @@ const onTitleBackgroundEnableChange = () => {
   snapshotStore.recordSnapshotCacheToMobile('titleBackground')
 }
 
-const onTitleBackgroundChange = val => {
+const onTitleBackgroundChange = (val: { enable: boolean } & Record<string, unknown>) => {
   element.value.titleBackground = val
   snapshotStore.recordSnapshotCacheToMobile('titleBackground')
   emits('onAttrChange', { custom: 'titleBackground' })
 }
 
-const onStyleAttrChange = ({ key, value }) => {
+const onStyleAttrChange = ({ key, value }: { key: string; value: unknown }) => {
   snapshotStore.recordSnapshotCacheToMobile('style')
   emits('onAttrChange', { custom: 'style', property: key, value: value })
 }
 
-const containerRef = ref()
-const containerWidth = ref()
+const containerRef = ref<HTMLElement | null>(null)
+const containerWidth = ref<number | undefined>(undefined)
+const tabElement = computed(() => element.value as unknown as TabElement)
+const styleSetElement = computed(() => element.value as unknown as StyleSetElement)
+const carouselElement = computed(() => element.value as unknown as CarouselElement)
+const eventsInfo = computed(() => element.value.events as EventsInfo)
 
 const borderSettingShow = computed(() => {
   return (
@@ -179,12 +224,12 @@ onMounted(() => {
         :title="t('visualization.title_background')"
         name="titleBackground"
         v-model="element.titleBackground.enable"
-        @modelChange="val => onTitleBackgroundEnableChange(val)"
+        @modelChange="onTitleBackgroundEnableChange"
         v-if="element && titleBackgroundShow"
       >
         <tab-background-overall
           :themes="themes"
-          :element="element"
+          :element="tabElement"
           component-position="component"
           @onTitleBackgroundChange="onTitleBackgroundChange"
         ></tab-background-overall>
@@ -202,7 +247,7 @@ onMounted(() => {
         <common-style-set
           @onStyleAttrChange="onStyleAttrChange"
           :themes="themes"
-          :element="element"
+          :element="styleSetElement"
         ></common-style-set>
       </collapse-switch-item>
       <el-collapse-item
@@ -215,7 +260,7 @@ onMounted(() => {
         <common-style-set
           @onStyleAttrChange="onStyleAttrChange"
           :themes="themes"
-          :element="element"
+          :element="styleSetElement"
         ></common-style-set>
       </el-collapse-item>
       <el-collapse-item
@@ -225,7 +270,7 @@ onMounted(() => {
         name="events"
         class="common-style-area"
       >
-        <common-event :themes="themes" :events-info="element.events"></common-event>
+        <common-event :themes="themes" :events-info="eventsInfo"></common-event>
       </el-collapse-item>
       <collapse-switch-item
         v-if="element && borderSettingShow"
@@ -244,7 +289,11 @@ onMounted(() => {
       </collapse-switch-item>
       <slot name="threshold" />
       <slot name="carousel" />
-      <CarouselSetting v-if="carouselShow" :element="element" :themes="themes"></CarouselSetting>
+      <CarouselSetting
+        v-if="carouselShow"
+        :element="carouselElement"
+        :themes="themes"
+      ></CarouselSetting>
     </el-collapse>
   </div>
 </template>

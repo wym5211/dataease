@@ -10,7 +10,7 @@
     <div style="width: 100%; height: 100%">
       <div v-if="popComponentData && popComponentData.length > 0" class="pop-content">
         <!--使用ComponentWrapper 保留扩展能力-->
-        <ComponentWrapper
+        <AnyComponentWrapper
           v-for="(item, index) in popComponentData"
           :id="'component-pop-' + item.id"
           :view-info="canvasViewInfo[item.id]"
@@ -40,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, toRefs } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, toRefs, type PropType } from 'vue'
 import { findDragComponent } from '@/utils/canvasUtils'
 import { guid } from '@/views/visualized/data/dataset/form/util'
 import { changeComponentSizeWithScale } from '@/utils/changeComponentsSizeWithScale'
@@ -56,22 +56,23 @@ const dvMainStore = dvMainStoreWithOut()
 const snapshotStore = snapshotStoreWithOut()
 const areaActive = ref(false)
 const { t } = useI18n()
+const AnyComponentWrapper = ComponentWrapper as any
 
 const props = defineProps({
   dvInfo: {
-    type: Object,
+    type: Object as PropType<Record<string, any>>,
     required: true
   },
   canvasStyleData: {
-    type: Object,
+    type: Object as PropType<Record<string, any>>,
     required: true
   },
   popComponentData: {
-    type: Array,
+    type: Array as PropType<any[]>,
     required: true
   },
   canvasViewInfo: {
-    type: Object,
+    type: Object as PropType<Record<string, any>>,
     required: true
   },
   canvasId: {
@@ -90,7 +91,7 @@ const props = defineProps({
     default: 'preview'
   },
   canvasState: {
-    type: Object,
+    type: Object as PropType<Record<string, any>>,
     required: true
   }
 })
@@ -108,27 +109,29 @@ const innerScale = computed(() =>
   props.showPosition === 'preview' ? props.scale : props.scale * 100
 )
 
-const curActive = item => {
+const curActive = (item: any) => {
   return curComponent.value?.id === item.id && props.showPosition === 'popEdit'
 }
 
-const handleDragOver = e => {
+const handleDragOver = (e: DragEvent) => {
   areaActive.value = true
   e.preventDefault()
-  e.dataTransfer.dropEffect = 'copy'
+  if (e.dataTransfer) {
+    e.dataTransfer.dropEffect = 'copy'
+  }
 }
 
 const handleDragLeave = () => {
   areaActive.value = false
 }
 
-const handleDrop = e => {
+const handleDrop = (e: DragEvent) => {
   areaActive.value = false
   // 判断当前区域师傅已经有隐藏组件
   if (!popComponentData.value || popComponentData.value.length === 0) {
     e.preventDefault()
     e.stopPropagation()
-    const componentInfo = e.dataTransfer.getData('id')
+    const componentInfo = e.dataTransfer?.getData('id')
     if (componentInfo) {
       const component = findDragComponent(componentInfo)
       if (component.component === 'VQuery') {
@@ -162,7 +165,7 @@ const customPopStyle = computed(() => {
 const popCanvasStyle = computed(() => {
   if (canvasState.value.curPointArea === 'hidden') {
     let queryCount = 0
-    popComponentData.value.forEach(popItem => {
+    popComponentData.value.forEach((popItem: any) => {
       queryCount = 0 + popItem.propValue.length
     })
     return {

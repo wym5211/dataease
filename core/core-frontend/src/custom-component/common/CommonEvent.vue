@@ -11,10 +11,27 @@ const { t } = useI18n()
 
 const snapshotStore = snapshotStoreWithOut()
 
+interface EventTypeInfo {
+  key: string
+  label: string
+}
+
+interface JumpConfig {
+  value: string
+  type: string
+}
+
+interface EventsInfo {
+  checked: boolean
+  type: string
+  typeList: EventTypeInfo[]
+  jump: JumpConfig
+}
+
 const props = withDefaults(
   defineProps<{
     themes?: EditorTheme
-    eventsInfo: any
+    eventsInfo: EventsInfo
   }>(),
   {
     themes: 'dark'

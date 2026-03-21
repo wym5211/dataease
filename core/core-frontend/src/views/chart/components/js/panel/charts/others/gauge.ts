@@ -122,7 +122,7 @@ export class Gauge extends G2PlotChartView<GaugeOptions, G2Gauge> {
   protected configMisc(
     chart: Chart,
     options: GaugeOptions,
-    context: Record<string, any>
+    context: Record<string, number>
   ): GaugeOptions {
     const customAttr = parseJson(chart.customAttr)
     const data = chart.data.series[0].data[0]
@@ -161,14 +161,14 @@ export class Gauge extends G2PlotChartView<GaugeOptions, G2Gauge> {
   private configRange(
     chart: Chart,
     options: GaugeOptions,
-    context: Record<string, any>
+    context: Record<string, number>
   ): GaugeOptions {
     const { scale } = context
     const range = [0]
     let index = 0
     let flag = false
     let hasThreshold = false
-    const theme = options.theme as any
+    const theme = options.theme as { styleSheet: { paletteQualitative10: string[] } }
 
     if (chart.senior) {
       const senior = parseJson(chart.senior)
@@ -248,7 +248,7 @@ export class Gauge extends G2PlotChartView<GaugeOptions, G2Gauge> {
   protected configLabel(
     chart: Chart,
     options: GaugeOptions,
-    context?: Record<string, any>
+    context?: Record<string, number>
   ): GaugeOptions {
     const customAttr = parseJson(chart.customAttr)
     const data = chart.data.series[0].data[0]
@@ -331,7 +331,7 @@ export class Gauge extends G2PlotChartView<GaugeOptions, G2Gauge> {
   protected setupOptions(
     chart: Chart,
     options: GaugeOptions,
-    context: Record<string, any>
+    context: Record<string, number>
   ): GaugeOptions {
     return flow(
       this.configTheme,

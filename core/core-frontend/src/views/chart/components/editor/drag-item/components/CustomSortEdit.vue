@@ -55,7 +55,7 @@ const init = () => {
     fieldType: props.fieldType,
     data: chart
   }
-  let reqMethod = props.fieldType === 'drillFields' ? getDrillFieldData : getFieldData
+  const reqMethod = props.fieldType === 'drillFields' ? getDrillFieldData : getFieldData
   reqMethod(param)
     .then(response => {
       const strArr = response.data

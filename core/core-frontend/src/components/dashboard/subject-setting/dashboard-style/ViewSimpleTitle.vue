@@ -136,7 +136,15 @@ const dvMainStore = dvMainStoreWithOut()
 
 const emits = defineEmits(['onTextChange'])
 
-const titleForm = computed<any>(() => dvMainStore.canvasStyleData.component.chartTitle)
+interface ChartTitleStyle {
+  color: string
+  fontSize: string
+  hPosition: 'left' | 'center' | 'right'
+  isBolder: boolean
+  isItalic: boolean
+}
+
+const titleForm = computed<ChartTitleStyle>(() => dvMainStore.canvasStyleData.component.chartTitle)
 const state = reactive({
   fontSize: [],
   isSetting: false,

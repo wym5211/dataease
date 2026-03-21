@@ -18,15 +18,20 @@ export interface CommonBackground {
   outerImage?: string
 }
 
+export interface BoardItemData {
+  name: string
+  url: string
+}
+
 export interface State {
   commonBackground: CommonBackground
-  BackgroundShowMap: Record<string, any>
+  BackgroundShowMap: Record<string, BoardItemData[]>
   checked: boolean
-  backgroundOrigin: Record<string, any>
+  backgroundOrigin: Record<string, BoardItemData[]>
   fileList: UploadFile[]
   dialogImageUrl: string
   dialogVisible: boolean
   uploadDisabled: boolean
-  panel?: any
+  panel: unknown
   predefineColors: typeof COLOR_PANEL
 }

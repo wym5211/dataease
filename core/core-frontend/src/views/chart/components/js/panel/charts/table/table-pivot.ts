@@ -26,7 +26,7 @@ import { copyContent, CustomDataCell, isNumeric } from '../../common/common_tabl
 import Decimal from 'decimal.js'
 import { DEFAULT_TABLE_HEADER } from '@/views/chart/components/editor/util/chart'
 
-type DataItem = Record<string, any>
+type DataItem = Record<string, unknown>
 
 const { t } = useI18n()
 
@@ -1457,7 +1457,7 @@ export function setColorOpacity(color: string, opacity: number) {
   return color
 }
 
-function configEmptyDataStyle(instance: PivotSheet, data: any[]) {
+function configEmptyDataStyle(instance: PivotSheet, data: DataItem[]) {
   if (data?.length) {
     return
   }

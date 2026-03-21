@@ -172,7 +172,7 @@ import PreviewCanvas from '@/views/data-visualization/PreviewCanvas.vue'
 import SelectScreenDialog from '@/custom-component/de-screen/SelectScreenDialog.vue'
 const dvMainStore = dvMainStoreWithOut()
 const snapshotStore = snapshotStoreWithOut()
-const { tabMoveInActiveId, bashMatrixInfo, editMode, mobileInPc } = storeToRefs(dvMainStore)
+const { bashMatrixInfo, editMode, mobileInPc } = storeToRefs(dvMainStore)
 const tabComponentRef = ref(null)
 let carouselTimer = null
 const { t } = useI18n()
@@ -229,11 +229,10 @@ const {
   element,
   isEdit,
   showPosition,
-  canvasStyleData,
-  canvasViewInfo,
+  canvasViewInfo: _canvasViewInfo,
   dvInfo,
   scale,
-  searchCount
+  searchCount: _searchCount
 } = toRefs(props)
 
 const screenType =
@@ -297,7 +296,7 @@ const handleMouseLeave = () => {
 }
 const state = reactive({
   activeTabName: '',
-  curItem: {},
+  curItem: {} as Record<string, any>,
   textarea: '',
   dialogVisible: false,
   tabShow: true,
@@ -326,8 +325,13 @@ const calcTabLength = () => {
       const containerDom = document.getElementById(
         'tab-' + element.value.propValue[element.value.propValue.length - 1].name
       )
-      tabsAreaScroll.value =
-        containerDom.parentNode.clientWidth > tabComponentRef.value.clientWidth - 100
+      const parentNode = containerDom?.parentNode as HTMLElement | null
+      const tabRef = tabComponentRef.value as HTMLElement | null
+      tabsAreaScroll.value = !!(
+        parentNode &&
+        tabRef &&
+        parentNode.clientWidth > tabRef.clientWidth - 100
+      )
     } else {
       tabsAreaScroll.value = false
     }
@@ -340,11 +344,6 @@ const beforeHandleCommand = (item, param) => {
     param: param
   }
 }
-const curPreviewGap = computed(() =>
-  dvInfo.value.type === 'dashboard' && canvasStyleData.value['dashboard'].gap === 'yes'
-    ? canvasStyleData.value['dashboard'].gapSize
-    : 0
-)
 
 function sureCurTitle() {
   state.curItem.title = state.textarea
@@ -493,10 +492,6 @@ const addToMain = component => {
   })
 }
 
-const moveActive = computed(() => {
-  return tabMoveInActiveId.value && tabMoveInActiveId.value === element.value.id
-})
-
 const headClass = computed(() => {
   if (tabsAreaScroll.value) {
     return 'tab-head-left'
@@ -518,7 +513,7 @@ const backgroundStyle = backgroundParams => {
       innerPadding,
       borderRadius
     } = backgroundParams
-    let style = {
+    const style = {
       padding: innerPadding * scale.value + 'px',
       borderRadius: borderRadius + 'px'
     }

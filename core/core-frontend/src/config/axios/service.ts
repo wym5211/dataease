@@ -32,6 +32,7 @@ type InternalAxiosRequestConfigWidthLoading<T> = T & {
 
 import { ElMessage, ElMessageBox } from 'element-plus-secondary'
 import router from '@/router'
+import { logger } from '@/utils/logger'
 
 const { result_code } = config
 import { useCache } from '@/hooks/web/useCache'
@@ -45,47 +46,54 @@ const embeddedBasePath =
 export const PATH_URL = embeddedStore.baseUrl ? embeddedStore?.baseUrl + embeddedBasePath : basePath
 
 export interface AxiosInstanceWithLoading extends AxiosInstance {
-  <T = any, R = AxiosResponse<T>, D = any>(
+  <T = unknown, R = AxiosResponse<T>, D = unknown>(
     config: AxiosRequestConfig<D> & { loading?: boolean; silentError?: boolean }
   ): Promise<R>
 }
 
-const getTimeOut = () => {
-  let time = 100
-  const url = PATH_URL + '/sysParameter/requestTimeOut'
-  const xhr = new XMLHttpRequest()
-  xhr.onreadystatechange = () => {
-    if (xhr.readyState === 4 && xhr.status === 200) {
-      if (xhr.responseText) {
-        try {
-          const response = JSON.parse(xhr.responseText)
-          if (response.code === 0) {
-            time = response.data
-          } else {
-            ElMessage.error('系统异常，请联系管理员')
-          }
-        } catch (e) {
-          ElMessage.error('系统异常，请联系管理员')
-        }
-      } else {
-        ElMessage.error('网络异常，请联系网管')
-      }
-    }
-  }
+const DEFAULT_TIMEOUT = 100 // 默认超时时间（秒）
 
-  xhr.open('get', url, false)
-  xhr.send()
-  return time
+/**
+ * 异步获取请求超时配置
+ * 使用 axios 替代同步 XMLHttpRequest
+ */
+const getTimeOut = async (): Promise<number> => {
+  try {
+    const url = PATH_URL + '/sysParameter/requestTimeOut'
+    const response = await axios.get(url, { timeout: 5000 })
+
+    if (response.data && response.data.code === 0) {
+      return response.data.data || DEFAULT_TIMEOUT
+    } else {
+      logger.error('获取超时配置失败，使用默认值')
+      return DEFAULT_TIMEOUT
+    }
+  } catch (e) {
+    logger.error('获取超时配置异常，使用默认值:', e)
+    return DEFAULT_TIMEOUT
+  }
 }
 
-// 创建axios实例
-const time = getTimeOut()
-window._de_get_time_out = time
+// 创建axios实例（使用默认超时，稍后更新）
+let requestTimeout = DEFAULT_TIMEOUT * 1000
 const service: AxiosInstanceWithLoading = axios.create({
-  baseURL: PATH_URL, // api 的 base_url
-  timeout: time ? time * 1000 : config.request_timeout // 请求超时时间
+  baseURL: PATH_URL,
+  timeout: requestTimeout
 })
-const mapping = {
+
+// 异步初始化超时配置
+getTimeOut()
+  .then(time => {
+    requestTimeout = time * 1000
+    window._de_get_time_out = time
+    // 更新已创建的 axios 实例的超时配置
+    service.defaults.timeout = requestTimeout
+    logger.info('请求超时配置已更新:', time + 's')
+  })
+  .catch(err => {
+    logger.error('初始化超时配置失败:', err)
+  })
+const mapping: Record<string, string> = {
   'zh-CN': 'zh-CN',
   en: 'en-US',
   tw: 'zh-TW'
@@ -93,19 +101,19 @@ const mapping = {
 const permissionStore = usePermissionStoreWithOut()
 const linkStore = useLinkStoreWithOut()
 const CancelToken = axios.CancelToken
-const cancelMap = {}
+const cancelMap: Record<string, (message?: string) => void> = {}
 
 // request拦截器
 service.interceptors.request.use(
   async (c: InternalAxiosRequestConfigWidthLoading<InternalAxiosRequestConfig>) => {
-    console.log('[DEBUG] Request URL:', c.url)
+    logger.debug('Request URL:', c.url)
     let config = configHandler(c)
     if (config instanceof Promise) {
       config = await config
     }
-    console.log(
-      '[DEBUG] After configHandler, X-DE-TOKEN:',
-      (config.headers as any)['X-DE-TOKEN'] ? 'exists' : 'missing'
+    logger.debug(
+      'After configHandler, X-DE-TOKEN:',
+      (config.headers as Record<string, unknown>)['X-DE-TOKEN'] ? 'exists' : 'missing'
     )
     if (
       config.method === 'post' &&
@@ -147,7 +155,7 @@ service.interceptors.request.use(
     }
 
     if (config.url.endsWith('chartData/getData')) {
-      const chartKey = `chartData/getData/${(config.data as any).id}`
+      const chartKey = `chartData/getData/${(config.data as { id: string | number }).id}`
       config.cancelToken = new CancelToken(function executor(c) {
         cancelMap[chartKey] = c
       })
@@ -169,7 +177,9 @@ service.interceptors.request.use(
 // response 拦截器
 service.interceptors.response.use(
   (
-    response: AxiosResponse<any> & { config: InternalAxiosRequestConfig & { loading?: boolean } }
+    response: AxiosResponse<unknown> & {
+      config: InternalAxiosRequestConfig & { loading?: boolean }
+    }
   ) => {
     executeVersionHandler(response)
     /* if (response.headers['x-de-refresh-token']) {
@@ -181,11 +191,12 @@ service.interceptors.response.use(
     }
     response.config.loading && tryHideLoading(permissionStore.getCurrentPath)
 
+    const responseData = response.data as any
     if (response.config.responseType === 'blob') {
       // 如果是文件流，直接过
       return response
-    } else if (response.data.code === result_code || response.data.code === 50002) {
-      return response.data
+    } else if (responseData.code === result_code || responseData.code === 50002) {
+      return responseData
     } else if (response.config.url.match(/^\/map|geo\/\d{3}\/\d+\.json$/)) {
       //   TODO 处理静态文件
       return response
@@ -199,14 +210,14 @@ service.interceptors.response.use(
     } else {
       if (
         !response?.config?.url.startsWith('/xpackComponent/content') &&
-        response?.data?.code !== 60003
+        responseData?.code !== 60003
       ) {
         ElMessage({
           type: 'error',
-          message: response.data.msg,
+          message: responseData.msg,
           showClose: true
         })
-        if (response.data.code === 80001) {
+        if (responseData.code === 80001) {
           clearCache()
           let queryRedirectPath = '/workbranch/index'
           if (router.currentRoute.value.fullPath) {
@@ -220,7 +231,7 @@ service.interceptors.response.use(
         )
       }
 
-      return Promise.reject(response.data.msg)
+      return Promise.reject(responseData.msg)
     }
   },
   (error: AxiosErrorWidthLoading<AxiosError>) => {
@@ -252,9 +263,10 @@ service.interceptors.response.use(
       !header.has('DE-GATEWAY-FLAG') &&
       !error.config.silentError
     ) {
+      const errorResponseData = error.response?.data as any
       ElMessage({
         type: 'error',
-        message: error.response?.data?.msg ? error.response?.data?.msg : error.message,
+        message: errorResponseData?.msg ? errorResponseData.msg : error.message,
         showClose: true
       })
     } else if (error?.config?.url.startsWith('/xpackComponent/content')) {
@@ -270,7 +282,7 @@ service.interceptors.response.use(
       clearCache()
       if (!(userToken && inPlatformClient)) {
         const flag = header.get('DE-GATEWAY-FLAG')
-        localStorage.setItem('DE-GATEWAY-FLAG', flag.toString())
+        localStorage.setItem('DE-GATEWAY-FLAG', String(flag || ''))
       }
       let queryRedirectPath = '/workbranch/index'
       if (router.currentRoute.value.fullPath) {
@@ -327,21 +339,17 @@ const executeVersionHandler = (response: AxiosResponse) => {
   }
 }
 
-const cancelRequestBatch = cancelKey => {
+const cancelRequestBatch = (cancelKey: string) => {
   if (cancelKey) {
     if (cancelKey.indexOf('/**') > -1) {
       const cancelKeyPre = cancelKey.split('/**')[0]
       Object.keys(cancelMap).forEach(key => {
         if (key.indexOf(cancelKeyPre) > -1) {
-          cancelMap[key]?.(() => {
-            console.warn('Operation canceled by the user,url:' + key)
-          })
+          cancelMap[key]?.('Operation canceled by the user, url:' + key)
         }
       })
     } else {
-      cancelMap[cancelKey]?.(() => {
-        console.warn('Operation canceled by the user,url:' + cancelKey)
-      })
+      cancelMap[cancelKey]?.('Operation canceled by the user, url:' + cancelKey)
     }
   }
 }

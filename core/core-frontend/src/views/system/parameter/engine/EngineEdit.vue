@@ -163,7 +163,7 @@ const edit = () => {
   querySymmetricKey().then(response => {
     getDeEngine()
       .then(res => {
-        let {
+        const {
           name,
           createBy,
           id,
@@ -171,7 +171,6 @@ const edit = () => {
           creator,
           type,
           pid,
-          configuration,
           syncSetting,
           fileName,
           size,
@@ -179,6 +178,7 @@ const edit = () => {
           lastSyncTime,
           enableDataFill
         } = res.data
+        let { configuration } = res.data
         if (configuration) {
           configuration = JSON.parse(symmetricDecrypt(configuration, response.data))
         }
@@ -207,7 +207,7 @@ const edit = () => {
 const basicForm = ref()
 
 const submitForm = async () => {
-  let data = JSON.parse(JSON.stringify(nodeInfo)) as unknown as Omit<
+  const data = JSON.parse(JSON.stringify(nodeInfo)) as unknown as Omit<
     Node,
     'configuration' | 'apiConfiguration'
   > & {
@@ -236,7 +236,7 @@ const submitForm = async () => {
 }
 
 const validate = async () => {
-  let data = JSON.parse(JSON.stringify(nodeInfo)) as unknown as Omit<
+  const data = JSON.parse(JSON.stringify(nodeInfo)) as unknown as Omit<
     Node,
     'configuration' | 'apiConfiguration'
   > & {

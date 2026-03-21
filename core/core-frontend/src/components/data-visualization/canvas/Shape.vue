@@ -580,7 +580,7 @@ const handleMouseDownOnShape = e => {
   //当前组件宽高 定位
   const componentWidth = shapeInnerRef.value.offsetWidth
   const componentHeight = shapeInnerRef.value.offsetHeight
-  let outerTabDom = isTabCanvas(canvasId.value)
+  const outerTabDom = isTabCanvas(canvasId.value)
     ? document.getElementById('shape-id-' + canvasId.value.split('--')[0])
     : null
   const curDom = document.getElementById(domId.value)
@@ -669,7 +669,11 @@ const handleMouseDownOnShape = e => {
         isFirst = false
       }
       // 修改当前组件样式
-      dvMainStore.setShapeStyle(pos, areaData.value.components, 'move')
+      dvMainStore.setShapeStyle(
+        pos as { top: number; left: number; width: number; height: number; rotate: number },
+        areaData.value.components,
+        'move'
+      )
       // 等更新完当前组件的样式并绘制到屏幕后再判断是否需要吸附
       // GroupArea是分组视括组件 不需要进行吸附
       // 如果不使用 nextTick，吸附后将无法移动
@@ -853,7 +857,12 @@ const handleMouseDownOnPoint = (point, e) => {
     }
     calculateRadioComponentPositionAndSize(point, style, symmetricPoint)
 
-    dvMainStore.setShapeStyle(style, areaData.value.components, 'resize', baseGroupComponentsRadio)
+    dvMainStore.setShapeStyle(
+      style as { top: number; left: number; width: number; height: number; rotate: number },
+      areaData.value.components,
+      'resize',
+      baseGroupComponentsRadio
+    )
     // 矩阵逻辑 如果当前是仪表板（矩阵模式）则要进行矩阵重排
     dashboardActive.value && emit('onResizing', moveEvent)
     element.value['resizing'] = true
@@ -993,7 +1002,7 @@ const componentBackgroundStyle = computed(() => {
       }px`
     }
 
-    let style = {
+    const style = {
       padding: innerPaddingStyle,
       borderRadius: borderRadiusStyle
     }
@@ -1051,7 +1060,10 @@ const settingAttribute = () => {
 }
 
 const tabMoveInCheck = async () => {
-  const curNode = document.querySelector('#' + domId.value)
+  const curNode = document.querySelector('#' + domId.value) as HTMLElement | null
+  if (!curNode) {
+    return
+  }
   const width = curNode.offsetWidth
   const height = curNode.offsetHeight
   const left = curNode.offsetLeft
@@ -1063,23 +1075,24 @@ const tabMoveInCheck = async () => {
     isTabMoveCheck.value &&
     !state.ignoreTabMoveComponent.includes(element.value.component)
   ) {
-    const nodes = Array.from(parentNode.value.childNodes) // 获取当前父节点下所有子节点
+    const nodes = Array.from((parentNode.value as HTMLElement).childNodes) // 获取当前父节点下所有子节点
     for (const item of nodes) {
+      const itemEl = item as HTMLElement
       if (
-        item.className !== undefined &&
-        typeof item.className === 'string' &&
-        item.className.split(' ').includes('shape') &&
-        item.getAttribute('component-id') !== domId.value && // 去掉当前
-        item.getAttribute('tab-is-check') !== null &&
-        item.getAttribute('tab-is-check') !== 'false' &&
-        item.getAttribute('component-type') === 'DeTabs'
+        itemEl.className !== undefined &&
+        typeof itemEl.className === 'string' &&
+        itemEl.className.split(' ').includes('shape') &&
+        itemEl.getAttribute('component-id') !== domId.value && // 去掉当前
+        itemEl.getAttribute('tab-is-check') !== null &&
+        itemEl.getAttribute('tab-is-check') !== 'false' &&
+        itemEl.getAttribute('component-type') === 'DeTabs'
       ) {
-        const componentId = item.getAttribute('component-id')
+        const componentId = itemEl.getAttribute('component-id')
 
-        const tw = item.offsetWidth
-        const th = item.offsetHeight
-        const tl = item.offsetLeft
-        const tt = item.offsetTop
+        const tw = itemEl.offsetWidth
+        const th = itemEl.offsetHeight
+        const tl = itemEl.offsetLeft
+        const tt = itemEl.offsetTop
 
         // 碰撞有效区域检查
         const collisionT = tt + state.tabMoveInYOffset

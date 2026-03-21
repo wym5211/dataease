@@ -2,7 +2,7 @@
 import icon_expandRight_filled from '@/assets/svg/icon_expand-right_filled.svg'
 import { nextTick, reactive, ref, shallowRef, provide } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
-import type { FormInstance, FormRules } from 'element-plus-secondary'
+import type { FormInstance } from 'element-plus-secondary'
 import { ElIcon, ElMessage } from 'element-plus-secondary'
 import type { ApiRequest } from './ApiHttpRequestForm.vue'
 import ApiHttpRequestForm from './ApiHttpRequestForm.vue'
@@ -20,19 +20,20 @@ import { PluginComponent } from '@/components/plugin'
 export interface Field {
   name: string
   length: number
-  value: Array<{}>
+  value: unknown[]
   checked: boolean
   primaryKey: boolean
-  children?: Array<{}>
+  deExtractType?: number
+  children?: Array<Field>
 }
 
 export interface ApiItem {
   status: string
   name: string
   type: string
-  appToken: string
-  tableId: string
-  viewId: string
+  appToken?: string
+  tableId?: string
+  viewId?: string
   deTableName?: string
   url: string
   copy: boolean
@@ -68,14 +69,21 @@ const originFieldItem = reactive({
   fields: []
 })
 
-let apiItemList = reactive<ApiConfiguration[]>([])
-let paramsList = reactive<ApiConfiguration[]>([])
+type ApiConfigWithFields = ApiConfiguration & {
+  fields: Field[]
+  serialNumber: number
+  name: string
+}
+
+let apiItemList = reactive<ApiConfigWithFields[]>([])
+let paramsList = reactive<ApiConfigWithFields[]>([])
 let fields = reactive<Field[]>([])
 
-let apiItem = reactive<ApiItem>({
+const apiItem = reactive<ApiItem>({
   status: '',
   name: '',
   type: 'table',
+  copy: false,
   url: '',
   method: 'GET',
   request: {
@@ -92,6 +100,11 @@ let apiItem = reactive<ApiItem>({
       verification: '',
       username: '',
       password: ''
+    },
+    page: {
+      pageType: 'empty',
+      requestData: [],
+      responseData: []
     }
   },
   fields: [],
@@ -113,17 +126,14 @@ const columns = shallowRef([])
 const valueList = shallowRef([])
 const tableData = shallowRef([])
 const apiItemBasicInfo = ref<FormInstance>()
-const xpackApiItemBasicInfo = ref<FormInstance>()
+const xpackApiItemBasicInfo = ref<any>()
 const isSupportSetKey = ref(false)
-const isNumber = (rule, value, callback) => {
+const isNumber = (_rule, value, callback) => {
   if (!value) {
     callback(new Error(t('datasource.please_input_query_timeout')))
     return
   }
-  let isNumber = false
-  var reg = /^\d+$/
-  isNumber = reg.test(value)
-  if (!isNumber) {
+  if (!/^\d+$/.test(String(value))) {
     callback(new Error(t('datasource.please_input_query_timeout')))
     return
   }
@@ -133,7 +143,7 @@ const isNumber = (rule, value, callback) => {
   }
   callback()
 }
-const rule = reactive<FormRules>({
+const rule = reactive({
   name: [
     {
       required: true,
@@ -249,14 +259,15 @@ const showApiData = () => {
       cancelMap['/datasource/checkApiDatasource']?.()
       checkApiItem({ dsType: dsType.value, data: data, type: 'apiStructure', paramsList: params })
         .then(response => {
-          originFieldItem.jsonFields = response.data.jsonFields
+          const data = response.data as { jsonFields: JsonField[] }
+          originFieldItem.jsonFields = data.jsonFields
         })
         .catch(error => {
           console.warn(error?.message)
         })
       loading.value = false
     } else {
-      return false
+      return
     }
   })
 }
@@ -427,11 +438,12 @@ const stepNext = () => {
     paramsList: params
   })
     .then(response => {
+      const data = response.data as { jsonFields: JsonField[]; name: string }
       disabledNext.value = false
       formLoading.value = false
-      apiItem.jsonFields = response.data.jsonFields
+      apiItem.jsonFields = data.jsonFields
       apiItem.fields = []
-      apiItem.name = response.data.name
+      apiItem.name = data.name
       handleFiledChange(apiItem)
       previewData()
       active.value += 1
@@ -473,10 +485,11 @@ const validateItem = () => {
     paramsList: params
   })
     .then(response => {
+      const data = response.data as { jsonFields: JsonField[]; name: string }
       formLoading.value = false
-      apiItem.jsonFields = response.data.jsonFields
+      apiItem.jsonFields = data.jsonFields
       apiItem.fields = []
-      apiItem.name = response.data.name
+      apiItem.name = data.name
       handleFiledChange(apiItem)
       previewData()
       ElMessage.success(t('datasource.validate_success'))

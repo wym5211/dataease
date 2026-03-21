@@ -52,9 +52,9 @@ import TabsGroup from '@/custom-component/component-group/TabsGroup.vue'
 import { useI18n } from '@/hooks/web/useI18n'
 import { updatePublishStatus } from '@/api/visualization/dataVisualization'
 
-let nameEdit = ref(false)
-let inputName = ref('')
-let nameInput = ref(null)
+const nameEdit = ref(false)
+const inputName = ref('')
+const nameInput = ref(null)
 const dvMainStore = dvMainStoreWithOut()
 const snapshotStore = snapshotStoreWithOut()
 const { styleChangeTimes, snapshotIndex } = storeToRefs(snapshotStore)
@@ -287,16 +287,19 @@ const getFullScale = () => {
 }
 const appStore = useAppStoreWithOut()
 const multiplexingRef = ref(null)
+const saveCanvasEventHandler = (payload?: { withPublish?: boolean; status?: unknown }) => {
+  saveCanvasWithCheck(payload?.withPublish, payload?.status)
+}
 
 onMounted(() => {
   eventBus.on('preview', preview)
-  eventBus.on('save', saveCanvasWithCheck)
+  eventBus.on('save', saveCanvasEventHandler)
   eventBus.on('clearCanvas', clearCanvas)
 })
 
 onBeforeUnmount(() => {
   eventBus.off('preview', preview)
-  eventBus.off('save', saveCanvasWithCheck)
+  eventBus.off('save', saveCanvasEventHandler)
   eventBus.off('clearCanvas', clearCanvas)
   dvMainStore.setAppDataInfo(null)
 })

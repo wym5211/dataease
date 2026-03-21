@@ -58,6 +58,13 @@ const goFile = () => {
   files.value.click()
 }
 
+const onInputClick = (e: MouseEvent) => {
+  const target = e.target as HTMLInputElement | null
+  if (target) {
+    target.value = ''
+  }
+}
+
 const reUpload = e => {
   const file = e.target.files[0]
   if (file.size > maxImageSize) {
@@ -106,11 +113,7 @@ onBeforeUnmount(() => {
       type="file"
       accept=".jpeg,.jpg,.png,.gif,.svg"
       hidden
-      @click="
-        e => {
-          e.target.value = ''
-        }
-      "
+      @click="onInputClick"
       @change="reUpload"
     />
     <CommonAttr

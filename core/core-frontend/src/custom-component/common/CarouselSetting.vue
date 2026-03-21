@@ -11,10 +11,19 @@ const { t } = useI18n()
 
 const snapshotStore = snapshotStoreWithOut()
 
+interface CarouselElement {
+  id: string
+  carousel: {
+    enable: boolean
+    time: number | null
+  }
+  innerType?: string
+}
+
 const props = withDefaults(
   defineProps<{
     themes?: EditorTheme
-    element: any
+    element: CarouselElement
   }>(),
   {
     themes: 'dark'

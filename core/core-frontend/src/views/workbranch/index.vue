@@ -13,7 +13,7 @@ import { useRequestStoreWithOut } from '@/store/modules/request'
 import { interactiveStoreWithOut } from '@/store/modules/interactive'
 import ShortcutTable from './ShortcutTable.vue'
 import { useUserStoreWithOut } from '@/store/modules/user'
-import { useRouter } from 'vue-router_2'
+import { useRouter } from 'vue-router'
 import { searchMarketRecommend } from '@/api/templateMarket'
 import TemplateBranchItem from '@/views/workbranch/TemplateBranchItem.vue'
 import { ElMessage } from 'element-plus-secondary'
@@ -203,7 +203,7 @@ const createScreen = () => {
   window.open(baseUrl, openType)
 }
 const createDataset = () => {
-  let routeData = router.resolve({
+  const routeData = router.resolve({
     path: '/dataset-embedded-form'
   })
   window.open(routeData.href, openType)
@@ -255,8 +255,8 @@ const apply = () => {
   if (isDataEaseBi.value) {
     embeddedBaseUrl = embeddedStore.baseUrl
   }
-  if (state.pid) {
-    newWindow = window.open(embeddedBaseUrl + baseUrl + `&pid=${state.pid}`, openType)
+  if (state.dvCreateForm.pid) {
+    newWindow = window.open(embeddedBaseUrl + baseUrl + `&pid=${state.dvCreateForm.pid}`, openType)
   } else {
     newWindow = window.open(embeddedBaseUrl + baseUrl, openType)
   }

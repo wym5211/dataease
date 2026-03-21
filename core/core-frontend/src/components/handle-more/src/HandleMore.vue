@@ -15,7 +15,7 @@ withDefaults(
   defineProps<{
     menuList: Menu[]
     placement?: Placement
-    iconName?: any
+    iconName?: string
     iconSize?: string
     inTable?: boolean
   }>(),

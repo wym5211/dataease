@@ -358,7 +358,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus-secondary'
 import {
   Search,
@@ -379,7 +379,7 @@ import {
   Menu
 } from '@element-plus/icons-vue'
 import { usePermissionStore } from '@/stores/permission'
-import type { PermissionTemplate, RoleItem } from '@/stores/permission'
+import type { PermissionTemplate } from '@/stores/permission'
 
 const permissionStore = usePermissionStore()
 

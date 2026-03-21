@@ -101,7 +101,8 @@ export class SankeyBar extends G2PlotChartView<SankeyOptions, Sankey> {
       return
     }
     // data
-    const data: Array<any> = cloneDeep(chart.data.data)
+    const data: Array<{ dimensionList?: { value?: string }[]; source?: string; target?: string }> =
+      cloneDeep(chart.data.data)
 
     data.forEach(d => {
       if (d.dimensionList) {

@@ -98,7 +98,7 @@ const codeComInit = (doc: string, sqlMode?: boolean) => {
       return this.name == other.name
     }
     toDOM() {
-      let elt = document.createElement('span')
+      const elt = document.createElement('span')
       elt.textContent = `[${this.name}]`
       const { dimensionMap, quotaMap } = props
       if (!dimensionMap?.length && !quotaMap?.length) {

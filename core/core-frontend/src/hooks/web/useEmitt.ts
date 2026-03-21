@@ -6,14 +6,14 @@ interface Option {
   callback: Fn // 回调
 }
 
-const emitter = mitt()
+const emitter = mitt<any>()
 
 export const useEmitt = (option?: Option) => {
   if (option) {
-    emitter.on(option.name, option.callback)
+    emitter.on(option.name as any, option.callback as any)
 
     onBeforeUnmount(() => {
-      emitter.off(option.name, option.callback)
+      emitter.off(option.name as any, option.callback as any)
     })
   }
 

@@ -176,7 +176,7 @@ export class Funnel extends G2PlotChartView<FunnelOptions, G2Funnel> {
     return options
   }
 
-  public setupSeriesColor(chart: ChartObj, data?: any[]): ChartBasicStyle['seriesColor'] {
+  public setupSeriesColor(chart: ChartObj, data?: ChartData[]): ChartBasicStyle['seriesColor'] {
     return setUpSingleDimensionSeriesColor(chart, data)
   }
   protected setupOptions(chart: Chart, options: FunnelOptions): FunnelOptions {

@@ -300,7 +300,7 @@ const handleMouseLeave = () => {
 }
 const state = reactive({
   activeTabName: '',
-  curItem: {},
+  curItem: {} as Record<string, any>,
   textarea: '',
   dialogVisible: false,
   tabShow: true,
@@ -328,8 +328,13 @@ const calcTabLength = () => {
       const containerDom = document.getElementById(
         'tab-' + element.value.propValue[element.value.propValue.length - 1].name
       )
-      tabsAreaScroll.value =
-        containerDom.parentNode.clientWidth > tabComponentRef.value.clientWidth - 100
+      const parentNode = containerDom?.parentNode as HTMLElement | null
+      const tabRef = tabComponentRef.value as HTMLElement | null
+      tabsAreaScroll.value = !!(
+        parentNode &&
+        tabRef &&
+        parentNode.clientWidth > tabRef.clientWidth - 100
+      )
     } else {
       tabsAreaScroll.value = false
     }
@@ -551,7 +556,7 @@ const backgroundStyle = backgroundParams => {
       }px`
     }
 
-    let style = {
+    const style = {
       padding: innerPaddingStyle,
       borderRadius: borderRadiusStyle
     }
@@ -734,8 +739,8 @@ onMounted(() => {
   }, 1000)
   useEmitt({
     name: 'showEnlargeDialog',
-    callback: show => {
-      if (show) {
+    callback: (show: any) => {
+      if (show === true) {
         carouselTimer && clearInterval(carouselTimer)
       } else {
         initCarousel()

@@ -13,7 +13,7 @@ import { useI18n } from '@/hooks/web/useI18n'
 import { ref, reactive, onMounted, computed, watch } from 'vue'
 import type { TabsPaneContext } from 'element-plus-secondary'
 import GridTable from '@/components/grid-table/src/GridTable.vue'
-import { useRouter } from 'vue-router_2'
+import { useRouter } from 'vue-router'
 import dayjs from 'dayjs'
 import { shortcutOption } from './ShortcutOption'
 import { interactiveStoreWithOut } from '@/store/modules/interactive'
@@ -136,7 +136,7 @@ const loadTableData = () => {
   shortcutOption
     .loadData({ type: queryType, keyword: panelKeyword.value, asc: !orderDesc.value })
     .then(res => {
-      state.tableData = res.data
+      state.tableData = Array.isArray(res.data) ? res.data : []
     })
     .finally(() => {
       imgType.value = getEmptyImg()

@@ -105,7 +105,18 @@ export const userStore = defineStore('embedded', {
     getTokenInfo(): Map<string, object> {
       return this.tokenInfo
     },
-    getIframeData(): any {
+    getIframeData(): {
+      embeddedToken: string
+      busiFlag: string
+      outerParams: string
+      suffixId: string
+      type: string
+      dvId: string
+      chartId: string
+      pid: string
+      resourceId: string
+      dfId: string
+    } {
       return {
         embeddedToken: this.token,
         busiFlag: this.busiFlag,
@@ -184,17 +195,30 @@ export const userStore = defineStore('embedded', {
     setOpt(opt: string) {
       this.opt = opt
     },
-    async setIframeData(data: any) {
-      this.type = data['type']
-      this.token = data['embeddedToken']
-      this.busiFlag = data['busiFlag']
-      this.outerParams = data['outerParams']
-      this.suffixId = data['suffixId']
-      this.dvId = data['dvId']
-      this.chartId = data['chartId']
-      this.pid = data['pid']
-      this.resourceId = data['resourceId']
-      this.dfId = data['dfId']
+    async setIframeData(
+      data: Partial<{
+        type: string
+        embeddedToken: string
+        busiFlag: string
+        outerParams: string
+        suffixId: string
+        dvId: string
+        chartId: string
+        pid: string
+        resourceId: string
+        dfId: string
+      }>
+    ) {
+      this.type = data['type'] ?? ''
+      this.token = data['embeddedToken'] ?? ''
+      this.busiFlag = data['busiFlag'] ?? ''
+      this.outerParams = data['outerParams'] ?? ''
+      this.suffixId = data['suffixId'] ?? ''
+      this.dvId = data['dvId'] ?? ''
+      this.chartId = data['chartId'] ?? ''
+      this.pid = data['pid'] ?? ''
+      this.resourceId = data['resourceId'] ?? ''
+      this.dfId = data['dfId'] ?? ''
     },
     async setTokenInfo(tokenInfo: Map<string, object>) {
       this.tokenInfo = tokenInfo

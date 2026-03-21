@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import iconSetting from '@/assets/svg/icon-setting.svg'
 import LangSelector from '@/layout/components/LangSelector.vue'
-import { useRouter } from 'vue-router_2'
+import { useRouter } from 'vue-router'
 import TopDesktopCard from './TopDesktopCard.vue'
 import icon_right_outlined from '@/assets/svg/icon_right_outlined.svg'
 import dvAi from '@/assets/svg/dv-ai.svg'

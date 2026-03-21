@@ -1,16 +1,16 @@
 <script lang="ts" setup>
-import { ref, computed } from 'vue'
+import { ref, computed, type PropType } from 'vue'
 import FixedSizeList from 'element-plus-secondary/es/components/virtual-list/src/components/fixed-size-list.mjs'
 import VanPopup from 'vant/es/popup'
 import 'vant/es/popup/style'
 
 const props = defineProps({
   options: {
-    type: Array,
+    type: Array as PropType<OptionItem[]>,
     default: () => []
   },
   selectValue: {
-    type: Array,
+    type: Array as PropType<string[]>,
     default: () => []
   },
   multiple: {
@@ -20,18 +20,26 @@ const props = defineProps({
 })
 
 const showSelect = ref(false)
-let oldCheckList = []
+let oldCheckList: string[] = []
 const checkAll = ref(false)
 const isIndeterminate = ref(false)
-const checkTableList = ref([])
-const checkList = ref([])
+const checkTableList = ref<string[]>([])
+const checkList = ref<string[]>([])
 const keywords = ref('')
+interface OptionItem {
+  label: string
+  value: string
+}
+
 const tableListWithSearch = computed(() => {
   if (!keywords.value) return props.options
-  return props.options.filter((ele: any) =>
+  return props.options.filter((ele: OptionItem) =>
     ele.label.toLowerCase().includes(keywords.value.toLowerCase())
   )
 })
+const getOptionByIndex = (index: number): OptionItem => {
+  return tableListWithSearch.value[index] || { label: '', value: '' }
+}
 const emits = defineEmits(['onClear', 'onConfirm'])
 const reset = () => {
   oldCheckList = []
@@ -66,7 +74,7 @@ const onConfirm = () => {
   emits('onConfirm', checkList.value)
 }
 
-const handleCheckedTablesChange = (value: any[]) => {
+const handleCheckedTablesChange = (value: string[]) => {
   if (!props.multiple) {
     if (!oldCheckList.length) {
       oldCheckList = [...value]
@@ -79,18 +87,23 @@ const handleCheckedTablesChange = (value: any[]) => {
   const checkedCount = value.length
   checkAll.value = checkedCount === tableListWithSearch.value.length
   isIndeterminate.value = checkedCount > 0 && checkedCount < tableListWithSearch.value.length
-  const tableNameArr = tableListWithSearch.value.map((ele: any) => ele.label)
+  const tableNameArr = tableListWithSearch.value.map((ele: OptionItem) => ele.label)
   checkTableList.value = [
     ...new Set([...checkTableList.value.filter(ele => !tableNameArr.includes(ele)), ...value])
   ]
 }
 
-const handleCheckAllChange = (val: any) => {
+const handleCheckAllChange = (val: boolean) => {
   checkList.value = val
-    ? [...new Set([...tableListWithSearch.value.map((ele: any) => ele.label), ...checkList.value])]
+    ? [
+        ...new Set([
+          ...tableListWithSearch.value.map((ele: OptionItem) => ele.label),
+          ...checkList.value
+        ])
+      ]
     : []
   isIndeterminate.value = false
-  const tableNameArr = tableListWithSearch.value.map((ele: any) => ele.label)
+  const tableNameArr = tableListWithSearch.value.map((ele: OptionItem) => ele.label)
   checkTableList.value = val
     ? [...new Set([...tableNameArr, ...checkTableList.value])]
     : checkTableList.value.filter(ele => !tableNameArr.includes(ele))
@@ -147,8 +160,8 @@ const handleCheckAllChange = (val: any) => {
         >
           <template #default="{ index, style }">
             <div class="list-item_primary" :style="style">
-              <el-checkbox :label="tableListWithSearch[index].value">
-                {{ tableListWithSearch[index].label }}</el-checkbox
+              <el-checkbox :label="getOptionByIndex(index).value">
+                {{ getOptionByIndex(index).label }}</el-checkbox
               >
             </div>
           </template>

@@ -426,9 +426,53 @@ export function getLegend(chart: Chart) {
   }
   return legend
 }
+interface AxisConfig {
+  position?: string
+  title?: {
+    text: string
+    style: {
+      fill: string
+      fontSize: number
+    }
+    spacing?: number
+  } | null
+  grid?: {
+    line: {
+      style: {
+        stroke: string
+        lineWidth: number
+        lineDash: number[]
+      }
+    }
+  } | null
+  label?: {
+    rotate?: number
+    style: {
+      fill: string
+      fontSize: number
+      textAlign?: string
+      fontFamily?: string
+    }
+  } | null
+  line?: {
+    style: {
+      stroke: string
+      lineWidth: number
+      lineDash: number[]
+    }
+  } | null
+  tickLine?: {
+    style: {
+      stroke: string
+      lineWidth: number
+    }
+  } | null
+  nice?: boolean
+}
+
 // xAxis
 export function getXAxis(chart: Chart) {
-  let axis: Record<string, any> | boolean = {}
+  let axis: AxisConfig | boolean = {}
   let customStyle: CustomStyle
   if (chart.customStyle) {
     customStyle = parseJson(chart.customStyle)
@@ -513,7 +557,7 @@ export function getXAxis(chart: Chart) {
 }
 // yAxis
 export function getYAxis(chart: Chart) {
-  let axis: Record<string, any> | boolean = {}
+  let axis: AxisConfig | boolean = {}
   const yAxis = parseJson(chart.customStyle).yAxis
   if (!yAxis.show) {
     return false
@@ -615,7 +659,7 @@ export function getYAxis(chart: Chart) {
 }
 
 export function getYAxisExt(chart: Chart) {
-  let axis: Record<string, any> | boolean = {}
+  let axis: AxisConfig | boolean = {}
   const yAxis = parseJson(chart.customStyle).yAxisExt
   if (!yAxis.show) {
     return false
@@ -1074,7 +1118,7 @@ export function handleGeoJson(geoJson: FeatureCollection, nameMapping?: Record<s
   })
 }
 
-export function getTooltipSeriesTotalMap(data: any[]): Record<string, number> {
+export function getTooltipSeriesTotalMap(data: Record<string, unknown>[]): Record<string, number> {
   const result = {}
   data?.forEach(item => {
     item.dynamicTooltipValue?.forEach(ele => {
@@ -1161,6 +1205,17 @@ const RESET_BTN =
   '<svg t="1717487786436" fill="${fill}" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="18361" width="14px" height="14px"><path d="M127.594667 503.274667a383.573333 383.573333 0 0 1 112.426666-263.04 380.864 380.864 0 0 1 122.24-82.474667 382.421333 382.421333 0 0 1 149.632-30.165333c51.946667 0 102.250667 10.176 149.504 30.165333a381.610667 381.610667 0 0 1 122.133334 82.474667 385.152 385.152 0 0 1 31.082666 35.093333l-67.285333 52.501333a8.96 8.96 0 0 0 3.349333 15.765334l196.352 48.042666a8.96 8.96 0 0 0 11.050667-8.597333l0.896-202.154667c0-7.466667-8.597333-11.733333-14.421333-7.04l-63.018667 49.28C795.605333 113.173333 661.973333 42.666667 511.786667 42.666667 255.786667 42.666667 47.488 247.829333 42.666667 502.826667a8.96 8.96 0 0 0 8.96 9.173333h67.029333c4.906667 0 8.832-3.925333 8.96-8.725333z m844.8 8.725333h-67.050667a8.917333 8.917333 0 0 0-8.96 8.704 381.76 381.76 0 0 1-30.037333 140.8 382.336 382.336 0 0 1-82.346667 122.24 382.656 382.656 0 0 1-271.893333 112.64 382.421333 382.421333 0 0 1-271.765334-112.64 385.152 385.152 0 0 1-31.061333-35.072l67.264-52.522667a8.96 8.96 0 0 0-3.349333-15.765333l-196.330667-48.042667a8.96 8.96 0 0 0-11.050667 8.597334l-0.789333 202.261333c0 7.488 8.597333 11.733333 14.421333 7.04l63.018667-49.28C228.394667 910.826667 362.026667 981.333333 512.213333 981.333333 768.341333 981.333333 976.512 776.042667 981.333333 521.173333a8.96 8.96 0 0 0-8.96-9.173333z" p-id="18362"></path></svg>'
 const ZOOM_OUT_BTN =
   '<svg t="1717486240292" fill="${fill}" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="13641" width="14px" height="14px"><path d="M935 423.3H89C40.2 423.3 0.3 463.2 0.3 512c0 48.8 39.9 88.7 88.7 88.7h846c48.8 0 88.7-39.9 88.7-88.7 0-48.8-39.9-88.7-88.7-88.7z" p-id="13642"></path></svg>'
+
+interface CustomZoomOptions extends IZoomControlOption {
+  buttonBackground?: string
+  buttonColor?: string
+  initZoom?: number
+  center?: [number, number]
+  bounds?: unknown
+  showZoom?: boolean
+  resetText?: string
+}
+
 export class CustomZoom extends Zoom {
   resetButtonGroup(container) {
     DOM.clearChildren(container)
@@ -1216,7 +1271,7 @@ export class CustomZoom extends Zoom {
       container,
       this.zoomOut
     )
-    const { buttonBackground } = this.controlOption as any
+    const { buttonBackground } = this.controlOption as CustomZoomOptions
     const elements = [this['zoomResetButton'], this['zoomInButton'], this['zoomOutButton']]
     if (buttonBackground) {
       setStyle(elements, 'background', buttonBackground)
@@ -1225,7 +1280,7 @@ export class CustomZoom extends Zoom {
     this['updateDisabled']()
   }
   public getDefault(option: Partial<IZoomControlOption>) {
-    const { buttonColor } = option as any
+    const { buttonColor } = option as CustomZoomOptions
     let zoomInText = ZOOM_IN_BTN
     let zoomOutText = ZOOM_OUT_BTN
     let resetText = RESET_BTN
@@ -1286,7 +1341,7 @@ export function configL7Zoom(
                 center: center,
                 buttonColor: basicStyle.zoomButtonColor,
                 buttonBackground: basicStyle.zoomBackground
-              } as any
+              } as CustomZoomOptions
               scene.addControl(new CustomZoom(newZoomOptions))
             }
             break
@@ -1302,7 +1357,7 @@ export function configL7Zoom(
                 center: center,
                 buttonColor: basicStyle.zoomButtonColor,
                 buttonBackground: basicStyle.zoomBackground
-              } as any
+              } as CustomZoomOptions
               scene.addControl(new CustomZoom(newZoomOptions))
             }
             break
@@ -1318,7 +1373,7 @@ export function configL7Zoom(
                 center: center,
                 buttonColor: basicStyle.zoomButtonColor,
                 buttonBackground: basicStyle.zoomBackground
-              } as any
+              } as CustomZoomOptions
               scene.addControl(new CustomZoom(newZoomOptions))
             })
         }
@@ -1327,7 +1382,7 @@ export function configL7Zoom(
       const newZoomOptions = {
         buttonColor: basicStyle.zoomButtonColor,
         buttonBackground: basicStyle.zoomBackground
-      } as any
+      } as CustomZoomOptions
       if (basicStyle.autoFit === false) {
         newZoomOptions.initZoom = basicStyle.zoomLevel
         newZoomOptions.center = [basicStyle.mapCenter.longitude, basicStyle.mapCenter.latitude]
@@ -1415,7 +1470,7 @@ export function configL7PlotZoom(chart: Chart, plot: L7Plot<PlotOptions>) {
       center: plot.scene.getCenter(),
       buttonColor: basicStyle.zoomButtonColor,
       buttonBackground: basicStyle.zoomBackground
-    } as any
+    } as CustomZoomOptions
     plot.scene.addControl(new CustomZoom(zoomOptions))
   })
 }
@@ -1663,7 +1718,7 @@ export function getMapObject(
  * 隐藏缩放控件
  * @param basicStyle
  */
-function shouldHideZoom(basicStyle: any): boolean {
+function shouldHideZoom(basicStyle: ChartBasicStyle): boolean {
   return (
     (basicStyle.suspension === false && basicStyle.showZoom === undefined) ||
     basicStyle.showZoom === false
@@ -2528,6 +2583,6 @@ function updateMapStatusOption(mapType: string, scene: Scene, enable = false) {
         pitchEnable: enable,
         scrollWheel: enable,
         touchZoom: false
-      } as any)
+      } as Record<string, boolean>)
   }
 }

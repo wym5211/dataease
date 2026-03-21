@@ -20,7 +20,7 @@ interface Cascade {
 
 type cascadeMap = Record<string, Cascade>
 const { t } = useI18n()
-let deTypeMap = shallowRef({})
+const deTypeMap = shallowRef({})
 const emits = defineEmits(['saveCascade'])
 
 const dialogVisible = ref(false)
@@ -73,7 +73,7 @@ const init = (cascadeMap: cascadeMap, arr) => {
     deType: ele.deType,
     value: `${ele.datasetId}--${ele.queryId}--${ele.fieldId}`
   }))
-  let obj = {}
+  const obj = {}
   Object.values(cascadeMap).forEach(ele => {
     obj[`${ele.datasetId}--${ele.queryId}--${ele.fieldId}`] = ele.deType
   })
@@ -91,10 +91,10 @@ const disabledDatasetId = shallowRef([])
 
 const visibleChange = (val, index, idx) => {
   let topId = ''
-  let topIdArr = []
+  const topIdArr = []
   let bottomId = ''
-  let bottomIdArr = []
-  for (let i in cascadeList.value[index]) {
+  const bottomIdArr = []
+  for (const i in cascadeList.value[index]) {
     if (i > idx) {
       if (cascadeList.value[index][i].datasetId && !bottomId) {
         bottomId = cascadeList.value[index][i].datasetId
@@ -110,9 +110,9 @@ const visibleChange = (val, index, idx) => {
   }
 
   cascadeList.value.forEach(ele => {
-    let tentativeTopArr = []
-    let tentativeBottomArr = []
-    for (let i in ele) {
+    const tentativeTopArr = []
+    const tentativeBottomArr = []
+    for (const i in ele) {
       if (topIdArr[topIdArr.length - 1] === tentativeTopArr || bottomId === ele[i].datasetId) {
         if (bottomId === ele[i].datasetId) {
           bottomIdArr.push(tentativeBottomArr)

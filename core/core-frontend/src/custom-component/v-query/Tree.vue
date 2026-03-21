@@ -23,10 +23,10 @@ import { useI18n } from '@/hooks/web/useI18n'
 const { t } = useI18n()
 
 interface SelectConfig {
-  selectValue: any
+  selectValue: string | string[] | undefined
   required: false
-  defaultMapValue: any
-  defaultValue: any
+  defaultMapValue: string[]
+  defaultValue: string | string[] | undefined
   queryConditionWidth: number
   resultMode: number
   checkedFieldsMap: object
@@ -34,7 +34,7 @@ interface SelectConfig {
   id: string
   placeholder: string
   checkedFields: string[]
-  treeFieldList: Array<any>
+  treeFieldList: Array<{ id: string }>
   dataset: {
     id: string
   }
@@ -43,10 +43,17 @@ interface SelectConfig {
   }
   defaultValueCheck: boolean
   multiple: boolean
-  optionFilter: []
+  name?: string
+  optionFilter: any[]
 }
 
-const customStyle: any = inject('$custom-style-filter')
+const customStyle:
+  | {
+      background: string
+      border: string
+      text: string
+    }
+  | undefined = inject('$custom-style-filter')
 const cascadeList = inject('cascade-list', Function, true)
 const props = defineProps({
   config: {
@@ -120,7 +127,7 @@ let oldId
 watch(
   () => config.value.treeFieldList,
   val => {
-    let idStr = val.map(ele => ele.id).join('-')
+    const idStr = val.map(ele => ele.id).join('-')
     if (changeFromId.value || idStr === oldId) return
     oldId = idStr
     treeValue.value = config.value.multiple ? [] : undefined
@@ -237,7 +244,7 @@ watch(
   }
 )
 let cacheId = ''
-let treeOptionList = shallowRef([])
+const treeOptionList = shallowRef([])
 const filterMethod = (value, data) =>
   (data.label ?? '').toLowerCase().includes((value ?? '').toLowerCase())
 const dfs = arr => {
@@ -450,8 +457,6 @@ function filterTree(treeData, filterIds) {
   if (!filterIds || filterIds.length === 0) {
     return treeData
   }
-  const filterSet = new Set(filterIds)
-
   // 用于存储最终保留的所有节点ID
   const keepIds = new Set()
 

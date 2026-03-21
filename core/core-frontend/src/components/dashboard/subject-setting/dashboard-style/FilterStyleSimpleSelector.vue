@@ -172,7 +172,18 @@ import { ElIcon } from 'element-plus-secondary'
 const { t } = useI18n()
 const dvMainStore = dvMainStoreWithOut()
 const snapshotStore = snapshotStoreWithOut()
-const filterStyle = computed<any>(() => {
+interface FilterStyle {
+  layout: 'horizontal' | 'vertical'
+  titleLayout: 'left' | 'center' | 'right'
+  labelColor: string
+  titleColor: string
+  color: string
+  borderColor: string
+  text: string
+  bgColor: string
+}
+
+const filterStyle = computed<FilterStyle>(() => {
   return dvMainStore.canvasStyleData.component.filterStyle
 })
 

@@ -36,7 +36,7 @@ router.beforeEach(async (to, _, next) => {
       next({ path: '/index' })
     } else {
       const roleRouters = (await getRoleRouters()) || []
-      const routers: any[] = roleRouters as AppCustomRouteRecordRaw[]
+      const routers: AppCustomRouteRecordRaw[] = roleRouters as AppCustomRouteRecordRaw[]
       routers.forEach(item => (item['top'] = true))
       await permissionStore.generateRoutes(routers as AppCustomRouteRecordRaw[])
       permissionStore.setIsAddRouters(true)

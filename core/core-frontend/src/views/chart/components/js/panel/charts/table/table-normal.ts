@@ -396,7 +396,7 @@ export class TableNormal extends S2ChartView<TableSheet> {
         yAxis,
         basicStyle.seriesSummary,
         chart.data.customSumResult
-      ) as any
+      ) as Record<string, string | number>
       data.push(summaryObj)
     }
     s2Options.dataCell = viewMeta => {

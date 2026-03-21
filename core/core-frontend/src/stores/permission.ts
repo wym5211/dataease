@@ -57,7 +57,9 @@ export interface PermissionTemplate {
   description: string
   category: string
   tags: string[]
-  permissions: Record<string, string[]> | { menus?: any[]; resources?: any[] }
+  permissions:
+    | Record<string, string[]>
+    | { menus?: { id: string; name: string }[]; resources?: { id: string; name: string }[] }
   usageCount: number
   createdAt: string
   updatedAt: string
@@ -74,8 +76,8 @@ export interface AuditLog {
   targetName: string
   resourceName: string
   permission: string
-  oldValue?: any
-  newValue?: any
+  oldValue?: unknown
+  newValue?: unknown
   operatorId: string
   operatorName: string
   operatorIp?: string
@@ -335,7 +337,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
 
           const grantedMenuIds = new Set<string>()
           if (permissionItems.length) {
-            permissionItems.forEach((p: any) => {
+            permissionItems.forEach((p: { id: number | string }) => {
               grantedMenuIds.add(String(p.id))
             })
           }
@@ -423,7 +425,13 @@ export const usePermissionStore = defineStore('permissionManager', () => {
         })
 
         // 转换数据格式
-        const transformVisualizationNode = (node: any): ResourceNode => {
+        const transformVisualizationNode = (node: {
+          id: number | string
+          name: string
+          updateTime?: string
+          createBy?: string
+          children?: unknown[]
+        }): ResourceNode => {
           return {
             id: String(node.id),
             name: node.name,
@@ -432,7 +440,15 @@ export const usePermissionStore = defineStore('permissionManager', () => {
             permissions: [],
             createTime: node.updateTime || new Date().toISOString(),
             creator: node.createBy || '未知',
-            children: node.children?.map((child: any) => transformVisualizationNode(child))
+            children: node.children?.map(
+              (child: {
+                id: number | string
+                name: string
+                updateTime?: string
+                createBy?: string
+                children?: unknown[]
+              }) => transformVisualizationNode(child)
+            )
           }
         }
 
@@ -444,7 +460,13 @@ export const usePermissionStore = defineStore('permissionManager', () => {
         })
 
         // 转换数据格式
-        const transformDatasetNode = (node: any): ResourceNode => {
+        const transformDatasetNode = (node: {
+          id: number | string
+          name: string
+          updateTime?: string
+          createBy?: string
+          children?: unknown[]
+        }): ResourceNode => {
           return {
             id: String(node.id),
             name: node.name,
@@ -453,7 +475,15 @@ export const usePermissionStore = defineStore('permissionManager', () => {
             permissions: [],
             createTime: node.updateTime || new Date().toISOString(),
             creator: node.createBy || '未知',
-            children: node.children?.map((child: any) => transformDatasetNode(child))
+            children: node.children?.map(
+              (child: {
+                id: number | string
+                name: string
+                updateTime?: string
+                createBy?: string
+                children?: unknown[]
+              }) => transformDatasetNode(child)
+            )
           }
         }
 
@@ -463,7 +493,13 @@ export const usePermissionStore = defineStore('permissionManager', () => {
         const response = await getDatasourceList()
 
         // 转换数据格式
-        const transformDatasourceNode = (node: any): ResourceNode => {
+        const transformDatasourceNode = (node: {
+          id: number | string
+          name: string
+          updateTime?: string
+          createBy?: string
+          children?: unknown[]
+        }): ResourceNode => {
           return {
             id: String(node.id),
             name: node.name,
@@ -472,7 +508,15 @@ export const usePermissionStore = defineStore('permissionManager', () => {
             permissions: [],
             createTime: node.updateTime || new Date().toISOString(),
             creator: node.createBy || '未知',
-            children: node.children?.map((child: any) => transformDatasourceNode(child))
+            children: node.children?.map(
+              (child: {
+                id: number | string
+                name: string
+                updateTime?: string
+                createBy?: string
+                children?: unknown[]
+              }) => transformDatasourceNode(child)
+            )
           }
         }
 
@@ -509,7 +553,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
             const grantedResourceWeights = new Map<string, number>()
             // 后端可能直接返回 permissions 或在 data.permissions 中
             const permissionList = perResponse?.permissions || perResponse?.data?.permissions || []
-            permissionList.forEach((r: any) => {
+            permissionList.forEach((r: { id: number | string; weight?: number }) => {
               if (r.id) {
                 grantedResourceWeights.set(String(r.id), Number(r.weight) || 1)
               }
@@ -759,7 +803,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
         }
       })
 
-      const savePromises: Promise<any>[] = []
+      const savePromises: Promise<unknown>[] = []
       const changedTypes = new Set<string>()
       state.value.resourceChanges.grants.forEach(node => changedTypes.add(node.type))
       state.value.resourceChanges.revokes.forEach(node => changedTypes.add(node.type))
@@ -824,7 +868,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
   }
 
   // 联动机制：菜单权限变更时同步相关资源权限
-  const syncMenuResourcePermissions = (menuId: string, hasPermission: boolean) => {
+  const syncMenuResourcePermissions = (_menuId: string, _hasPermission: boolean) => {
     if (!state.value.linkageEnabled) return
 
     // TODO: 根据菜单ID查找关联的资源
@@ -833,9 +877,9 @@ export const usePermissionStore = defineStore('permissionManager', () => {
 
   // 联动机制：资源权限变更时同步相关菜单权限
   const syncResourceMenuPermissions = (
-    resourceType: string,
-    resourceId: string,
-    permissions: string[]
+    _resourceType: string,
+    _resourceId: string,
+    _permissions: string[]
   ) => {
     if (!state.value.linkageEnabled) return
 
@@ -884,8 +928,8 @@ export const usePermissionStore = defineStore('permissionManager', () => {
 
   // 应用权限模板
   const applyPermissionTemplate = async (
-    templateId: string,
-    targetRoleId: string,
+    _templateId: string,
+    _targetRoleId: string,
     _options: {
       mode: 'replace' | 'merge' | 'append'
       scope: string[]
@@ -942,7 +986,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
   }
 
   // 回滚权限变更
-  const rollbackPermissionChange = async (auditId: string) => {
+  const rollbackPermissionChange = async (_auditId: string) => {
     try {
       // TODO: 调用API回滚权限变更
       // await rollbackPermission(auditId)
@@ -1001,7 +1045,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
     }
   }
 
-  const createTemplate = async (data: any) => {
+  const createTemplate = async (data: { name: string; description: string; category: string }) => {
     const newTemplate = {
       id: `template_${Date.now()}`,
       name: data.name,
@@ -1024,7 +1068,12 @@ export const usePermissionStore = defineStore('permissionManager', () => {
     state.value.templates.push(newTemplate as PermissionTemplate)
   }
 
-  const applyTemplate = async (data: any) => {
+  const applyTemplate = async (data: {
+    templateId: string
+    roleId: string
+    scope: string
+    permissionTypes?: string[]
+  }) => {
     await applyPermissionTemplate(data.templateId, data.roleId, {
       mode: data.scope === 'replace' ? 'replace' : data.scope === 'merge' ? 'merge' : 'append',
       scope: data.permissionTypes || ['menu', 'resource']

@@ -66,7 +66,8 @@ const xPackInfo = ref({ enableDataFill: false, type: undefined })
 const getEngine = () => {
   querySymmetricKey().then(response => {
     getDeEngine().then(res => {
-      let { id, type, configuration } = res.data
+      const { id, type } = res.data
+      let { configuration } = res.data
       xPackInfo.value.enableDataFill = !!res.data.enableDataFill
       xPackInfo.value.type = type
       if (configuration) {

@@ -52,10 +52,11 @@ import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus-secondary'
 import type { FormInstance, FormRules } from 'element-plus-secondary'
 import { resetPassword } from '../api'
+import type { User } from '../types'
 
 interface Props {
   modelValue: boolean
-  user?: any
+  user?: User
 }
 
 interface Emits {
@@ -82,7 +83,11 @@ const formData = ref({
   confirmPassword: ''
 })
 
-const validateConfirmPassword = (rule: any, value: any, callback: any) => {
+const validateConfirmPassword = (
+  _rule: unknown,
+  value: string,
+  callback: (error?: Error) => void
+) => {
   if (value === '') {
     callback(new Error('请再次输入密码'))
   } else if (value !== formData.value.newPassword) {

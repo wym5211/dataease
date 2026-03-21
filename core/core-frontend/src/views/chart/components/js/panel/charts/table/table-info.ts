@@ -527,7 +527,7 @@ export class TableInfo extends S2ChartView<TableSheet> {
         axis,
         basicStyle.seriesSummary,
         chart.data.customSumResult
-      ) as any
+      ) as Record<string, string | number>
       data.push(summaryObj)
     }
     const { mergeCells } = tableCell

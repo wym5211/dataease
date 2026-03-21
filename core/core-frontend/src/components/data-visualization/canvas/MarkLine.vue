@@ -216,8 +216,9 @@ const isNearly = (dragValue, targetValue) => {
 onMounted(() => {
   currentInstance = getCurrentInstance()
   // 监听元素移动和不移动的事件
-  eventBus.on('move', ({ isDownward, isRightward }) => {
-    showLine(isDownward, isRightward)
+  eventBus.on('move', payload => {
+    const eventPayload = payload as { isDownward?: boolean; isRightward?: boolean }
+    showLine(Boolean(eventPayload.isDownward), Boolean(eventPayload.isRightward))
   })
 
   eventBus.on('unMove', () => {

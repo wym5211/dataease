@@ -9,7 +9,7 @@ import { imgUrlTrans } from '@/utils/imgUtils'
 
 withDefaults(
   defineProps<{
-    url: any
+    url: string
   }>(),
   {}
 )

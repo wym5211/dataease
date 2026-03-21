@@ -35,8 +35,8 @@ const currentTypeList = computed(() => {
     })
   }
   if (props.currentType === 'latestUse') {
-    let catalogList = []
-    let dstypes = []
+    const catalogList = []
+    const dstypes = []
     props.latestUseTypes.forEach(type => {
       dsTypes.forEach(item => {
         if (item.type === type && catalogList.indexOf(item.catalog) === -1) {
@@ -99,7 +99,7 @@ const loadDsPlugin = data => {
     }
     const index = typeList.findIndex(ele => ele === node.catalog)
     if (index !== -1) {
-      let copiedArr = JSON.parse(JSON.stringify(databaseList.value))
+      const copiedArr = JSON.parse(JSON.stringify(databaseList.value))
       copiedArr[index].push(node)
       databaseList.value = copiedArr
     }

@@ -3,6 +3,7 @@ import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import DePreview from '@/components/data-visualization/canvas/DePreview.vue'
 import { storeToRefs } from 'pinia'
+import { logger } from '@/utils/logger'
 
 const dvMainStore = dvMainStoreWithOut()
 const { fullscreenFlag } = storeToRefs(dvMainStore)
@@ -96,8 +97,8 @@ const keepProportionCheck = outerContentRect => {
 
 onMounted(() => {
   const observer = new ResizeObserver(entries => {
-    for (let entry of entries) {
-      console.log('元素新尺寸:', entry.contentRect)
+    for (const entry of entries) {
+      logger.debug('元素新尺寸:', entry.contentRect)
       // entry.contentRect 包含 width, height, top, left 等属性
       keepProportionCheck(entry.contentRect)
     }

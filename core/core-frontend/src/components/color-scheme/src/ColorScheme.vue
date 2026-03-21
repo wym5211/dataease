@@ -29,7 +29,7 @@ const changeShowCustom = () => {
 }
 
 const customColor = ref()
-let colorIndex = ref(0)
+const colorIndex = ref(0)
 
 const colorPicker = ref()
 

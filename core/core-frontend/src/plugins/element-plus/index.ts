@@ -5,6 +5,7 @@ import { ElLoading, ElScrollbar } from 'element-plus-secondary'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import 'element-plus-secondary/theme-chalk/el-radio-button.css'
 import { ElConfigProvider } from 'element-plus-secondary'
+import type { Language } from 'element-plus-secondary/es/locale'
 
 const plugins = [ElLoading]
 
@@ -28,6 +29,6 @@ export const setupElementPlusIcons = (app: App<Element>) => {
 }
 
 // 修改 setElementPlusLocale 函数以使用 ElConfigProvider 设置国际化
-export const setElementPlusLocale = (localeObj: any) => {
+export const setElementPlusLocale = (localeObj: Language) => {
   ElConfigProvider.locale = localeObj
 }

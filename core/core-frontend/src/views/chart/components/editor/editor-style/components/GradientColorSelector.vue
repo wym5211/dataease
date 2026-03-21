@@ -12,7 +12,7 @@ const props = withDefaults(
     themes?: EditorTheme
     modelValue: {
       basicStyleForm: ChartBasicStyle
-      customColor: any
+      customColor: string
       colorIndex: number
     }
     propertyInner: Array<string>
