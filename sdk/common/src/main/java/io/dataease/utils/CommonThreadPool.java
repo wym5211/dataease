@@ -93,6 +93,10 @@ public class CommonThreadPool {
         this.corePoolSize = corePoolSize;
     }
 
+    public void setMaximumPoolSize(int maximumPoolSize) {
+        this.maximumPoolSize = maximumPoolSize;
+    }
+
     public void setMaxQueueSize(int maxQueueSize) {
         this.maxQueueSize = maxQueueSize;
     }

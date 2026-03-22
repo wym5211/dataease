@@ -497,7 +497,8 @@ public class DatasetGroupManage {
                 // 请求数据
                 Map<String, Object> map = datasetDataManage.previewDataWithLimit(dto, 0, 100, true, false);
                 // 获取data,sql
-                Map<String, List> data = (Map<String, List>) map.get("data");
+                @SuppressWarnings("unchecked")
+                Map<String, List<?>> data = (Map<String, List<?>>) (Map<?, ?>) map.get("data");
                 String sql = (String) map.get("sql");
                 Long total = (Long) map.get("total");
                 dto.setData(data);

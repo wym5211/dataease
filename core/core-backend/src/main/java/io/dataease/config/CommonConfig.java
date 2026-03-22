@@ -15,6 +15,7 @@ public class CommonConfig {
     public CommonThreadPool resourcePoolThreadPool() {
         CommonThreadPool commonThreadPool = new CommonThreadPool();
         commonThreadPool.setCorePoolSize(50);
+        commonThreadPool.setMaximumPoolSize(100);
         commonThreadPool.setMaxQueueSize(100);
         commonThreadPool.setKeepAliveSeconds(3600);
         return commonThreadPool;

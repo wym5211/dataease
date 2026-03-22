@@ -11,6 +11,7 @@
       <map-setting v-if="activeName === 'map'" />
       <basic-info v-if="activeName === 'basic'" />
       <engine-info v-if="activeName === 'engine'" />
+      <backup-settings v-if="activeName === 'backup'" />
       <xpack-component
         jsname="L21lbnUvc2V0dGluZy9lbWFpbC9pbmRleA=="
         v-if="activeName === 'email'"
@@ -22,19 +23,24 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed, watch } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
 import MapSetting from './map/MapSetting.vue'
 import BasicInfo from './basic/BasicInfo.vue'
 import ThirdParty from './third-party/index.vue'
 import EngineInfo from '@/views/system/parameter/engine/EngineInfo.vue'
+import BackupSettings from './backup/BackupSettings.vue'
 import { XpackComponent } from '@/components/plugin'
 import { isDesktop } from '@/utils/ModelUtil'
+import { useUserStoreWithOut } from '@/store/modules/user'
 /* import EmailInfo from './email/EmailInfo.vue' */
 const { t } = useI18n()
+const userStore = useUserStoreWithOut()
 
 const desktop = isDesktop()
-const tabArray = ref([
+const isAdmin = computed(() => userStore.getUid === '1' || userStore.getUid === 1)
+
+const baseTabs = [
   { label: t('system.basic_settings'), name: 'basic' },
   { label: t('system.map_settings'), name: 'map' },
   { label: t('system.engine_settings'), name: 'engine' },
@@ -42,8 +48,11 @@ const tabArray = ref([
     label: t('common.third_party_embed'),
     name: 'third_party'
   }
-])
+]
 
+const tabArray = ref([...baseTabs])
+
+// Only admin users can see the backup tab
 const activeName = ref('basic')
 
 const addTable = tab => {
@@ -51,6 +60,21 @@ const addTable = tab => {
     tabArray.value.splice(1, 0, tab)
   }
 }
+
+watch(
+  isAdmin,
+  newVal => {
+    if (newVal && !tabArray.value.some(item => item.name === 'backup')) {
+      tabArray.value.splice(3, 0, { label: '备份设置', name: 'backup' })
+    } else if (!newVal) {
+      const idx = tabArray.value.findIndex(item => item.name === 'backup')
+      if (idx !== -1) {
+        tabArray.value.splice(idx, 1)
+      }
+    }
+  },
+  { immediate: true }
+)
 
 onMounted(() => {
   if (desktop) {
