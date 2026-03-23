@@ -22,6 +22,7 @@ import icon_free from '@/assets/svg/icon_free.svg'
 import icon_security from '@/assets/svg/icon_security.svg'
 import icon_webhook from '@/assets/svg/icon_webhook.svg'
 import icon_template from '@/assets/svg/icon_template.svg'
+import icon_backup from '@/assets/svg/icon_backup.svg'
 import log from '@/assets/svg/log.svg'
 
 const iconMap = {
@@ -46,6 +47,7 @@ const iconMap = {
   report: report,
   sync: sync,
   icon_template,
+  icon_backup,
   log
 }
 

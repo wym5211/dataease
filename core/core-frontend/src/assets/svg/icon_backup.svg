@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+  <!-- 云朵 -->
+  <path d="M13.007 9.5A4.5 4.5 0 0 0 7.5 2.5a3.5 3.5 0 0 0-.5 7v.5H5.5a3 3 0 1 0 0 6h7a2.5 2.5 0 0 0 0-5h-.493v-.5z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 上箭头 -->
+  <path d="M8 10V3M8 3L5.5 5.5M8 3L10.5 5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

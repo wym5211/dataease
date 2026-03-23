@@ -82,13 +82,25 @@
           <div v-if="previewData" class="preview-info">
             <el-descriptions :column="2" border>
               <el-descriptions-item label="版本">{{ previewData.version }}</el-descriptions-item>
-              <el-descriptions-item label="类型">{{ getTypeName(previewData.type) }}</el-descriptions-item>
-              <el-descriptions-item label="导出时间">{{ formatTime(previewData.exportTime) }}</el-descriptions-item>
+              <el-descriptions-item label="类型">{{
+                getTypeName(previewData.type)
+              }}</el-descriptions-item>
+              <el-descriptions-item label="导出时间">{{
+                formatTime(previewData.exportTime)
+              }}</el-descriptions-item>
               <el-descriptions-item label="包含数量">
-                <span v-if="previewData.datasources?.length">数据源: {{ previewData.datasources.length }}</span>
-                <span v-if="previewData.datasets?.length"> 数据集: {{ previewData.datasets.length }}</span>
-                <span v-if="previewData.dashboards?.length"> 仪表板: {{ previewData.dashboards.length }}</span>
-                <span v-if="previewData.dataviews?.length"> 大屏: {{ previewData.dataviews.length }}</span>
+                <span v-if="previewData.datasources?.length"
+                  >数据源: {{ previewData.datasources.length }}</span
+                >
+                <span v-if="previewData.datasets?.length">
+                  数据集: {{ previewData.datasets.length }}</span
+                >
+                <span v-if="previewData.dashboards?.length">
+                  仪表板: {{ previewData.dashboards.length }}</span
+                >
+                <span v-if="previewData.dataviews?.length">
+                  大屏: {{ previewData.dataviews.length }}</span
+                >
               </el-descriptions-item>
             </el-descriptions>
           </div>
@@ -105,10 +117,20 @@
 
     <template #footer>
       <el-button @click="handleClose">{{ t('commons.cancel') }}</el-button>
-      <el-button v-show="activeTab === 'export'" type="primary" @click="handleExport" :loading="loading">
+      <el-button
+        v-show="activeTab === 'export'"
+        type="primary"
+        @click="handleExport"
+        :loading="loading"
+      >
         {{ t('commons.export') }}
       </el-button>
-      <el-button v-show="activeTab === 'import'" type="primary" @click="handleImport" :loading="loading">
+      <el-button
+        v-show="activeTab === 'import'"
+        type="primary"
+        @click="handleImport"
+        :loading="loading"
+      >
         {{ t('commons.import') }}
       </el-button>
     </template>
@@ -119,13 +141,7 @@
 import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus-secondary'
 import { useI18n } from '@/hooks/web/useI18n'
-import {
-  exportData,
-  importData,
-  previewBackup,
-  uploadBackup,
-  downloadBackup
-} from '@/api/backup'
+import { exportData, importData, previewBackup, uploadBackup, downloadBackup } from '@/api/backup'
 import { listDatasources } from '@/api/datasource'
 
 const { t } = useI18n()

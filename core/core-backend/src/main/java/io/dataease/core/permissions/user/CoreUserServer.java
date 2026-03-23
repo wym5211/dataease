@@ -10,6 +10,8 @@ import io.dataease.api.permissions.user.api.UserApi;
 import io.dataease.api.permissions.user.dto.*;
 import io.dataease.api.permissions.user.vo.*;
 import io.dataease.auth.bo.TokenUserBO;
+import io.dataease.i18n.Lang;
+import io.dataease.utils.CacheUtils;
 import io.dataease.auth.vo.TokenVO;
 import io.dataease.utils.AuthUtils;
 import io.dataease.exception.DEException;
@@ -24,6 +26,7 @@ import io.dataease.utils.BeanUtils;
 import io.dataease.utils.IPUtils;
 import io.dataease.utils.RsaUtils;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
@@ -398,7 +401,12 @@ public class CoreUserServer implements UserApi {
             vo.setId(sysUser.getId());
             vo.setName(sysUser.getNickName());
             vo.setOid(tokenUser.getDefaultOid());
-            vo.setLanguage("zh-CN");
+            Object langObj = CacheUtils.get(io.dataease.constant.CacheConstant.UserCacheConstant.USER_COMMUNITY_LANGUAGE, "de");
+            if (ObjectUtils.isNotEmpty(langObj) && StringUtils.isNotBlank(langObj.toString())) {
+                vo.setLanguage(langObj.toString());
+            } else {
+                vo.setLanguage("zh-CN");
+            }
         }
         return vo;
     }
@@ -432,7 +440,15 @@ public class CoreUserServer implements UserApi {
 
     @Override
     public void switchLanguage(LangSwitchRequest request) {
-
+        String lang = request.getLang();
+        if (StringUtils.equalsIgnoreCase(Lang.zh_CN.getDesc(), lang)) {
+            lang = Lang.zh_CN.getDesc();
+        } else if (StringUtils.equalsAnyIgnoreCase(lang, "en", "tw")) {
+            lang = lang.toLowerCase();
+        } else {
+            DEException.throwException("无效language");
+        }
+        CacheUtils.put(io.dataease.constant.CacheConstant.UserCacheConstant.USER_COMMUNITY_LANGUAGE, "de", lang);
     }
 
     @Override
@@ -652,6 +668,10 @@ public class CoreUserServer implements UserApi {
 
     @Override
     public String userLang() {
+        Object langObj = CacheUtils.get(io.dataease.constant.CacheConstant.UserCacheConstant.USER_COMMUNITY_LANGUAGE, "de");
+        if (ObjectUtils.isNotEmpty(langObj) && StringUtils.isNotBlank(langObj.toString())) {
+            return langObj.toString();
+        }
         return "zh-CN";
     }
 

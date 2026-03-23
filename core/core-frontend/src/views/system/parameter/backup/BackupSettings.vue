@@ -4,7 +4,7 @@
       v-if="!isAdmin"
       title="权限提示"
       type="warning"
-      description="只有管理员用户才能访问备份设置"
+      description="只有管理员用户才能访问资源备份"
       :closable="false"
       show-icon
       style="margin-bottom: 16px"
@@ -167,13 +167,14 @@ import {
   downloadBackup,
   getBackupHistory
 } from '@/api/backup'
+import type { BackupRequest, ExportPackage } from '@/api/backup'
 
 const { t } = useI18n()
 const userStore = useUserStoreWithOut()
 
-const isAdmin = computed(() => userStore.getUid === '1' || userStore.getUid === 1)
+const isAdmin = computed(() => String(userStore.getUid) === '1')
 
-const exportForm = ref({
+const exportForm = ref<{ type: BackupRequest['type']; options: { compress: boolean } }>({
   type: 'datasource',
   options: {
     compress: true
@@ -185,8 +186,8 @@ const importForm = ref({
   file: null as File | null
 })
 
-const previewData = ref(null)
-const historyList = ref([])
+const previewData = ref<ExportPackage | null>(null)
+const historyList = ref<any[]>([])
 const exporting = ref(false)
 const importing = ref(false)
 const uploadRef = ref()
@@ -201,7 +202,7 @@ const loadHistory = async () => {
   try {
     const res = await getBackupHistory()
     if (res.code === 0) {
-      historyList.value = res.data || []
+      historyList.value = (res.data as any[]) || []
     }
   } catch (e) {
     console.error('Failed to load history', e)
@@ -219,7 +220,8 @@ const handleExport = async () => {
 
     if (result.code === 0 && result.data) {
       ElMessage.success('导出成功')
-      downloadBackup(result.data.id, result.data.fileName)
+      const data = result.data as any
+      downloadBackup(data.id, data.fileName)
       loadHistory()
     } else {
       ElMessage.error(result.msg || '导出失败')
@@ -246,7 +248,7 @@ const handleImport = async () => {
       return
     }
 
-    const importId = uploadResult.data?.id
+    const importId = (uploadResult.data as any)?.id
     if (!importId) {
       ElMessage.error('文件上传失败，未获取到文件ID')
       return
@@ -254,7 +256,7 @@ const handleImport = async () => {
 
     const result = await importData({
       id: importId,
-      type: previewData.value?.type || 'combined',
+      type: (previewData.value?.type as BackupRequest['type']) || 'combined',
       overwrite: importForm.value.overwrite
     })
 
@@ -280,7 +282,7 @@ const handleFileChange = async (file: any) => {
   try {
     const result = await previewBackup(file.raw)
     if (result.code === 0) {
-      previewData.value = result.data
+      previewData.value = result.data as ExportPackage
     } else {
       ElMessage.error(result.msg || '文件预览失败')
     }
@@ -329,16 +331,16 @@ const formatTime = (timestamp: number) => {
 
   .card-body {
     .description {
-      color: #909399;
-      font-size: 14px;
       margin-bottom: 16px;
+      font-size: 14px;
+      color: #909399;
     }
   }
 }
 
 .preview-info {
-  margin: 16px 0;
   padding: 12px;
+  margin: 16px 0;
   background: #f5f7fa;
   border-radius: 4px;
 }

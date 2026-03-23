@@ -1,7 +1,12 @@
 <template>
   <p class="router-title">{{ t('commons.system_parameter_setting') }}</p>
   <el-tabs v-model="activeName">
-    <el-tab-pane v-for="item in tabArray" :key="item.name" :label="item.label" :name="item.name" />
+    <el-tab-pane
+      v-for="item in tabArray"
+      :key="item.name"
+      :label="t(item.label)"
+      :name="item.name"
+    />
   </el-tabs>
   <div class="sys-setting-p">
     <div
@@ -11,7 +16,6 @@
       <map-setting v-if="activeName === 'map'" />
       <basic-info v-if="activeName === 'basic'" />
       <engine-info v-if="activeName === 'engine'" />
-      <backup-settings v-if="activeName === 'backup'" />
       <xpack-component
         jsname="L21lbnUvc2V0dGluZy9lbWFpbC9pbmRleA=="
         v-if="activeName === 'email'"
@@ -29,7 +33,6 @@ import MapSetting from './map/MapSetting.vue'
 import BasicInfo from './basic/BasicInfo.vue'
 import ThirdParty from './third-party/index.vue'
 import EngineInfo from '@/views/system/parameter/engine/EngineInfo.vue'
-import BackupSettings from './backup/BackupSettings.vue'
 import { XpackComponent } from '@/components/plugin'
 import { isDesktop } from '@/utils/ModelUtil'
 import { useUserStoreWithOut } from '@/store/modules/user'
@@ -38,14 +41,14 @@ const { t } = useI18n()
 const userStore = useUserStoreWithOut()
 
 const desktop = isDesktop()
-const isAdmin = computed(() => userStore.getUid === '1' || userStore.getUid === 1)
+const isAdmin = computed(() => userStore.getUid === '1')
 
 const baseTabs = [
-  { label: t('system.basic_settings'), name: 'basic' },
-  { label: t('system.map_settings'), name: 'map' },
-  { label: t('system.engine_settings'), name: 'engine' },
+  { label: 'system.basic_settings', name: 'basic' },
+  { label: 'system.map_settings', name: 'map' },
+  { label: 'system.engine_settings', name: 'engine' },
   {
-    label: t('common.third_party_embed'),
+    label: 'common.third_party_embed',
     name: 'third_party'
   }
 ]
@@ -64,14 +67,7 @@ const addTable = tab => {
 watch(
   isAdmin,
   newVal => {
-    if (newVal && !tabArray.value.some(item => item.name === 'backup')) {
-      tabArray.value.splice(3, 0, { label: '备份设置', name: 'backup' })
-    } else if (!newVal) {
-      const idx = tabArray.value.findIndex(item => item.name === 'backup')
-      if (idx !== -1) {
-        tabArray.value.splice(idx, 1)
-      }
-    }
+    // backup tab 已移除，作为独立菜单存在
   },
   { immediate: true }
 )
@@ -98,6 +94,7 @@ onMounted(() => {
   font-weight: 500;
   line-height: 28px;
 }
+
 .sys-setting-p {
   width: 100%;
   height: calc(100vh - 176px);
@@ -111,10 +108,12 @@ onMounted(() => {
   overflow-y: auto;
   background: var(--ContentBG, #ffffff);
   border-radius: 4px;
+
   &.basic-info_bg {
     background: none;
   }
 }
+
 .setting-max-h {
   height: 100% !important;
 }
