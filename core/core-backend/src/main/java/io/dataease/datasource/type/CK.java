@@ -6,17 +6,28 @@ import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
+import java.net.URLDecoder;
+import java.util.Arrays;
+import java.util.List;
+
 @Data
 @Component("ck")
 public class CK extends DatasourceConfiguration {
     private String driver = "com.clickhouse.jdbc.ClickHouseDriver";
     private String extraParams = "";
     private String compressAlgorithm = "none"; // 默认设置为none以避免HTTP压缩问题
+    private List<String> illegalParameters = Arrays.asList("autoDeserialize", "queryInterceptors", "statementInterceptors", "detectCustomCollations", "maxAllowedPacket", "allowloadlocalinfile", "allowUrlInLocalInfile", "allowLoadLocalInfileInPath");
 
     public String getJdbc() {
         if (StringUtils.isNoneEmpty(getUrlType()) && !getUrlType().equalsIgnoreCase("hostName")) {
             if (!getJdbcUrl().startsWith("jdbc:clickhouse")) {
                 DEException.throwException("Illegal jdbcUrl: " + getJdbcUrl());
+            }
+            // 检查危险参数
+            for (String illegalParameter : illegalParameters) {
+                if (getJdbcUrl().toLowerCase().contains(illegalParameter.toLowerCase())) {
+                    DEException.throwException("Illegal parameter: " + illegalParameter);
+                }
             }
             // 如果用户提供的JDBC URL中没有压缩算法设置，添加默认设置
             if (!getJdbcUrl().contains("compress_algorithm") && !getJdbcUrl().contains("enable_http_compression")) {
