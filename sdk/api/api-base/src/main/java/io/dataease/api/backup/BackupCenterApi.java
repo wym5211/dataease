@@ -74,4 +74,8 @@ public interface BackupCenterApi {
     @Operation(summary = "获取导入模式选项")
     @GetMapping("/importModes")
     Map<String, String> getImportModes();
+
+    @Operation(summary = "获取导出目录")
+    @GetMapping("/backupPath")
+    String getBackupPath();
 }

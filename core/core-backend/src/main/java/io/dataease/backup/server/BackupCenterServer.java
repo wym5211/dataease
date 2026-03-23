@@ -111,4 +111,11 @@ public class BackupCenterServer implements BackupCenterApi {
     public Map<String, String> getImportModes() {
         return backupCenterManage.getImportModes();
     }
+
+    @Override
+    @Operation(summary = "获取导出目录")
+    @GetMapping("/backupPath")
+    public String getBackupPath() {
+        return backupCenterManage.getBackupPath();
+    }
 }

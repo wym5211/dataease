@@ -1,4 +1,5 @@
 import request from '@/config/axios'
+import { ElMessage } from 'element-plus-secondary'
 
 export interface BackupRequest {
   id?: string
@@ -64,13 +65,13 @@ export const downloadBackup = async (id: string, fileName?: string) => {
       url: `/backupCenter/download/${id}`,
       responseType: 'blob'
     })
-    const blob = response?.data
-    if (blob) {
-      // 根据文件扩展名确定MIME类型
-      const mimeType = fileName?.endsWith('.zip') ? 'application/zip' : 'application/json'
-      // 创建带有正确MIME类型的Blob
-      const downloadBlob = new Blob([blob], { type: mimeType })
-      const url = window.URL.createObjectURL(downloadBlob)
+    let blob = response?.data
+    // 兼容处理：如果 response.data 被包装了
+    if (blob && typeof blob === 'object' && 'data' in blob) {
+      blob = blob.data
+    }
+    if (blob instanceof Blob) {
+      const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
       link.download = fileName || `backup_${id}.json`
@@ -78,9 +79,13 @@ export const downloadBackup = async (id: string, fileName?: string) => {
       link.click()
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
+    } else {
+      console.error('Invalid blob:', blob)
+      ElMessage.error('下载失败：无有效的文件数据')
     }
   } catch (error) {
     console.error('Download failed:', error)
+    ElMessage.error('下载失败')
   }
 }
 
@@ -126,4 +131,9 @@ export const checkResourceExist = (names: string[]): Promise<IResponse> => {
 // 获取导入模式选项
 export const getImportModes = (): Promise<IResponse> => {
   return request.get({ url: '/backupCenter/importModes' })
+}
+
+// 获取导出目录
+export const getBackupPath = (): Promise<IResponse> => {
+  return request.get({ url: '/backupCenter/backupPath' })
 }

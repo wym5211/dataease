@@ -225,36 +225,34 @@ public class BackupCenterManage {
     }
 
     public void download(String id, HttpServletResponse response) throws Exception {
-        ExportPackage exportPackage = exportPackages.get(id);
-        if (exportPackage == null) {
-            File backupDir = new File(backupPath);
-            File jsonFile = new File(backupDir, "export_" + id + ".json");
-            File zipFile = new File(backupDir, "export_" + id + ".zip");
+        File backupDir = new File(backupPath);
+        File jsonFile = new File(backupDir, "export_" + id + ".json");
+        File zipFile = new File(backupDir, "export_" + id + ".zip");
 
-            File downloadFile;
-            String fileName;
-            String contentType;
-            if (zipFile.exists()) {
-                downloadFile = zipFile;
-                fileName = zipFile.getName();
-                contentType = "application/zip";
-            } else if (jsonFile.exists()) {
-                downloadFile = jsonFile;
-                fileName = jsonFile.getName();
-                contentType = "application/json";
-            } else {
-                throw new FileNotFoundException("导出文件不存在");
-            }
-
-            response.setContentType(contentType);
-            response.setHeader("Content-Disposition", "attachment;filename=" + java.net.URLEncoder.encode(fileName, "UTF-8"));
-            Files.copy(downloadFile.toPath(), response.getOutputStream());
+        File downloadFile;
+        String fileName;
+        if (zipFile.exists()) {
+            downloadFile = zipFile;
+            fileName = zipFile.getName();
+        } else if (jsonFile.exists()) {
+            downloadFile = jsonFile;
+            fileName = jsonFile.getName();
         } else {
-            String jsonStr = new ObjectMapper().writeValueAsString(exportPackage);
-            response.setContentType("application/octet-stream");
-            response.setHeader("Content-Disposition", "attachment;filename=export_" + id + ".json");
-            response.getWriter().write(jsonStr);
+            // 回退到内存缓存
+            ExportPackage exportPackage = exportPackages.get(id);
+            if (exportPackage != null) {
+                String jsonStr = new ObjectMapper().writeValueAsString(exportPackage);
+                response.setContentType("application/octet-stream");
+                response.setHeader("Content-Disposition", "attachment;filename=export_" + id + ".json");
+                response.getWriter().write(jsonStr);
+                return;
+            }
+            throw new FileNotFoundException("导出文件不存在");
         }
+
+        response.setContentType("application/octet-stream");
+        response.setHeader("Content-Disposition", "attachment;filename=" + java.net.URLEncoder.encode(fileName, "UTF-8"));
+        Files.copy(downloadFile.toPath(), response.getOutputStream());
     }
 
     public String generateDownloadUri(String id) throws Exception {
@@ -377,6 +375,10 @@ public class BackupCenterManage {
         modes.put("create", "创建新资源（重名自动重命名）");
         modes.put("overwrite", "覆盖同名资源");
         return modes;
+    }
+
+    public String getBackupPath() {
+        return backupPath;
     }
 
     private ExportPackage parseExportPackage(File file) {
