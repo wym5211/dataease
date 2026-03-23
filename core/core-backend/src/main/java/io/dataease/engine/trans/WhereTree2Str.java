@@ -211,18 +211,20 @@ public class WhereTree2Str {
                         || StringUtils.containsIgnoreCase(field.getType(), "NCHAR"))
                         && !isCross
                         && StringUtils.equalsIgnoreCase(dsType, DatasourceConfiguration.DatasourceType.sqlServer.getType())) {
-                    whereValue = "(" + Arrays.stream(value.split(",")).map(str -> "'" + SQLConstants.MSSQL_N_PREFIX + str + "'").collect(Collectors.joining(",")) + ")";
+                    whereValue = "(" + Arrays.stream(value.split(",")).map(str -> "'" + SQLConstants.MSSQL_N_PREFIX + Utils.transValue(str.trim()) + "'").collect(Collectors.joining(",")) + ")";
                 } else {
-                    whereValue = "('" + String.join("','", value.split(",")) + "')";
+                    whereValue = "('" + Arrays.stream(value.split(","))
+                        .map(v -> Utils.transValue(v.trim()))
+                        .collect(Collectors.joining("','")) + "')";
                 }
             } else if (StringUtils.containsIgnoreCase(item.getTerm(), "like")) {
                 if ((StringUtils.containsIgnoreCase(field.getType(), "NVARCHAR")
                         || StringUtils.containsIgnoreCase(field.getType(), "NCHAR"))
                         && !isCross
                         && StringUtils.equalsIgnoreCase(dsType, DatasourceConfiguration.DatasourceType.sqlServer.getType())) {
-                    whereValue = "'" + SQLConstants.MSSQL_N_PREFIX + "%" + value + "%'";
+                    whereValue = "'" + SQLConstants.MSSQL_N_PREFIX + "%" + Utils.transValue(value) + "%'";
                 } else {
-                    whereValue = "'%" + value + "%'";
+                    whereValue = "'%" + Utils.transValue(value) + "%'";
                 }
             } else {
                 // 如果是时间字段过滤，当条件是等于和不等于的时候转换成between和not between
@@ -259,16 +261,16 @@ public class WhereTree2Str {
                                 value = Utils.transLong2Str(startTime);
                             }
                         }
-                        whereValue = String.format(SQLConstants.WHERE_VALUE_VALUE, value);
+                        whereValue = String.format(SQLConstants.WHERE_VALUE_VALUE, Utils.transValue(value));
                     }
                 } else {
                     if ((StringUtils.containsIgnoreCase(field.getType(), "NVARCHAR")
                             || StringUtils.containsIgnoreCase(field.getType(), "NCHAR"))
                             && !isCross
                             && StringUtils.equalsIgnoreCase(dsType, DatasourceConfiguration.DatasourceType.sqlServer.getType())) {
-                        whereValue = String.format(SQLConstants.WHERE_VALUE_VALUE_CH, value);
+                        whereValue = String.format(SQLConstants.WHERE_VALUE_VALUE_CH, Utils.transValue(value));
                     } else {
-                        whereValue = String.format(SQLConstants.WHERE_VALUE_VALUE, value);
+                        whereValue = String.format(SQLConstants.WHERE_VALUE_VALUE, Utils.transValue(value));
                     }
                 }
             }
