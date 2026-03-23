@@ -15,6 +15,12 @@ public class SQLUtils {
     }
 
     public static String buildOriginPreviewSqlWithOrderBy(String sql, int limit, int offset, String orderBy) {
-        return "SELECT * FROM (" + sql + ") tmp ORDER BY " + orderBy + " LIMIT " + limit + " OFFSET " + offset;
+        // Validate orderBy is a valid identifier (alphanumeric, underscore, dot for table.column)
+        if (!orderBy.matches("^[a-zA-Z0-9_,\\.\\s]+$")) {
+            throw new IllegalArgumentException("Invalid orderBy identifier");
+        }
+        // Escape backticks in identifier and wrap with backticks
+        String escapedOrderBy = orderBy.replace("`", "``");
+        return "SELECT * FROM (" + sql + ") tmp ORDER BY `" + escapedOrderBy + "` LIMIT " + limit + " OFFSET " + offset;
     }
 }
