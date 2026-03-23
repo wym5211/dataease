@@ -16,13 +16,18 @@ import java.util.regex.Pattern;
 public class Sqlserver extends DatasourceConfiguration {
     private String driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
     private String extraParams = "";
-    private List<String> illegalParameters = Arrays.asList("autoDeserialize", "queryInterceptors", "statementInterceptors", "detectCustomCollations");
+    private List<String> illegalParameters = Arrays.asList("maxAllowedPacket", "autoDeserialize", "queryInterceptors", "statementInterceptors", "detectCustomCollations", "allowloadlocalinfile", "allowUrlInLocalInfile", "allowLoadLocalInfileInPath");
     private List<String> showTableSqls = Arrays.asList("show tables");
 
     public String getJdbc() {
         if(StringUtils.isNoneEmpty(getUrlType()) && !getUrlType().equalsIgnoreCase("hostName")){
             if (!getJdbcUrl().startsWith("jdbc:sqlserver")) {
                 DEException.throwException("Illegal jdbcUrl: " + getJdbcUrl());
+            }
+            for (String illegalParameter : illegalParameters) {
+                if (URLDecoder.decode(getJdbcUrl()).toLowerCase().contains(illegalParameter.toLowerCase())) {
+                    DEException.throwException("Illegal parameter: " + illegalParameter);
+                }
             }
             return getJdbcUrl();
         }
