@@ -24,8 +24,9 @@ public class Sqlserver extends DatasourceConfiguration {
             if (!getJdbcUrl().startsWith("jdbc:sqlserver")) {
                 DEException.throwException("Illegal jdbcUrl: " + getJdbcUrl());
             }
+            String lowerUrl = URLDecoder.decode(getJdbcUrl()).toLowerCase();
             for (String illegalParameter : illegalParameters) {
-                if (URLDecoder.decode(getJdbcUrl()).toLowerCase().contains(illegalParameter.toLowerCase())) {
+                if (lowerUrl.contains(illegalParameter.toLowerCase())) {
                     DEException.throwException("Illegal parameter: " + illegalParameter);
                 }
             }
@@ -44,8 +45,9 @@ public class Sqlserver extends DatasourceConfiguration {
                     .replace("DATABASE", getDataBase().trim())
                     .replace("EXTRA_PARAMS", getExtraParams().trim());
         }
+        String lowerUrl = URLDecoder.decode(jdbcUrl).toLowerCase();
         for (String illegalParameter : illegalParameters) {
-            if (URLDecoder.decode(jdbcUrl).toLowerCase().contains(illegalParameter.toLowerCase()) || URLDecoder.decode(jdbcUrl).contains(illegalParameter.toLowerCase())) {
+            if (lowerUrl.contains(illegalParameter.toLowerCase())) {
                 DEException.throwException("Illegal parameter: " + illegalParameter);
             }
         }

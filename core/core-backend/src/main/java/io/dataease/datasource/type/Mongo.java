@@ -23,8 +23,9 @@ public class Mongo extends DatasourceConfiguration {
             if (!getJdbcUrl().startsWith("jdbc:mysql")) {
                 DEException.throwException("Illegal jdbcUrl: " + getJdbcUrl());
             }
+            String lowerUrl = URLDecoder.decode(getJdbcUrl()).toLowerCase();
             for (String illegalParameter : illegalParameters) {
-                if (URLDecoder.decode(getJdbcUrl()).toLowerCase().contains(illegalParameter.toLowerCase())) {
+                if (lowerUrl.contains(illegalParameter.toLowerCase())) {
                     DEException.throwException("Illegal parameter: " + illegalParameter);
                 }
             }
@@ -43,8 +44,9 @@ public class Mongo extends DatasourceConfiguration {
                     .replace("DATABASE", getDataBase().trim())
                     .replace("EXTRA_PARAMS", getExtraParams().trim());
         }
+        String lowerUrl = jdbcUrl.toLowerCase();
         for (String illegalParameter : illegalParameters) {
-            if (jdbcUrl.contains(illegalParameter)) {
+            if (lowerUrl.contains(illegalParameter)) {
                 throw new RuntimeException("Illegal parameter: " + illegalParameter);
             }
         }

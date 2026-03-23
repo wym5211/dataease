@@ -24,8 +24,9 @@ public class CK extends DatasourceConfiguration {
                 DEException.throwException("Illegal jdbcUrl: " + getJdbcUrl());
             }
             // 检查危险参数
+            String lowerUrl = URLDecoder.decode(getJdbcUrl()).toLowerCase();
             for (String illegalParameter : illegalParameters) {
-                if (getJdbcUrl().toLowerCase().contains(illegalParameter.toLowerCase())) {
+                if (lowerUrl.contains(illegalParameter.toLowerCase())) {
                     DEException.throwException("Illegal parameter: " + illegalParameter);
                 }
             }
