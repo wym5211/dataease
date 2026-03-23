@@ -195,7 +195,7 @@ public class StaticResourceServer implements StaticResourceApi {
     }
 
     private static void sanitizeSVG(Document doc) {
-        NodeList nodes = doc.getElementsByNode(Node.ELEMENT_NODE);
+        NodeList nodes = doc.getElementsByTagName("*");
 
         List<String> dangerousElements = Arrays.asList(
             "script", "foreignObject", "use", "iframe", "object", "embed",
@@ -217,7 +217,7 @@ public class StaticResourceServer implements StaticResourceApi {
         }
 
         // Remove dangerous attributes from all elements
-        nodes = doc.getElementsByNode(Node.ELEMENT_NODE);
+        nodes = doc.getElementsByTagName("*");
         for (int i = 0; i < nodes.getLength(); i++) {
             Element element = (Element) nodes.item(i);
             NamedNodeMap attrs = element.getAttributes();
