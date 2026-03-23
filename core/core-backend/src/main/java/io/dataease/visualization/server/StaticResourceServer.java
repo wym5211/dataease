@@ -16,6 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import javax.imageio.ImageIO;
@@ -28,6 +32,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -172,6 +178,7 @@ public class StaticResourceServer implements StaticResourceApi {
 
             // 检查根元素是否是<svg>
             if ("svg".equals(doc.getDocumentElement().getNodeName())) {
+                sanitizeSVG(doc);
                 return true;
             } else {
                 return false;
@@ -186,6 +193,48 @@ public class StaticResourceServer implements StaticResourceApi {
         }
         return false;
     }
+
+    private static void sanitizeSVG(Document doc) {
+        NodeList nodes = doc.getElementsByNode(Node.ELEMENT_NODE);
+
+        List<String> dangerousElements = Arrays.asList(
+            "script", "foreignObject", "use", "iframe", "object", "embed",
+            "set", "animate", "animateTransform", "mpath"
+        );
+
+        List<String> dangerousAttributes = Arrays.asList(
+            "onerror", "onload", "onclick", "onmouseover", "onmouseout",
+            "onfocus", "onblur", "onchange", "onsubmit", "onreset",
+            "href", "xlink:href", "style"
+        );
+
+        // Remove dangerous elements
+        for (int i = nodes.getLength() - 1; i >= 0; i--) {
+            Node node = nodes.item(i);
+            if (dangerousElements.contains(node.getNodeName().toLowerCase())) {
+                node.getParentNode().removeChild(node);
+            }
+        }
+
+        // Remove dangerous attributes from all elements
+        nodes = doc.getElementsByNode(Node.ELEMENT_NODE);
+        for (int i = 0; i < nodes.getLength(); i++) {
+            Element element = (Element) nodes.item(i);
+            NamedNodeMap attrs = element.getAttributes();
+            for (int j = attrs.getLength() - 1; j >= 0; j--) {
+                String attrName = attrs.item(j).getNodeName().toLowerCase();
+                String attrValue = element.getAttribute(attrName);
+                if (dangerousAttributes.contains(attrName) ||
+                    attrName.startsWith("on") ||
+                    (attrName.equals("href") && (attrValue.toLowerCase().startsWith("javascript:") || attrValue.toLowerCase().startsWith("data:"))) ||
+                    (attrName.equals("xlink:href") && (attrValue.toLowerCase().startsWith("javascript:") || attrValue.toLowerCase().startsWith("data:"))) ||
+                    (attrName.equals("style") && (attrValue.contains("expression(") || attrValue.toLowerCase().contains("javascript:")))) {
+                    element.removeAttribute(attrName);
+                }
+            }
+        }
+    }
+
     public static FileType getFileType(InputStream is) throws IOException {
         byte[] src = new byte[28];
         is.read(src, 0, 28);
