@@ -9,49 +9,49 @@
     <div class="backup-dialog-content">
       <!-- 模式切换 -->
       <el-tabs v-model="activeTab" class="backup-tabs">
-        <el-tab-pane label="导出" name="export" />
-        <el-tab-pane label="导入" name="import" />
+        <el-tab-pane :label="t('commons.export')" name="export" />
+        <el-tab-pane :label="t('commons.import')" name="import" />
       </el-tabs>
 
       <!-- 导出面板 -->
       <div v-show="activeTab === 'export'" class="export-panel">
         <el-form :model="exportForm" label-position="top">
-          <el-form-item label="导出类型">
-            <el-select v-model="exportForm.type" placeholder="请选择导出类型" style="width: 100%">
-              <el-option label="数据源" value="datasource" />
-              <el-option label="数据集" value="dataset" />
-              <el-option label="仪表板" value="dashboard" />
-              <el-option label="数据大屏" value="dataview" />
-              <el-option label="完整导出（包含所有）" value="combined" />
+          <el-form-item :label="t('backup.export_type')">
+            <el-select v-model="exportForm.type" :placeholder="t('backup.select_export_type')" style="width: 100%">
+              <el-option :label="t('backup.datasource')" value="datasource" />
+              <el-option :label="t('backup.dataset')" value="dataset" />
+              <el-option :label="t('backup.dashboard')" value="dashboard" />
+              <el-option :label="t('backup.dataview')" value="dataview" />
+              <el-option :label="t('backup.combined')" value="combined" />
             </el-select>
           </el-form-item>
 
-          <el-form-item v-if="exportForm.type === 'datasource'" label="选择数据源">
+          <el-form-item v-if="exportForm.type === 'datasource'" :label="t('backup.select_datasource')">
             <el-tree-select
               v-model="exportForm.resourceIds"
               :data="datasourceTree"
               :props="{ label: 'name', children: 'children', value: 'id' }"
               multiple
               check-strictly
-              placeholder="请选择要导出的数据源"
+              :placeholder="t('backup.select_export_datasource')"
               style="width: 100%"
             />
           </el-form-item>
 
-          <el-form-item v-if="exportForm.type === 'dataset'" label="选择数据集">
+          <el-form-item v-if="exportForm.type === 'dataset'" :label="t('backup.select_dataset')">
             <el-tree-select
               v-model="exportForm.resourceIds"
               :data="datasetTree"
               :props="{ label: 'name', children: 'children', value: 'id' }"
               multiple
               check-strictly
-              placeholder="请选择要导出的数据集"
+              :placeholder="t('backup.select_export_dataset')"
               style="width: 100%"
             />
           </el-form-item>
 
-          <el-form-item label="导出选项">
-            <el-checkbox v-model="exportForm.options.compress">压缩文件</el-checkbox>
+          <el-form-item :label="t('backup.export_options')">
+            <el-checkbox v-model="exportForm.options.compress">{{ t('backup.compress_file') }}</el-checkbox>
           </el-form-item>
         </el-form>
       </div>
@@ -59,21 +59,21 @@
       <!-- 导入面板 -->
       <div v-show="activeTab === 'import'" class="import-panel">
         <el-form :model="importForm" label-position="top">
-          <el-form-item label="选择导入文件">
+          <el-form-item :label="t('backup.select_import_file')">
             <el-upload
               ref="uploadRef"
               class="backup-upload"
               :auto-upload="false"
-              :limit="1"
               accept=".debk,.json,.zip"
+              v-model:file-list="fileList"
               :on-change="handleFileChange"
               :on-remove="handleFileRemove"
             >
               <template #trigger>
-                <el-button icon="Upload">选择文件</el-button>
+                <el-button icon="Upload">{{ t('backup.select_file') }}</el-button>
               </template>
               <template #tip>
-                <div class="el-upload__tip">支持 .debk、.json、.zip 格式</div>
+                <div class="el-upload__tip">{{ t('backup.file_format_tip') }}</div>
               </template>
             </el-upload>
           </el-form-item>
@@ -81,34 +81,34 @@
           <!-- 文件预览 -->
           <div v-if="previewData" class="preview-info">
             <el-descriptions :column="2" border>
-              <el-descriptions-item label="版本">{{ previewData.version }}</el-descriptions-item>
-              <el-descriptions-item label="类型">{{
+              <el-descriptions-item :label="t('backup.version')">{{ previewData.version }}</el-descriptions-item>
+              <el-descriptions-item :label="t('backup.type')">{{
                 getTypeName(previewData.type)
               }}</el-descriptions-item>
-              <el-descriptions-item label="导出时间">{{
+              <el-descriptions-item :label="t('backup.export_time')">{{
                 formatTime(previewData.exportTime)
               }}</el-descriptions-item>
-              <el-descriptions-item label="包含数量">
+              <el-descriptions-item :label="t('backup.include_count')">
                 <span v-if="previewData.datasources?.length"
-                  >数据源: {{ previewData.datasources.length }}</span
+                  >{{ t('backup.datasource') }}: {{ previewData.datasources.length }}</span
                 >
                 <span v-if="previewData.datasets?.length">
-                  数据集: {{ previewData.datasets.length }}</span
+                  {{ t('backup.dataset') }}: {{ previewData.datasets.length }}</span
                 >
                 <span v-if="previewData.dashboards?.length">
-                  仪表板: {{ previewData.dashboards.length }}</span
+                  {{ t('backup.dashboard') }}: {{ previewData.dashboards.length }}</span
                 >
                 <span v-if="previewData.dataviews?.length">
-                  大屏: {{ previewData.dataviews.length }}</span
+                  {{ t('backup.dataview') }}: {{ previewData.dataviews.length }}</span
                 >
               </el-descriptions-item>
             </el-descriptions>
           </div>
 
-          <el-form-item label="导入模式">
+          <el-form-item :label="t('backup.import_mode')">
             <el-radio-group v-model="importForm.overwrite">
-              <el-radio :label="false">创建新资源（重名自动重命名）</el-radio>
-              <el-radio :label="true">覆盖同名资源</el-radio>
+              <el-radio :label="false">{{ t('backup.create_new') }}</el-radio>
+              <el-radio :label="true">{{ t('backup.overwrite_same') }}</el-radio>
             </el-radio-group>
           </el-form-item>
         </el-form>
@@ -151,6 +151,7 @@ const loading = ref(false)
 const activeTab = ref('export')
 const uploadRef = ref(null)
 const previewData = ref(null)
+const fileList = ref([])
 
 const exportForm = ref({
   type: 'datasource',
@@ -169,11 +170,12 @@ const datasourceTree = ref([])
 const datasetTree = ref([])
 
 const dialogTitle = computed(() => {
-  return activeTab.value === 'export' ? '导出资源' : '导入资源'
+  return activeTab.value === 'export' ? t('backup.export_resource') : t('backup.import_resource')
 })
 
 watch(activeTab, () => {
   previewData.value = null
+  fileList.value = []
 })
 
 const loadDatasourceTree = async () => {
@@ -195,14 +197,15 @@ const handleExport = async () => {
     })
 
     if (result.code === 0 && result.data) {
-      ElMessage.success('导出成功')
+      ElMessage.success(t('backup.export_success'))
       downloadBackup(result.data.id)
       handleClose()
     } else {
-      ElMessage.error(result.msg || '导出失败')
+      ElMessage.error(result.msg || t('backup.export_failed'))
     }
-  } catch (e: any) {
-    ElMessage.error(e.message || '导出失败')
+  } catch (err: unknown) {
+    const e = err as Error
+    ElMessage.error(e.message || t('backup.export_failed'))
   } finally {
     loading.value = false
   }
@@ -210,7 +213,7 @@ const handleExport = async () => {
 
 const handleImport = async () => {
   if (!importForm.value.file) {
-    ElMessage.warning('请选择要导入的文件')
+    ElMessage.warning(t('backup.select_import_file_warning'))
     return
   }
 
@@ -219,15 +222,15 @@ const handleImport = async () => {
 
     // 先上传文件
     const uploadResult = await uploadBackup(importForm.value.file)
-    if (uploadResult.code !== 0) {
-      ElMessage.error(uploadResult.msg || '文件上传失败')
+    if (uploadResult.status !== 'success') {
+      ElMessage.error(uploadResult.message || t('backup.upload_failed'))
       return
     }
 
     // 执行导入
-    const importId = uploadResult.data?.id
+    const importId = uploadResult.id
     if (!importId) {
-      ElMessage.error('文件上传失败，未获取到文件ID')
+      ElMessage.error(t('backup.upload_failed_no_id'))
       return
     }
 
@@ -237,46 +240,56 @@ const handleImport = async () => {
       overwrite: importForm.value.overwrite
     })
 
-    if (result.code === 0) {
-      ElMessage.success('导入成功')
+    if (result.status === 'success') {
+      ElMessage.success(t('backup.import_success'))
       handleClose()
     } else {
-      ElMessage.error(result.msg || '导入失败')
+      ElMessage.error(result.message || t('backup.import_failed'))
     }
-  } catch (e: any) {
-    ElMessage.error(e.message || '导入失败')
+  } catch (err: unknown) {
+    const e = err as Error
+    ElMessage.error(e.message || t('backup.import_failed'))
   } finally {
     loading.value = false
   }
 }
 
-const handleFileChange = async (file: any) => {
-  importForm.value.file = file.raw
+const handleFileChange = async (uploadFile, uploadFiles) => {
+  // 只保留最新选择的文件
+  if (uploadFiles && uploadFiles.length > 1) {
+    // 更新 v-model 绑定的 fileList 来替换旧文件
+    fileList.value = [uploadFile]
+  }
+
+  const file = uploadFile.raw
+  importForm.value.file = file
 
   try {
-    const result = await previewBackup(file.raw)
-    if (result.code === 0) {
-      previewData.value = result.data
+    const result = await previewBackup(file)
+    if (result && result.version) {
+      previewData.value = result
     } else {
-      ElMessage.error(result.msg || '文件预览失败')
+      ElMessage.error(t('backup.preview_failed'))
     }
-  } catch (e: any) {
-    ElMessage.error('文件预览失败: ' + e.message)
+  } catch (err: unknown) {
+    const e = err as Error
+    ElMessage.error(t('backup.preview_failed') + ': ' + e.message)
   }
 }
 
 const handleFileRemove = () => {
   importForm.value.file = null
   previewData.value = null
+  fileList.value = []
 }
 
 const getTypeName = (type: string) => {
   const typeMap: Record<string, string> = {
-    datasource: '数据源',
-    dataset: '数据集',
-    dashboard: '仪表板',
-    dataview: '数据大屏',
-    combined: '完整导出'
+    datasource: t('backup.datasource'),
+    dataset: t('backup.dataset'),
+    dashboard: t('backup.dashboard'),
+    dataview: t('backup.dataview'),
+    combined: t('backup.combined')
   }
   return typeMap[type] || type
 }
@@ -299,6 +312,7 @@ const handleClose = () => {
     file: null
   }
   previewData.value = null
+  fileList.value = []
 }
 
 const open = () => {

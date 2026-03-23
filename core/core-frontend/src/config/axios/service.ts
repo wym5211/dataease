@@ -197,6 +197,17 @@ service.interceptors.response.use(
       return response
     } else if (responseData.code === result_code || responseData.code === 50002) {
       return responseData
+    } else if (
+      responseData &&
+      !responseData.code &&
+      (responseData.status === 'success' ||
+        responseData.status === 'failed' ||
+        responseData.status === 'processing' ||
+        responseData.version)
+    ) {
+      // 兼容后端直接返回的数据对象（如 BackupResponse、ExportPackage）
+      // 如果没有 code 字段但有特定的 status 或 version 字段，认为请求成功
+      return responseData
     } else if (response.config.url.match(/^\/map|geo\/\d{3}\/\d+\.json$/)) {
       //   TODO 处理静态文件
       return response

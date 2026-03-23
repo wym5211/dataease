@@ -7,6 +7,8 @@ import lombok.Data;
 @Data
 public class BackupResponse {
 
+    private int code = 0;
+
     @JsonSerialize(using = ToStringSerializer.class)
     private String id;
 

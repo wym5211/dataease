@@ -18,6 +18,11 @@ export interface RequestOptions {
 
 const request = <T = any>(option: RequestOptions & { method: string }): Promise<T> => {
   const { url, method, params, data, headersType, responseType, loading, silentError } = option
+  const headers: Record<string, string> = {}
+  // FormData 不需要手动设置 Content-Type，浏览器会自动添加 multipart/form-data 及 boundary
+  if (!(data instanceof FormData)) {
+    headers['Content-Type'] = headersType || default_headers
+  }
   return service({
     url: url,
     method,
@@ -26,9 +31,7 @@ const request = <T = any>(option: RequestOptions & { method: string }): Promise<
     params,
     data,
     responseType: responseType,
-    headers: {
-      'Content-Type': headersType || default_headers
-    }
+    headers
   }) as Promise<T>
 }
 

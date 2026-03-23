@@ -24,5 +24,7 @@ dataease:
     driver: ../../drivers
     custom-drivers: ../../custom-drivers/
     ehcache: ./cache
+  backup:
+    path: E:/cursor/dataease/backup-data
 
 

@@ -200,7 +200,13 @@ public class BackupCenterManage {
                 backupDir.mkdirs();
             }
 
-            File tempFile = new File(backupDir, "upload_" + importId);
+            // 保留原始文件扩展名
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+            File tempFile = new File(backupDir, "upload_" + importId + extension);
             file.transferTo(tempFile);
 
             ExportPackage exportPackage = parseExportPackage(tempFile);
@@ -383,7 +389,7 @@ public class BackupCenterManage {
 
     private ExportPackage parseExportPackage(File file) {
         try {
-            if (file.getName().endsWith(".zip")) {
+            if (file.getName().endsWith(".zip") || file.getName().endsWith(".debk")) {
                 File tempDir = Files.createTempDirectory("backup_preview").toFile();
                 try (ZipInputStream zipIn = new ZipInputStream(new FileInputStream(file))) {
                     ZipEntry zipEntry = zipIn.getNextEntry();
