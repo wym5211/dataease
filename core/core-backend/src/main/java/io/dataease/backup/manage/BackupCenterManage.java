@@ -127,7 +127,7 @@ public class BackupCenterManage {
             int failCount = 0;
 
             // Import datasources
-            if (exportPackage.getDatasources() != null && Boolean.TRUE.equals(request.isOverwrite())) {
+            if (exportPackage.getDatasources() != null) {
                 for (BackupDatasource ds : exportPackage.getDatasources()) {
                     try {
                         backupDatasourceService.importDatasource(ds, request.isOverwrite());
@@ -140,7 +140,7 @@ public class BackupCenterManage {
             }
 
             // Import datasets
-            if (exportPackage.getDatasets() != null && Boolean.TRUE.equals(request.isOverwrite())) {
+            if (exportPackage.getDatasets() != null) {
                 for (BackupDataset ds : exportPackage.getDatasets()) {
                     try {
                         backupDatasetService.importDataset(ds, request.isOverwrite());
@@ -153,7 +153,7 @@ public class BackupCenterManage {
             }
 
             // Import dashboards
-            if (exportPackage.getDashboards() != null && Boolean.TRUE.equals(request.isOverwrite())) {
+            if (exportPackage.getDashboards() != null) {
                 for (BackupDashboard dashboard : exportPackage.getDashboards()) {
                     try {
                         backupDashboardService.importDashboard(dashboard, request.isOverwrite());
@@ -166,7 +166,7 @@ public class BackupCenterManage {
             }
 
             // Import dataviews
-            if (exportPackage.getDataviews() != null && Boolean.TRUE.equals(request.isOverwrite())) {
+            if (exportPackage.getDataviews() != null) {
                 for (BackupDataview dataview : exportPackage.getDataviews()) {
                     try {
                         backupDashboardService.importDataview(dataview, request.isOverwrite());

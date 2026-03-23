@@ -53,9 +53,14 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
                 existing.setType(dataset.getType());
                 existing.setInfo(dataset.getModel());
                 coreDatasetGroupMapper.updateById(existing);
-            } else if (existing == null) {
+            } else {
+                // overwrite=false: rename and create new
+                String newName = dataset.getName();
+                if (existing != null) {
+                    newName = generateUniqueName(dataset.getName());
+                }
                 CoreDatasetGroup newDs = new CoreDatasetGroup();
-                newDs.setName(dataset.getName() + "_imported");
+                newDs.setName(newName);
                 newDs.setPid(0L);
                 newDs.setLevel(0);
                 newDs.setNodeType("dataset");
@@ -68,5 +73,17 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
             LogUtil.getLogger().error("Import dataset failed: " + dataset.getName(), e);
             throw e;
         }
+    }
+
+    private String generateUniqueName(String baseName) {
+        for (int i = 1; i <= 1000; i++) {
+            String newName = baseName + "_" + i;
+            QueryWrapper<CoreDatasetGroup> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("name", newName);
+            if (coreDatasetGroupMapper.selectCount(queryWrapper) == 0) {
+                return newName;
+            }
+        }
+        return baseName + "_" + System.currentTimeMillis();
     }
 }

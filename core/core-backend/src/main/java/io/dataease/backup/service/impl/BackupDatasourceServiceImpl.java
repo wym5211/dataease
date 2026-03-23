@@ -56,9 +56,15 @@ public class BackupDatasourceServiceImpl implements BackupDatasourceService {
                 existing.setConfiguration(datasource.getConfiguration());
                 existing.setUpdateTime(System.currentTimeMillis());
                 coreDatasourceMapper.updateById(existing);
-            } else if (existing == null) {
+            } else {
+                // overwrite=false: rename and create new
+                String newName = datasource.getName();
+                if (existing != null) {
+                    // name exists, need to rename
+                    newName = generateUniqueName(datasource.getName());
+                }
                 CoreDatasource newDs = new CoreDatasource();
-                newDs.setName(datasource.getName() + "_imported");
+                newDs.setName(newName);
                 newDs.setDescription(datasource.getDescription());
                 newDs.setType(datasource.getType());
                 newDs.setConfiguration(datasource.getConfiguration());
@@ -72,5 +78,19 @@ public class BackupDatasourceServiceImpl implements BackupDatasourceService {
             LogUtil.getLogger().error("Import datasource failed: " + datasource.getName(), e);
             throw e;
         }
+    }
+
+    private String generateUniqueName(String baseName) {
+        // Try baseName_1, baseName_2, ... until unique name found
+        for (int i = 1; i <= 1000; i++) {
+            String newName = baseName + "_" + i;
+            QueryWrapper<CoreDatasource> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("name", newName);
+            if (coreDatasourceMapper.selectCount(queryWrapper) == 0) {
+                return newName;
+            }
+        }
+        // Fallback: use timestamp
+        return baseName + "_" + System.currentTimeMillis();
     }
 }
