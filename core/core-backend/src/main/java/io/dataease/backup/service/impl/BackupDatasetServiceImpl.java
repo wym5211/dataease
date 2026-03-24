@@ -3,8 +3,16 @@ package io.dataease.backup.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.dataease.backup.service.BackupDatasetService;
 import io.dataease.dataset.dao.auto.entity.CoreDatasetGroup;
+import io.dataease.dataset.dao.auto.entity.CoreDatasetTable;
+import io.dataease.dataset.dao.auto.entity.CoreDatasetTableField;
 import io.dataease.dataset.dao.auto.mapper.CoreDatasetGroupMapper;
+import io.dataease.dataset.dao.auto.mapper.CoreDatasetTableMapper;
+import io.dataease.dataset.dao.auto.mapper.CoreDatasetTableFieldMapper;
+import io.dataease.datasource.dao.auto.entity.CoreDatasource;
+import io.dataease.datasource.dao.auto.mapper.CoreDatasourceMapper;
 import io.dataease.model.backup.BackupDataset;
+import io.dataease.model.backup.BackupDatasetTable;
+import io.dataease.model.backup.BackupDatasetTableField;
 import io.dataease.utils.LogUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,6 +26,15 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
 
     @Autowired
     private CoreDatasetGroupMapper coreDatasetGroupMapper;
+
+    @Autowired
+    private CoreDatasetTableMapper coreDatasetTableMapper;
+
+    @Autowired
+    private CoreDatasetTableFieldMapper coreDatasetTableFieldMapper;
+
+    @Autowired
+    private CoreDatasourceMapper coreDatasourceMapper;
 
     @Override
     public List<BackupDataset> exportDatasets() {
@@ -37,6 +54,64 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
                 backup.setCreateBy(ds.getCreateBy());
                 backup.setCreateTime(ds.getCreateTime());
                 backup.setUpdateTime(ds.getLastUpdateTime());
+
+                // 查询关联的 tables
+                QueryWrapper<CoreDatasetTable> tableQuery = new QueryWrapper<>();
+                tableQuery.eq("dataset_group_id", ds.getId());
+                List<CoreDatasetTable> tables = coreDatasetTableMapper.selectList(tableQuery);
+
+                List<BackupDatasetTable> backupTables = new ArrayList<>();
+                for (CoreDatasetTable table : tables) {
+                    BackupDatasetTable backupTable = new BackupDatasetTable();
+                    backupTable.setId(String.valueOf(table.getId()));
+                    backupTable.setName(table.getName());
+                    backupTable.setTableName(table.getTableName());
+                    backupTable.setDatasourceId(String.valueOf(table.getDatasourceId()));
+                    // 按 dataSourceId 查询数据源名称并存储
+                    if (table.getDatasourceId() != null) {
+                        CoreDatasource ds = coreDatasourceMapper.selectById(table.getDatasourceId());
+                        if (ds != null) {
+                            backupTable.setDatasourceName(ds.getName());
+                        }
+                    }
+                    backupTable.setType(table.getType());
+                    backupTable.setInfo(table.getInfo());
+                    backupTable.setSqlVariableDetails(table.getSqlVariableDetails());
+
+                    // 查询关联的 fields
+                    QueryWrapper<CoreDatasetTableField> fieldQuery = new QueryWrapper<>();
+                    fieldQuery.eq("dataset_table_id", table.getId());
+                    List<CoreDatasetTableField> fields = coreDatasetTableFieldMapper.selectList(fieldQuery);
+
+                    List<BackupDatasetTableField> backupFields = new ArrayList<>();
+                    for (CoreDatasetTableField field : fields) {
+                        BackupDatasetTableField backupField = new BackupDatasetTableField();
+                        backupField.setId(String.valueOf(field.getId()));
+                        backupField.setOriginName(field.getOriginName());
+                        backupField.setName(field.getName());
+                        backupField.setDataeaseName(field.getDataeaseName());
+                        backupField.setFieldShortName(field.getFieldShortName());
+                        backupField.setGroupType(field.getGroupType());
+                        backupField.setType(field.getType());
+                        backupField.setSize(field.getSize());
+                        backupField.setDeType(field.getDeType());
+                        backupField.setDeExtractType(field.getDeExtractType());
+                        backupField.setExtField(field.getExtField());
+                        backupField.setChecked(field.getChecked());
+                        backupField.setColumnIndex(field.getColumnIndex());
+                        backupField.setAccuracy(field.getAccuracy());
+                        backupField.setDateFormat(field.getDateFormat());
+                        backupField.setDateFormatType(field.getDateFormatType());
+                        backupField.setParams(field.getParams());
+                        backupField.setOrderChecked(field.getOrderChecked());
+                        backupField.setGroupList(field.getGroupList());
+                        backupField.setOtherGroup(field.getOtherGroup());
+                        backupFields.add(backupField);
+                    }
+                    backupTable.setFields(backupFields);
+                    backupTables.add(backupTable);
+                }
+                backup.setTables(backupTables);
                 result.add(backup);
             }
         } catch (Exception e) {
