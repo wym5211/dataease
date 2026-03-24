@@ -152,7 +152,7 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
                 coreDatasetGroupMapper.insert(newDs);
 
                 // MyBatis-Plus insert后需要重新查询获取带ID的完整实体
-                newDs = coreDatasetGroupMapper.selectOne(new QueryWrapper<CoreDatasetGroup>().eq("name", newName));
+                newDs = coreDatasetGroupMapper.selectOne(new QueryWrapper<CoreDatasetGroup>().eq("name", newName).eq("node_type", "dataset"));
 
                 // 更新ID映射表，记录旧数据集ID到新数据集ID的映射
                 String newDatasetId = String.valueOf(newDs.getId());
@@ -198,7 +198,7 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
                                             Map<String, String> datasetIdMapping) {
         try {
             QueryWrapper<CoreDatasetGroup> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("name", dataset.getName());
+            queryWrapper.eq("name", dataset.getName()).eq("node_type", "dataset");
             CoreDatasetGroup existing = coreDatasetGroupMapper.selectOne(queryWrapper);
 
             String newDatasetId;
@@ -225,7 +225,7 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
                 newDs.setCreateBy("1");
                 newDs.setCreateTime(System.currentTimeMillis());
                 coreDatasetGroupMapper.insert(newDs);
-                newDs = coreDatasetGroupMapper.selectOne(new QueryWrapper<CoreDatasetGroup>().eq("name", newName));
+                newDs = coreDatasetGroupMapper.selectOne(new QueryWrapper<CoreDatasetGroup>().eq("name", newName).eq("node_type", "dataset"));
                 newDatasetId = String.valueOf(newDs.getId());
             }
 
