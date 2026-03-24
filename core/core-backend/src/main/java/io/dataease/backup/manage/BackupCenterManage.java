@@ -148,7 +148,7 @@ public class BackupCenterManage {
             if (exportPackage.getDatasets() != null) {
                 for (BackupDataset ds : exportPackage.getDatasets()) {
                     try {
-                        backupDatasetService.importDataset(ds, request.isOverwrite(), idMapping);
+                        backupDatasetService.importDatasetWithTables(ds, request.isOverwrite(), idMapping);
                         successCount++;
                     } catch (Exception e) {
                         failCount++;
