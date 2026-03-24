@@ -4,6 +4,8 @@ import lombok.Data;
 
 import java.util.List;
 
+import io.dataease.model.backup.BackupDatasetTable;
+
 /**
  * 数据集备份信息
  */
@@ -69,4 +71,9 @@ public class BackupDataset {
      * 关联SQL
      */
     private String unionSql;
+
+    /**
+     * 嵌套的数据表列表
+     */
+    private List<BackupDatasetTable> tables;
 }
