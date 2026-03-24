@@ -70,9 +70,9 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
                     backupTable.setDatasourceId(String.valueOf(table.getDatasourceId()));
                     // 按 dataSourceId 查询数据源名称并存储
                     if (table.getDatasourceId() != null) {
-                        CoreDatasource ds = coreDatasourceMapper.selectById(table.getDatasourceId());
-                        if (ds != null) {
-                            backupTable.setDatasourceName(ds.getName());
+                        CoreDatasource datasource = coreDatasourceMapper.selectById(table.getDatasourceId());
+                        if (datasource != null) {
+                            backupTable.setDatasourceName(datasource.getName());
                         }
                     }
                     backupTable.setType(table.getType());
