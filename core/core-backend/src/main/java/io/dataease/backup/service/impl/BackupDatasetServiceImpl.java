@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class BackupDatasetServiceImpl implements BackupDatasetService {
@@ -31,7 +32,9 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
                 backup.setId(String.valueOf(ds.getId()));
                 backup.setName(ds.getName());
                 backup.setType(ds.getType());
-                backup.setDescription(ds.getInfo());
+                backup.setModel(ds.getInfo());
+                backup.setUnionSql(ds.getUnionSql());
+                backup.setCreateBy(ds.getCreateBy());
                 backup.setCreateTime(ds.getCreateTime());
                 backup.setUpdateTime(ds.getLastUpdateTime());
                 result.add(backup);
@@ -43,7 +46,7 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
     }
 
     @Override
-    public void importDataset(BackupDataset dataset, boolean overwrite) {
+    public String importDataset(BackupDataset dataset, boolean overwrite, Map<String, String> idMapping) {
         try {
             QueryWrapper<CoreDatasetGroup> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("name", dataset.getName());
@@ -53,6 +56,7 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
                 existing.setType(dataset.getType());
                 existing.setInfo(dataset.getModel());
                 coreDatasetGroupMapper.updateById(existing);
+                return String.valueOf(existing.getId());
             } else {
                 // overwrite=false: rename and create new
                 String newName = dataset.getName();
@@ -66,8 +70,21 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
                 newDs.setNodeType("dataset");
                 newDs.setType(dataset.getType());
                 newDs.setInfo(dataset.getModel());
+                newDs.setUnionSql(dataset.getUnionSql());
+                newDs.setCreateBy("1");
                 newDs.setCreateTime(System.currentTimeMillis());
                 coreDatasetGroupMapper.insert(newDs);
+
+                // MyBatis-Plus insert后需要重新查询获取带ID的完整实体
+                newDs = coreDatasetGroupMapper.selectOne(new QueryWrapper<CoreDatasetGroup>().eq("name", newName));
+
+                // 更新ID映射表，记录旧数据集ID到新数据集ID的映射
+                String newDatasetId = String.valueOf(newDs.getId());
+                idMapping.put(dataset.getId(), newDatasetId);
+
+                LogUtil.getLogger().info("=== Backup import dataset: id={}, name={} ===", newDatasetId, newName);
+
+                return newDatasetId;
             }
         } catch (Exception e) {
             LogUtil.getLogger().error("Import dataset failed: " + dataset.getName(), e);

@@ -350,6 +350,10 @@ const canManageDatasetNode = data => {
   return !!datasetManagePermissionMap.value[String(data.id)]
 }
 const filterNodesByPermission = async (nodes: BusiTreeNode[]): Promise<BusiTreeNode[]> => {
+  // Admin用户显示所有文件夹，包括空文件夹
+  if (isAdmin.value) {
+    return nodes
+  }
   const leafIds: Array<string | number> = []
   const collectLeafIds = (items: BusiTreeNode[]) => {
     ;(items || []).forEach(item => {

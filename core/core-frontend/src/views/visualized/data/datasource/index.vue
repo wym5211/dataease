@@ -130,6 +130,7 @@ const isDataEaseBi = computed(() => appStore.getIsDataEaseBi)
 const isIframe = computed(() => appStore.getIsIframe)
 const isAdmin = computed(() => userStore.getUid === '1')
 const adminRestrictedCommands = new Set(['copy', 'move', 'rename'])
+const currentNodeManagePermission = ref(false)
 const embedded = useEmbedded()
 const createDataset = (tableName?: string) => {
   if (!isAdmin.value) {
@@ -453,47 +454,44 @@ const infoList = computed(() => {
     createTime: timestampFormatDate(nodeInfo.createTime)
   }
 })
-const hasManagePermissionError = error => {
-  const msg = typeof error === 'string' ? error : ''
-  return (
-    msg.includes('DEException(code=60003') ||
-    msg.includes('该接口禁止访问') ||
-    msg.includes('禁止访问') ||
-    msg.includes('没有权限')
-  )
-}
 const getNodeManagePermission = (id: number) => {
   if (!id) {
     return false
+  }
+  if (isAdmin.value) {
+    return true
   }
   if (Object.prototype.hasOwnProperty.call(datasourceManagePermissionMap.value, id)) {
     return datasourceManagePermissionMap.value[id]
   }
   return false
 }
-const resolveNodeManagePermission = (id: number) => {
+const resolveNodeManagePermission = (id: string | number) => {
   if (!id) {
     return Promise.resolve(false)
   }
-  if (Object.prototype.hasOwnProperty.call(datasourceManagePermissionMap.value, id)) {
-    return Promise.resolve(datasourceManagePermissionMap.value[id])
+  if (isAdmin.value) {
+    return Promise.resolve(true)
   }
-  return getById(id)
+  const key = String(id)
+  if (Object.prototype.hasOwnProperty.call(datasourceManagePermissionMap.value, key)) {
+    return Promise.resolve(datasourceManagePermissionMap.value[key])
+  }
+  return getById(id as number)
     .then(() => {
-      datasourceManagePermissionMap.value[id] = true
+      datasourceManagePermissionMap.value[key] = true
       return true
     })
     .catch(error => {
-      if (hasManagePermissionError(error)) {
-        datasourceManagePermissionMap.value[id] = false
-        return false
+      const msg = typeof error === 'string' ? error : ''
+      // 如果是"数据源不存在"错误，不更新权限状态，保持现有状态
+      if (msg.includes('数据源不存在')) {
+        return undefined
       }
+      datasourceManagePermissionMap.value[key] = false
       return false
     })
 }
-const canManageCurrentNode = computed(() => {
-  return getNodeManagePermission(Number(nodeInfo.id))
-})
 const canManageTreeNode = data => {
   if (!data.leaf) {
     return data.weight >= 7
@@ -537,6 +535,10 @@ const mounted = ref(false)
 const isSupportSetKey = ref(false)
 const symmetricKey = ref('')
 const filterNodesByPermission = async (nodes: BusiTreeNode[]): Promise<BusiTreeNode[]> => {
+  // Admin用户显示所有文件夹，包括空文件夹
+  if (isAdmin.value) {
+    return nodes
+  }
   const leafIds: Array<string | number> = []
   const collectLeafIds = (items: BusiTreeNode[]) => {
     ;(items || []).forEach(item => {
@@ -695,7 +697,6 @@ const handleNodeClick = data => {
     const {
       name,
       createBy,
-      id,
       createTime,
       creator,
       type,
@@ -726,7 +727,7 @@ const handleNodeClick = data => {
       createTime,
       creator,
       createBy,
-      id,
+      id: data.id,
       type,
       configuration,
       syncSetting,
@@ -742,6 +743,12 @@ const handleNodeClick = data => {
     nickName.value = ''
     handleCurrentChange(1)
     handleClick(activeName.value)
+    currentNodeManagePermission.value = true
+    resolveNodeManagePermission(data.id).then(result => {
+      if (result === false) {
+        currentNodeManagePermission.value = false
+      }
+    })
   })
 }
 const createDatasource = (data?: Tree) => {
@@ -817,7 +824,7 @@ const editDatasource = (editType?: number) => {
   if (nodeInfo.type.startsWith('Excel')) {
     nodeInfo.editType = editType
   }
-  const datasourceId = Number(nodeInfo.id)
+  const datasourceId = nodeInfo.id
   return getById(datasourceId)
     .catch(error => {
       const msg = typeof error === 'string' ? error : ''
@@ -1471,7 +1478,7 @@ const getMenuList = (val: boolean) => {
                 {{ t('data_set.a_new_dataset') }}
               </el-button>
               <el-button
-                v-if="nodeInfo.type !== 'Excel' && canManageCurrentNode"
+                v-if="nodeInfo.type !== 'Excel' && currentNodeManagePermission"
                 secondary
                 @click="validateDS"
               >
@@ -1480,7 +1487,7 @@ const getMenuList = (val: boolean) => {
 
               <template v-if="nodeInfo.type === 'Excel'">
                 <el-upload
-                  v-if="canManageCurrentNode"
+                  v-if="currentNodeManagePermission"
                   action=""
                   :multiple="false"
                   ref="uploadAgain"
@@ -1503,7 +1510,7 @@ const getMenuList = (val: boolean) => {
                 </el-upload>
 
                 <el-upload
-                  v-if="canManageCurrentNode"
+                  v-if="currentNodeManagePermission"
                   action=""
                   :multiple="false"
                   ref="uploadAgain"
@@ -1525,7 +1532,11 @@ const getMenuList = (val: boolean) => {
                   </template>
                 </el-upload>
               </template>
-              <el-button v-else-if="canManageCurrentNode" @click="editDatasource()" type="primary">
+              <el-button
+                v-else-if="currentNodeManagePermission"
+                @click="editDatasource()"
+                type="primary"
+              >
                 <template #icon>
                   <Icon name="icon_edit_outlined"><icon_edit_outlined class="svg-icon" /></Icon>
                 </template>
@@ -1692,7 +1703,7 @@ const getMenuList = (val: boolean) => {
                   !['Excel', 'es'].includes(nodeInfo.type) &&
                   !nodeInfo.type.startsWith('API') &&
                   !nodeInfo.type.startsWith('Excel') &&
-                  canManageCurrentNode
+                  currentNodeManagePermission
                 "
               >
                 <el-row :gutter="24" v-show="nodeInfo.configuration.urlType !== 'jdbcUrl'">
@@ -1831,7 +1842,7 @@ const getMenuList = (val: boolean) => {
                   jsname="L2NvbXBvbmVudC9kYXRhLWZpbGxpbmcvRGF0YXNvdXJjZURhdGFGaWxsaW5nSW5mbw=="
                 />
               </template>
-              <template v-if="['es'].includes(nodeInfo.type) && canManageCurrentNode">
+              <template v-if="['es'].includes(nodeInfo.type) && currentNodeManagePermission">
                 <el-row :gutter="24">
                   <el-col :span="12">
                     <BaseInfoItem :label="t('datasource.datasource_url')">{{
@@ -1843,7 +1854,7 @@ const getMenuList = (val: boolean) => {
             </template>
           </BaseInfoContent>
           <BaseInfoContent
-            v-if="nodeInfo.type.startsWith('API') && canManageCurrentNode"
+            v-if="nodeInfo.type.startsWith('API') && currentNodeManagePermission"
             v-slot="slotProps"
             :name="t('datasource.data_table')"
           >
@@ -1934,7 +1945,7 @@ const getMenuList = (val: boolean) => {
           <BaseInfoContent
             v-if="
               (nodeInfo.type.startsWith('API') || nodeInfo.type === 'ExcelRemote') &&
-              canManageCurrentNode
+              currentNodeManagePermission
             "
             v-slot="slotProps"
             :name="t('dataset.update_setting')"

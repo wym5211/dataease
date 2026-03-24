@@ -126,11 +126,16 @@ public class BackupCenterManage {
             int successCount = 0;
             int failCount = 0;
 
+            // ID映射表：用于存储旧ID到新ID的映射关系
+            Map<String, String> idMapping = new HashMap<>();
+
             // Import datasources
             if (exportPackage.getDatasources() != null) {
                 for (BackupDatasource ds : exportPackage.getDatasources()) {
                     try {
-                        backupDatasourceService.importDatasource(ds, request.isOverwrite());
+                        String originalId = ds.getId();
+                        String newId = backupDatasourceService.importDatasource(ds, request.isOverwrite());
+                        idMapping.put(originalId, newId);
                         successCount++;
                     } catch (Exception e) {
                         failCount++;
@@ -143,7 +148,7 @@ public class BackupCenterManage {
             if (exportPackage.getDatasets() != null) {
                 for (BackupDataset ds : exportPackage.getDatasets()) {
                     try {
-                        backupDatasetService.importDataset(ds, request.isOverwrite());
+                        backupDatasetService.importDataset(ds, request.isOverwrite(), idMapping);
                         successCount++;
                     } catch (Exception e) {
                         failCount++;

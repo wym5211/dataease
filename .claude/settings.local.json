@@ -2,7 +2,14 @@
   "permissions": {
     "allow": [
       "Bash(\"C:\\\\Program Files\",:*)",
-      "Bash(\"/c/Program Files/JetBrains/IntelliJ IDEA 2023.2.1/plugins/maven/lib/maven3/bin/mvn\" compile:*)"
+      "Bash(\"/c/Program Files/JetBrains/IntelliJ IDEA 2023.2.1/plugins/maven/lib/maven3/bin/mvn\" compile:*)",
+      "Bash(playwright-cli type:*)",
+      "Bash(playwright-cli click:*)",
+      "Bash(playwright-cli press:*)",
+      "Bash(playwright-cli close:*)",
+      "Bash(playwright-cli open:*)",
+      "Bash(playwright-cli snapshot:*)",
+      "Bash(playwright-cli fill:*)"
     ]
   }
 }

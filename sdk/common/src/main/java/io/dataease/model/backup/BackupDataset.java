@@ -64,4 +64,9 @@ public class BackupDataset {
      * 关联的视图ID列表
      */
     private List<String> viewIds;
+
+    /**
+     * 关联SQL
+     */
+    private String unionSql;
 }

@@ -243,7 +243,8 @@ public class DatasetGroupManage {
             queryWrapper.eq("node_type", request.getLeaf() ? "dataset" : "folder");
         }
         String info = CommunityUtils.getInfo();
-        if (StringUtils.isNotBlank(info)) {
+        // Admin用户跳过权限过滤，显示所有资源
+        if (StringUtils.isNotBlank(info) && !AuthUtils.isSysAdmin()) {
             queryWrapper.notExists(String.format(info, "core_dataset_group.id"));
         }
         queryWrapper.orderByDesc("create_time");
