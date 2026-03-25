@@ -333,7 +333,23 @@ public class BackupDashboardServiceImpl implements BackupDashboardService {
 
     @Override
     public void importDataview(BackupDataview dataview, boolean overwrite) {
+        importDataview(dataview, overwrite, null);
+    }
+
+    @Override
+    public void importDataview(BackupDataview dataview, boolean overwrite, Map<String, Long> chartIdMapping) {
         try {
+            // 替换 componentData 中的图表 ID
+            String componentData = dataview.getComponentData();
+            if (componentData != null && chartIdMapping != null && !chartIdMapping.isEmpty()) {
+                for (Map.Entry<String, Long> entry : chartIdMapping.entrySet()) {
+                    componentData = componentData.replaceAll(
+                        "\"id\"\\s*:\\s*\"" + Pattern.quote(entry.getKey()) + "\"",
+                        "\"id\":\"" + entry.getValue() + "\""
+                    );
+                }
+            }
+
             QueryWrapper<DataVisualizationInfo> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("name", dataview.getName());
             DataVisualizationInfo existing = dataVisualizationInfoMapper.selectOne(queryWrapper);
@@ -343,7 +359,7 @@ public class BackupDashboardServiceImpl implements BackupDashboardService {
                 existing.setLevel(dataview.getLevel());
                 existing.setOrgId(dataview.getOrgId());
                 existing.setCanvasStyleData(dataview.getCanvasStyleData());
-                existing.setComponentData(dataview.getComponentData());
+                existing.setComponentData(componentData);
                 existing.setContentId(dataview.getContentId());
                 dataVisualizationInfoMapper.updateById(existing);
             } else {
@@ -359,7 +375,7 @@ public class BackupDashboardServiceImpl implements BackupDashboardService {
                 newDataview.setType("dataV");
                 newDataview.setOrgId(dataview.getOrgId());
                 newDataview.setCanvasStyleData(dataview.getCanvasStyleData());
-                newDataview.setComponentData(dataview.getComponentData());
+                newDataview.setComponentData(componentData);
                 newDataview.setContentId(dataview.getContentId());
                 newDataview.setCreateBy("1");
                 newDataview.setCreateTime(System.currentTimeMillis());
@@ -373,21 +389,90 @@ public class BackupDashboardServiceImpl implements BackupDashboardService {
     }
 
     @Override
+    public void importDataview(BackupDataview dataview, boolean overwrite, Map<String, Long> chartIdMapping, Map<String, Long> dataviewIdMapping) {
+        try {
+            // 替换 componentData 中的图表 ID
+            String componentData = dataview.getComponentData();
+            if (componentData != null && chartIdMapping != null && !chartIdMapping.isEmpty()) {
+                for (Map.Entry<String, Long> entry : chartIdMapping.entrySet()) {
+                    componentData = componentData.replaceAll(
+                        "\"id\"\\s*:\\s*\"" + Pattern.quote(entry.getKey()) + "\"",
+                        "\"id\":\"" + entry.getValue() + "\""
+                    );
+                }
+            }
+
+            QueryWrapper<DataVisualizationInfo> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("name", dataview.getName());
+            DataVisualizationInfo existing = dataVisualizationInfoMapper.selectOne(queryWrapper);
+
+            if (existing != null && overwrite) {
+                existing.setPid(dataview.getPid());
+                existing.setLevel(dataview.getLevel());
+                existing.setOrgId(dataview.getOrgId());
+                existing.setCanvasStyleData(dataview.getCanvasStyleData());
+                existing.setComponentData(componentData);
+                existing.setContentId(dataview.getContentId());
+                dataVisualizationInfoMapper.updateById(existing);
+                // 记录 ID 映射：原 ID -> 原 ID（因为是覆盖）
+                dataviewIdMapping.put(dataview.getId(), existing.getId());
+                LogUtil.getLogger().info("importDataview (覆盖): {} -> {}", dataview.getId(), existing.getId());
+            } else {
+                String newName = dataview.getName();
+                if (existing != null) {
+                    newName = generateUniqueName(dataview.getName());
+                }
+                DataVisualizationInfo newDataview = new DataVisualizationInfo();
+                newDataview.setName(newName);
+                newDataview.setPid(dataview.getPid() != null ? dataview.getPid() : 0L);
+                newDataview.setLevel(dataview.getLevel() != null ? dataview.getLevel() : 0);
+                newDataview.setNodeType(dataview.getNodeType() != null ? dataview.getNodeType() : "dashboard");
+                newDataview.setType("dataV");
+                newDataview.setOrgId(dataview.getOrgId());
+                newDataview.setCanvasStyleData(dataview.getCanvasStyleData());
+                newDataview.setComponentData(componentData);
+                newDataview.setContentId(dataview.getContentId());
+                newDataview.setCreateBy("1");
+                newDataview.setCreateTime(System.currentTimeMillis());
+                newDataview.setUpdateTime(System.currentTimeMillis());
+                dataVisualizationInfoMapper.insert(newDataview);
+                // 记录 ID 映射：原 ID -> 新 ID
+                dataviewIdMapping.put(dataview.getId(), newDataview.getId());
+                LogUtil.getLogger().info("importDataview (新建): {} -> {}", dataview.getId(), newDataview.getId());
+            }
+        } catch (Exception e) {
+            LogUtil.getLogger().error("Import dataview failed: " + dataview.getName(), e);
+            throw e;
+        }
+    }
+
+    @Override
     public List<BackupChartView> collectCharts(List<BackupDashboard> dashboards) {
         List<BackupChartView> result = new ArrayList<>();
         if (dashboards == null || dashboards.isEmpty()) {
+            LogUtil.getLogger().info("collectCharts: dashboards 为空");
             return result;
         }
         try {
-            // 提取所有仪表板 ID
-            List<Long> dashboardIds = dashboards.stream()
-                .map(d -> Long.parseLong(d.getId()))
-                .toList();
+            // 从所有仪表板的 componentData 中提取图表 ID
+            Set<Long> chartIds = new HashSet<>();
+            for (BackupDashboard dashboard : dashboards) {
+                String componentData = dashboard.getComponentData();
+                LogUtil.getLogger().info("处理仪表板: {}, componentData 长度: {}", dashboard.getName(), componentData != null ? componentData.length() : 0);
+                if (componentData != null && !componentData.isEmpty()) {
+                    extractChartIdsFromComponentData(componentData, chartIds);
+                }
+            }
 
-            // 查询 sceneId 匹配的图表
-            QueryWrapper<CoreChartView> queryWrapper = new QueryWrapper<>();
-            queryWrapper.in("scene_id", dashboardIds);
-            List<CoreChartView> charts = coreChartViewMapper.selectList(queryWrapper);
+            LogUtil.getLogger().info("collectCharts: 共提取到 {} 个图表 ID", chartIds.size());
+
+            if (chartIds.isEmpty()) {
+                return result;
+            }
+
+            // 根据 ID 批量查询图表
+            List<CoreChartView> charts = coreChartViewMapper.selectBatchIds(chartIds);
+            LogUtil.getLogger().info("collectCharts: 查询到 {} 个图表", charts.size());
 
             for (CoreChartView chart : charts) {
                 BackupChartView backup = new BackupChartView();
@@ -447,18 +532,30 @@ public class BackupDashboardServiceImpl implements BackupDashboardService {
     public List<BackupChartView> collectChartsFromDataviews(List<BackupDataview> dataviews) {
         List<BackupChartView> result = new ArrayList<>();
         if (dataviews == null || dataviews.isEmpty()) {
+            LogUtil.getLogger().info("collectChartsFromDataviews: dataviews 为空");
             return result;
         }
         try {
-            // 提取所有大屏 ID
-            List<Long> dataviewIds = dataviews.stream()
-                .map(d -> Long.parseLong(d.getId()))
-                .toList();
+            // 从所有大屏的 componentData 中提取图表 ID
+            Set<Long> chartIds = new HashSet<>();
+            for (BackupDataview dataview : dataviews) {
+                String componentData = dataview.getComponentData();
+                LogUtil.getLogger().info("处理大屏: {}, componentData 长度: {}", dataview.getName(), componentData != null ? componentData.length() : 0);
+                if (componentData != null && !componentData.isEmpty()) {
+                    // 从 componentData 中解析图表 ID
+                    extractChartIdsFromComponentData(componentData, chartIds);
+                }
+            }
 
-            // 查询 sceneId 匹配的大屏图表
-            QueryWrapper<CoreChartView> queryWrapper = new QueryWrapper<>();
-            queryWrapper.in("scene_id", dataviewIds);
-            List<CoreChartView> charts = coreChartViewMapper.selectList(queryWrapper);
+            LogUtil.getLogger().info("collectChartsFromDataviews: 共提取到 {} 个图表 ID", chartIds.size());
+
+            if (chartIds.isEmpty()) {
+                return result;
+            }
+
+            // 根据 ID 批量查询图表
+            List<CoreChartView> charts = coreChartViewMapper.selectBatchIds(chartIds);
+            LogUtil.getLogger().info("collectChartsFromDataviews: 查询到 {} 个图表", charts.size());
 
             for (CoreChartView chart : charts) {
                 BackupChartView backup = new BackupChartView();
@@ -520,82 +617,79 @@ public class BackupDashboardServiceImpl implements BackupDashboardService {
                              Map<String, Long> datasetIdMapping,
                              Map<String, Long> chartIdMapping) {
         if (charts == null || charts.isEmpty()) {
+            LogUtil.getLogger().info("importCharts: charts 为空");
             return;
         }
+        LogUtil.getLogger().info("importCharts: 开始导入 {} 个图表", charts.size());
         for (BackupChartView chart : charts) {
             try {
-                // 查找是否已存在同名图表
-                QueryWrapper<CoreChartView> queryWrapper = new QueryWrapper<>();
-                queryWrapper.eq("title", chart.getTitle());
-                CoreChartView existing = coreChartViewMapper.selectOne(queryWrapper);
+                LogUtil.getLogger().info("importCharts: 处理图表 title={}, id={}, sceneId={}", chart.getTitle(), chart.getId(), chart.getSceneId());
+                // 不检查原ID是否存在，直接创建新图表
+                LogUtil.getLogger().info("importCharts: 创建新图表 title={}", chart.getTitle());
+                CoreChartView newChart = new CoreChartView();
+                newChart.setTitle(chart.getTitle());
+                // 替换 sceneId
+                Long oldSceneId = chart.getSceneId();
+                Long newSceneId = dashboardIdMapping.get(String.valueOf(oldSceneId));
+                newChart.setSceneId(newSceneId != null ? newSceneId : oldSceneId);
+                // 替换 tableId
+                Long oldTableId = chart.getTableId();
+                Long newTableId = datasetIdMapping.get(String.valueOf(oldTableId));
+                newChart.setTableId(newTableId != null ? newTableId : oldTableId);
+                // 设置其他字段
+                newChart.setType(chart.getType());
+                newChart.setRender(chart.getRender());
+                newChart.setResultCount(chart.getResultCount());
+                newChart.setResultMode(chart.getResultMode());
+                newChart.setxAxis(chart.getxAxis());
+                newChart.setxAxisExt(chart.getxAxisExt());
+                newChart.setyAxis(chart.getyAxis());
+                newChart.setyAxisExt(chart.getyAxisExt());
+                newChart.setExtStack(chart.getExtStack());
+                newChart.setExtBubble(chart.getExtBubble());
+                newChart.setExtLabel(chart.getExtLabel());
+                newChart.setExtTooltip(chart.getExtTooltip());
+                newChart.setCustomAttr(chart.getCustomAttr());
+                newChart.setCustomStyle(chart.getCustomStyle());
+                newChart.setCustomFilter(chart.getCustomFilter());
+                newChart.setDrillFields(chart.getDrillFields());
+                newChart.setSenior(chart.getSenior());
+                newChart.setCreateBy("1");
+                newChart.setCreateTime(System.currentTimeMillis());
+                newChart.setUpdateTime(System.currentTimeMillis());
+                newChart.setSnapshot(chart.getSnapshot());
+                newChart.setStylePriority(chart.getStylePriority());
+                newChart.setChartType(chart.getChartType());
+                newChart.setIsPlugin(chart.getIsPlugin());
+                newChart.setDataFrom(chart.getDataFrom());
+                newChart.setViewFields(chart.getViewFields());
+                newChart.setRefreshViewEnable(chart.getRefreshViewEnable());
+                newChart.setRefreshUnit(chart.getRefreshUnit());
+                newChart.setRefreshTime(chart.getRefreshTime());
+                newChart.setLinkageActive(chart.getLinkageActive());
+                newChart.setJumpActive(chart.getJumpActive());
+                newChart.setCopyFrom(chart.getCopyFrom());
+                newChart.setCopyId(chart.getCopyId());
+                newChart.setAggregate(chart.getAggregate());
+                newChart.setFlowMapStartName(chart.getFlowMapStartName());
+                newChart.setFlowMapEndName(chart.getFlowMapEndName());
+                newChart.setExtColor(chart.getExtColor());
+                newChart.setCustomAttrMobile(chart.getCustomAttrMobile());
+                newChart.setCustomStyleMobile(chart.getCustomStyleMobile());
+                newChart.setSortPriority(chart.getSortPriority());
 
-                Long newId;
-                if (existing != null) {
-                    newId = existing.getId();
-                } else {
-                    // 创建新图表
-                    CoreChartView newChart = new CoreChartView();
-                    newChart.setTitle(chart.getTitle());
-                    // 替换 sceneId
-                    Long oldSceneId = chart.getSceneId();
-                    Long newSceneId = dashboardIdMapping.get(String.valueOf(oldSceneId));
-                    newChart.setSceneId(newSceneId != null ? newSceneId : oldSceneId);
-                    // 替换 tableId
-                    Long oldTableId = chart.getTableId();
-                    Long newTableId = datasetIdMapping.get(String.valueOf(oldTableId));
-                    newChart.setTableId(newTableId != null ? newTableId : oldTableId);
-                    // 设置其他字段
-                    newChart.setType(chart.getType());
-                    newChart.setRender(chart.getRender());
-                    newChart.setResultCount(chart.getResultCount());
-                    newChart.setResultMode(chart.getResultMode());
-                    newChart.setxAxis(chart.getxAxis());
-                    newChart.setxAxisExt(chart.getxAxisExt());
-                    newChart.setyAxis(chart.getyAxis());
-                    newChart.setyAxisExt(chart.getyAxisExt());
-                    newChart.setExtStack(chart.getExtStack());
-                    newChart.setExtBubble(chart.getExtBubble());
-                    newChart.setExtLabel(chart.getExtLabel());
-                    newChart.setExtTooltip(chart.getExtTooltip());
-                    newChart.setCustomAttr(chart.getCustomAttr());
-                    newChart.setCustomStyle(chart.getCustomStyle());
-                    newChart.setCustomFilter(chart.getCustomFilter());
-                    newChart.setDrillFields(chart.getDrillFields());
-                    newChart.setSenior(chart.getSenior());
-                    newChart.setCreateBy("1");
-                    newChart.setCreateTime(System.currentTimeMillis());
-                    newChart.setUpdateTime(System.currentTimeMillis());
-                    newChart.setSnapshot(chart.getSnapshot());
-                    newChart.setStylePriority(chart.getStylePriority());
-                    newChart.setChartType(chart.getChartType());
-                    newChart.setIsPlugin(chart.getIsPlugin());
-                    newChart.setDataFrom(chart.getDataFrom());
-                    newChart.setViewFields(chart.getViewFields());
-                    newChart.setRefreshViewEnable(chart.getRefreshViewEnable());
-                    newChart.setRefreshUnit(chart.getRefreshUnit());
-                    newChart.setRefreshTime(chart.getRefreshTime());
-                    newChart.setLinkageActive(chart.getLinkageActive());
-                    newChart.setJumpActive(chart.getJumpActive());
-                    newChart.setCopyFrom(chart.getCopyFrom());
-                    newChart.setCopyId(chart.getCopyId());
-                    newChart.setAggregate(chart.getAggregate());
-                    newChart.setFlowMapStartName(chart.getFlowMapStartName());
-                    newChart.setFlowMapEndName(chart.getFlowMapEndName());
-                    newChart.setExtColor(chart.getExtColor());
-                    newChart.setCustomAttrMobile(chart.getCustomAttrMobile());
-                    newChart.setCustomStyleMobile(chart.getCustomStyleMobile());
-                    newChart.setSortPriority(chart.getSortPriority());
-
-                    coreChartViewMapper.insert(newChart);
-                    newId = newChart.getId();
-                }
+                coreChartViewMapper.insert(newChart);
+                Long newId = newChart.getId();
+                LogUtil.getLogger().info("importCharts: 图表插入成功 newId={}", newId);
 
                 // 记录 ID 映射
                 chartIdMapping.put(chart.getId(), newId);
+                LogUtil.getLogger().info("importCharts: chartIdMapping 添加 {} -> {}", chart.getId(), newId);
             } catch (Exception e) {
                 LogUtil.getLogger().error("Import chart failed: " + chart.getTitle(), e);
             }
         }
+        LogUtil.getLogger().info("importCharts: 完成, chartIdMapping 大小={}", chartIdMapping.size());
     }
 
     @Override
@@ -624,5 +718,186 @@ public class BackupDashboardServiceImpl implements BackupDashboardService {
                 LogUtil.getLogger().error("Import dashboard with chart mapping failed: " + dashboard.getName(), e);
             }
         }
+    }
+
+    @Override
+    public void importDashboards(List<BackupDashboard> dashboards,
+                                List<BackupFolder> folders,
+                                boolean overwrite,
+                                Map<String, Long> chartIdMapping,
+                                Map<String, Long> dashboardIdMapping) {
+        // 导入仪表板，并记录 ID 映射
+        for (BackupDashboard dashboard : dashboards) {
+            try {
+                // 替换 componentData 中的图表 ID
+                String componentData = dashboard.getComponentData();
+                if (componentData != null && chartIdMapping != null && !chartIdMapping.isEmpty()) {
+                    for (Map.Entry<String, Long> entry : chartIdMapping.entrySet()) {
+                        componentData = componentData.replaceAll(
+                            "\"id\"\\s*:\\s*\"" + Pattern.quote(entry.getKey()) + "\"",
+                            "\"id\":\"" + entry.getValue() + "\""
+                        );
+                    }
+                    dashboard.setComponentData(componentData);
+                }
+
+                // 执行导入，获取新 ID
+                String originalId = dashboard.getId();
+                String newId = importDashboardWithMapping(dashboard, overwrite);
+                dashboardIdMapping.put(originalId, Long.parseLong(newId));
+                LogUtil.getLogger().info("importDashboards (新): {} -> {}", originalId, newId);
+            } catch (Exception e) {
+                LogUtil.getLogger().error("Import dashboard with mapping failed: " + dashboard.getName(), e);
+            }
+        }
+    }
+
+    /**
+     * 导入仪表板并返回新 ID
+     */
+    private String importDashboardWithMapping(BackupDashboard dashboard, boolean overwrite) {
+        QueryWrapper<DataVisualizationInfo> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("name", dashboard.getName());
+        DataVisualizationInfo existing = dataVisualizationInfoMapper.selectOne(queryWrapper);
+
+        if (existing != null && overwrite) {
+            existing.setPid(dashboard.getPid());
+            existing.setLevel(dashboard.getLevel());
+            existing.setNodeType(dashboard.getNodeType() != null ? dashboard.getNodeType() : "dashboard");
+            existing.setType("dashboard");
+            existing.setOrgId(dashboard.getOrgId());
+            existing.setCanvasStyleData(dashboard.getCanvasStyleData());
+            existing.setComponentData(dashboard.getComponentData());
+            existing.setContentId(dashboard.getContentId());
+            dataVisualizationInfoMapper.updateById(existing);
+            LogUtil.getLogger().info("importDashboard (覆盖): id={}", existing.getId());
+            return String.valueOf(existing.getId());
+        } else {
+            String newName = dashboard.getName();
+            if (existing != null) {
+                newName = generateUniqueName(dashboard.getName());
+            }
+            DataVisualizationInfo newDashboard = new DataVisualizationInfo();
+            newDashboard.setName(newName);
+            newDashboard.setPid(dashboard.getPid() != null ? dashboard.getPid() : 0L);
+            newDashboard.setLevel(dashboard.getLevel() != null ? dashboard.getLevel() : 0);
+            newDashboard.setNodeType(dashboard.getNodeType() != null ? dashboard.getNodeType() : "dashboard");
+            newDashboard.setType("dashboard");
+            newDashboard.setOrgId(dashboard.getOrgId());
+            newDashboard.setCanvasStyleData(dashboard.getCanvasStyleData());
+            newDashboard.setComponentData(dashboard.getComponentData());
+            newDashboard.setContentId(dashboard.getContentId());
+            newDashboard.setCreateBy("1");
+            newDashboard.setCreateTime(System.currentTimeMillis());
+            newDashboard.setUpdateTime(System.currentTimeMillis());
+            dataVisualizationInfoMapper.insert(newDashboard);
+            LogUtil.getLogger().info("importDashboard (新建): id={}", newDashboard.getId());
+            return String.valueOf(newDashboard.getId());
+        }
+    }
+
+    /**
+     * 从 componentData JSON 中提取图表 ID
+     * componentData 中的图表 ID 格式为 "id":"7442426199994798080"
+     */
+    private void extractChartIdsFromComponentData(String componentData, Set<Long> chartIds) {
+        try {
+            // 匹配 "id":"数字" 的模式
+            Pattern pattern = Pattern.compile("\"id\"\\s*:\\s*\"(\\d+)\"");
+            java.util.regex.Matcher matcher = pattern.matcher(componentData);
+            while (matcher.find()) {
+                String idStr = matcher.group(1);
+                try {
+                    Long chartId = Long.parseLong(idStr);
+                    chartIds.add(chartId);
+                    LogUtil.getLogger().info("提取到图表 ID: {}", chartId);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        } catch (Exception e) {
+            LogUtil.getLogger().error("Extract chart IDs from componentData failed", e);
+        }
+    }
+
+    @Override
+    public void updateChartsSceneIds(List<BackupChartView> charts, Map<String, Long> dashboardIdMapping, Map<String, Long> chartIdMapping) {
+        if (charts == null || charts.isEmpty() || chartIdMapping == null || chartIdMapping.isEmpty()) {
+            return;
+        }
+        LogUtil.getLogger().info("updateChartsSceneIds: 开始更新 {} 个图表的 sceneId", charts.size());
+        for (BackupChartView chart : charts) {
+            try {
+                Long newChartId = chartIdMapping.get(chart.getId());
+                if (newChartId == null) {
+                    continue;
+                }
+                Long oldSceneId = chart.getSceneId();
+                Long newSceneId = dashboardIdMapping != null ? dashboardIdMapping.get(String.valueOf(oldSceneId)) : null;
+                if (newSceneId == null) {
+                    LogUtil.getLogger().warn("updateChartsSceneIds: 找不到图表 {} 的新仪表板 ID, 原 sceneId={}", chart.getId(), oldSceneId);
+                    continue;
+                }
+                CoreChartView updateChart = new CoreChartView();
+                updateChart.setId(newChartId);
+                updateChart.setSceneId(newSceneId);
+                coreChartViewMapper.updateById(updateChart);
+                LogUtil.getLogger().info("updateChartsSceneIds: 更新图表 {} 的 sceneId: {} -> {}", newChartId, oldSceneId, newSceneId);
+            } catch (Exception e) {
+                LogUtil.getLogger().error("updateChartsSceneIds failed for chart: " + chart.getId(), e);
+            }
+        }
+        LogUtil.getLogger().info("updateChartsSceneIds: 完成");
+    }
+
+    @Override
+    public Map<String, Long> buildDashboardIdMapping(List<BackupDashboard> dashboards) {
+        Map<String, Long> mapping = new HashMap<>();
+        if (dashboards == null || dashboards.isEmpty()) {
+            return mapping;
+        }
+        LogUtil.getLogger().info("buildDashboardIdMapping: 开始构建仪表板 ID 映射, 仪表板数量: {}", dashboards.size());
+        for (BackupDashboard dashboard : dashboards) {
+            try {
+                QueryWrapper<DataVisualizationInfo> queryWrapper = new QueryWrapper<>();
+                queryWrapper.eq("name", dashboard.getName());
+                DataVisualizationInfo existing = dataVisualizationInfoMapper.selectOne(queryWrapper);
+                if (existing != null) {
+                    mapping.put(dashboard.getId(), existing.getId());
+                    LogUtil.getLogger().info("buildDashboardIdMapping: 仪表板 {} -> {}: {} -> {}", dashboard.getName(), existing.getId(), dashboard.getId(), existing.getId());
+                } else {
+                    LogUtil.getLogger().warn("buildDashboardIdMapping: 找不到仪表板: {}", dashboard.getName());
+                }
+            } catch (Exception e) {
+                LogUtil.getLogger().error("buildDashboardIdMapping failed for dashboard: " + dashboard.getName(), e);
+            }
+        }
+        LogUtil.getLogger().info("buildDashboardIdMapping: 完成, 映射大小: {}", mapping.size());
+        return mapping;
+    }
+
+    @Override
+    public Map<String, Long> buildDataviewIdMapping(List<BackupDataview> dataviews) {
+        Map<String, Long> mapping = new HashMap<>();
+        if (dataviews == null || dataviews.isEmpty()) {
+            return mapping;
+        }
+        LogUtil.getLogger().info("buildDataviewIdMapping: 开始构建大屏 ID 映射, 大屏数量: {}", dataviews.size());
+        for (BackupDataview dataview : dataviews) {
+            try {
+                QueryWrapper<DataVisualizationInfo> queryWrapper = new QueryWrapper<>();
+                queryWrapper.eq("name", dataview.getName());
+                DataVisualizationInfo existing = dataVisualizationInfoMapper.selectOne(queryWrapper);
+                if (existing != null) {
+                    mapping.put(dataview.getId(), existing.getId());
+                    LogUtil.getLogger().info("buildDataviewIdMapping: 大屏 {} -> {}: {} -> {}", dataview.getName(), existing.getId(), dataview.getId(), existing.getId());
+                } else {
+                    LogUtil.getLogger().warn("buildDataviewIdMapping: 找不到大屏: {}", dataview.getName());
+                }
+            } catch (Exception e) {
+                LogUtil.getLogger().error("buildDataviewIdMapping failed for dataview: " + dataview.getName(), e);
+            }
+        }
+        LogUtil.getLogger().info("buildDataviewIdMapping: 完成, 映射大小: {}", mapping.size());
+        return mapping;
     }
 }

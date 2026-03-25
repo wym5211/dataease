@@ -139,6 +139,10 @@ public class BackupCenterManage {
             Map<String, String> idMapping = new HashMap<>();
             // 图表 ID 映射表：用于存储旧图表ID到新图表ID的映射关系
             Map<String, Long> chartIdMapping = new HashMap<>();
+            // 仪表板 ID 映射表：用于存储旧仪表板ID到新仪表板ID的映射关系
+            Map<String, Long> dashboardIdMapping = new HashMap<>();
+            // 大屏 ID 映射表：用于存储旧大屏ID到新大屏ID的映射关系
+            Map<String, Long> dataviewIdMapping = new HashMap<>();
 
             // Get folders from export package
             List<BackupFolder> folders = exportPackage.getFolders();
@@ -165,47 +169,62 @@ public class BackupCenterManage {
                 }
             }
 
+            // 从 idMapping 构建 datasetIdMapping（用于图表导入时替换 tableId）
+            Map<String, Long> datasetIdMapping = new HashMap<>();
+            for (Map.Entry<String, String> entry : idMapping.entrySet()) {
+                datasetIdMapping.put(entry.getKey(), Long.parseLong(entry.getValue()));
+            }
+            LogUtil.getLogger().info("构建 datasetIdMapping 完成, 大小: {}", datasetIdMapping.size());
+
             // Import charts (before dashboards to build chartIdMapping)
             if (exportPackage.getCharts() != null && !exportPackage.getCharts().isEmpty()) {
-                // Build dashboardIdMapping and datasetIdMapping from idMapping if available
-                Map<String, Long> dashboardIdMapping = new HashMap<>();
-                Map<String, Long> datasetIdMapping = new HashMap<>();
-                if (exportPackage.getIdMapping() != null) {
-                    if (exportPackage.getIdMapping().getDatasetIds() != null) {
-                        for (ExportPackage.IdPair pair : exportPackage.getIdMapping().getDatasetIds()) {
-                            datasetIdMapping.put(pair.getOldId(), Long.parseLong(pair.getNewId()));
-                        }
-                    }
-                    if (exportPackage.getIdMapping().getDashboardIds() != null) {
-                        for (ExportPackage.IdPair pair : exportPackage.getIdMapping().getDashboardIds()) {
-                            dashboardIdMapping.put(pair.getOldId(), Long.parseLong(pair.getNewId()));
-                        }
+                LogUtil.getLogger().info("开始导入图表, charts 数量: {}", exportPackage.getCharts().size());
+                // dashboardIdMapping 从 exportPackage.getIdMapping() 获取（仅在导出时有值）
+                if (exportPackage.getIdMapping() != null && exportPackage.getIdMapping().getDashboardIds() != null) {
+                    for (ExportPackage.IdPair pair : exportPackage.getIdMapping().getDashboardIds()) {
+                        dashboardIdMapping.put(pair.getOldId(), Long.parseLong(pair.getNewId()));
                     }
                 }
+                LogUtil.getLogger().info("调用 importCharts 前, datasetIdMapping 大小: {}, chartIdMapping 大小: {}, dashboardIdMapping 大小: {}", datasetIdMapping.size(), chartIdMapping.size(), dashboardIdMapping.size());
                 backupDashboardService.importCharts(exportPackage.getCharts(), dashboardIdMapping, datasetIdMapping, chartIdMapping);
+                LogUtil.getLogger().info("调用 importCharts 后, chartIdMapping 大小: {}", chartIdMapping.size());
+            } else {
+                LogUtil.getLogger().info("没有图表需要导入, charts 为空或 null");
             }
 
             // Import dashboards (using chartIdMapping to replace chart IDs in componentData)
             if (exportPackage.getDashboards() != null && !exportPackage.getDashboards().isEmpty()) {
                 try {
-                    backupDashboardService.importDashboards(exportPackage.getDashboards(), folders, request.isOverwrite(), chartIdMapping);
+                    backupDashboardService.importDashboards(exportPackage.getDashboards(), folders, request.isOverwrite(), chartIdMapping, dashboardIdMapping);
                     successCount += exportPackage.getDashboards().size();
+
+                    // 更新导入图表的 sceneId，指向新导入的仪表板
+                    if (exportPackage.getCharts() != null && !exportPackage.getCharts().isEmpty()) {
+                        LogUtil.getLogger().info("更新图表 sceneId, dashboardIdMapping 大小: {}", dashboardIdMapping.size());
+                        backupDashboardService.updateChartsSceneIds(exportPackage.getCharts(), dashboardIdMapping, chartIdMapping);
+                    }
                 } catch (Exception e) {
                     failCount += exportPackage.getDashboards().size();
                     LogUtil.getLogger().error("Import dashboards failed", e);
                 }
             }
 
-            // Import dataviews
+            // Import dataviews (using chartIdMapping to replace chart IDs in componentData)
             if (exportPackage.getDataviews() != null && !exportPackage.getDataviews().isEmpty()) {
                 for (BackupDataview dataview : exportPackage.getDataviews()) {
                     try {
-                        backupDashboardService.importDataview(dataview, request.isOverwrite());
+                        backupDashboardService.importDataview(dataview, request.isOverwrite(), chartIdMapping, dataviewIdMapping);
                         successCount++;
                     } catch (Exception e) {
                         failCount++;
                         LogUtil.getLogger().error("Import dataview failed: " + dataview.getName(), e);
                     }
+                }
+
+                // 更新导入图表的 sceneId，指向新导入的大屏
+                if (exportPackage.getCharts() != null && !exportPackage.getCharts().isEmpty()) {
+                    LogUtil.getLogger().info("更新图表 sceneId, dataviewIdMapping 大小: {}", dataviewIdMapping.size());
+                    backupDashboardService.updateChartsSceneIds(exportPackage.getCharts(), dataviewIdMapping, chartIdMapping);
                 }
             }
 
