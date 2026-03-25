@@ -51,6 +51,11 @@ public class ExportPackage {
     private List<BackupDataview> dataviews;
 
     /**
+     * 目录列表
+     */
+    private List<BackupFolder> folders;
+
+    /**
      * ID映射关系 (旧ID -> 新ID)
      */
     private IdMapping idMapping;
