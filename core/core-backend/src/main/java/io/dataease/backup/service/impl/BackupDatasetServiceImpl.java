@@ -13,6 +13,7 @@ import io.dataease.datasource.dao.auto.mapper.CoreDatasourceMapper;
 import io.dataease.model.backup.BackupDataset;
 import io.dataease.model.backup.BackupDatasetTable;
 import io.dataease.model.backup.BackupDatasetTableField;
+import io.dataease.model.backup.BackupFolder;
 import io.dataease.utils.LogUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -52,6 +53,7 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
                 backup.setType(ds.getType());
                 backup.setModel(ds.getInfo());
                 backup.setUnionSql(ds.getUnionSql());
+                backup.setIsCross(ds.getIsCross());
                 backup.setCreateBy(ds.getCreateBy());
                 backup.setCreateTime(ds.getCreateTime());
                 backup.setUpdateTime(ds.getLastUpdateTime());
@@ -88,6 +90,7 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
                     for (CoreDatasetTableField field : fields) {
                         BackupDatasetTableField backupField = new BackupDatasetTableField();
                         backupField.setId(String.valueOf(field.getId()));
+                        backupField.setDatasourceId(field.getDatasourceId() != null ? String.valueOf(field.getDatasourceId()) : null);
                         backupField.setOriginName(field.getOriginName());
                         backupField.setName(field.getName());
                         backupField.setDataeaseName(field.getDataeaseName());
@@ -147,6 +150,7 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
                 newDs.setType(dataset.getType());
                 newDs.setInfo(dataset.getModel());
                 newDs.setUnionSql(dataset.getUnionSql());
+                newDs.setIsCross(dataset.getIsCross());
                 newDs.setCreateBy("1");
                 newDs.setCreateTime(System.currentTimeMillis());
                 coreDatasetGroupMapper.insert(newDs);
@@ -181,6 +185,45 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
     }
 
     /**
+     * 递归收集数据集的目录链
+     */
+    private List<BackupFolder> collectDatasetFolders(Long datasetId, Map<String, BackupFolder> folderMap) {
+        List<BackupFolder> result = new ArrayList<>();
+        CoreDatasetGroup group = coreDatasetGroupMapper.selectById(datasetId);
+        if (group == null || group.getPid() == null || group.getPid() == 0L) {
+            return result;
+        }
+        CoreDatasetGroup parent = coreDatasetGroupMapper.selectById(group.getPid());
+        if (parent == null) {
+            return result;
+        }
+        if ("folder".equals(parent.getNodeType())) {
+            String key = parent.getName();
+            if (folderMap.containsKey(key)) {
+                return result;
+            }
+            BackupFolder folder = new BackupFolder();
+            folder.setId(String.valueOf(parent.getId()));
+            folder.setName(parent.getName());
+            folder.setPid(parent.getPid());
+            folder.setLevel(parent.getLevel());
+            folder.setNodeType(parent.getNodeType());
+            folder.setResourceType("dataset");
+            // 设置父目录名称用于跨环境匹配
+            if (parent.getPid() != null && parent.getPid() != 0L) {
+                CoreDatasetGroup grandParent = coreDatasetGroupMapper.selectById(parent.getPid());
+                if (grandParent != null) {
+                    folder.setParentName(grandParent.getName());
+                }
+            }
+            folderMap.put(key, folder);
+            result.add(folder);
+            result.addAll(collectDatasetFolders(parent.getId(), folderMap));
+        }
+        return result;
+    }
+
+    /**
      * 导入数据集及其关联的 tables 和 fields
      * @param dataset 数据集备份信息
      * @param overwrite 是否覆盖
@@ -205,6 +248,9 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
             if (existing != null && overwrite) {
                 existing.setType(dataset.getType());
                 existing.setInfo(dataset.getModel());
+                if (dataset.getIsCross() != null) {
+                    existing.setIsCross(dataset.getIsCross());
+                }
                 coreDatasetGroupMapper.updateById(existing);
                 newDatasetId = String.valueOf(existing.getId());
                 // 覆盖模式下，先删除原有的 tables 和 fields
@@ -222,6 +268,9 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
                 newDs.setType(dataset.getType());
                 newDs.setInfo(dataset.getModel());
                 newDs.setUnionSql(dataset.getUnionSql());
+                if (dataset.getIsCross() != null) {
+                    newDs.setIsCross(dataset.getIsCross());
+                }
                 newDs.setCreateBy("1");
                 newDs.setCreateTime(System.currentTimeMillis());
                 coreDatasetGroupMapper.insert(newDs);
@@ -318,13 +367,13 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
         // 3. 导入 fields
         if (backupTable.getFields() != null) {
             for (BackupDatasetTableField backupField : backupTable.getFields()) {
-                importDatasetTableField(backupField, newTableId, tableIdMapping);
+                importDatasetTableField(backupField, newTableId, newDatasetId, newDatasourceId, tableIdMapping);
             }
         }
     }
 
     private void importDatasetTableField(BackupDatasetTableField backupField, String newTableId,
-                                          Map<String, String> tableIdMapping) {
+                                          String newDatasetId, Long newDatasourceId, Map<String, String> tableIdMapping) {
         // 查询是否已存在（按 dataeaseName 和 dataset_table_id）
         QueryWrapper<CoreDatasetTableField> fieldQuery = new QueryWrapper<>();
         fieldQuery.eq("dataease_name", backupField.getDataeaseName())
@@ -333,6 +382,8 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
 
         if (existingField != null) {
             // 覆盖
+            existingField.setDatasetGroupId(Long.parseLong(newDatasetId));
+            existingField.setDatasourceId(newDatasourceId);
             existingField.setOriginName(backupField.getOriginName());
             existingField.setName(backupField.getName());
             existingField.setFieldShortName(backupField.getFieldShortName());
@@ -355,6 +406,8 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
         } else {
             // 新建
             CoreDatasetTableField newField = new CoreDatasetTableField();
+            newField.setDatasetGroupId(Long.parseLong(newDatasetId));
+            newField.setDatasourceId(newDatasourceId);
             newField.setDatasetTableId(Long.parseLong(newTableId));
             newField.setOriginName(backupField.getOriginName());
             newField.setName(backupField.getName());
