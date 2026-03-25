@@ -63,6 +63,11 @@ public class BackupDataset {
     private Long updateTime;
 
     /**
+     * 目录路径（用于日志追踪）
+     */
+    private String folderPath;
+
+    /**
      * 关联的视图ID列表
      */
     private List<String> viewIds;
@@ -71,6 +76,11 @@ public class BackupDataset {
      * 关联SQL
      */
     private String unionSql;
+
+    /**
+     * 是否跨数据集
+     */
+    private Boolean isCross;
 
     /**
      * 嵌套的数据表列表

@@ -56,6 +56,11 @@ public class BackupDashboard {
     private Long updateTime;
 
     /**
+     * 目录路径（用于日志追踪）
+     */
+    private String folderPath;
+
+    /**
      * 关联的视图ID列表
      */
     private List<String> viewIds;

@@ -52,4 +52,9 @@ public class BackupDatasource {
      * 修改时间
      */
     private Long updateTime;
+
+    /**
+     * 目录路径（用于日志追踪）
+     */
+    private String folderPath;
 }
