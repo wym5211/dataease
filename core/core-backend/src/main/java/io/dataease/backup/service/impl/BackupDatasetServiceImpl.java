@@ -431,4 +431,62 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
             coreDatasetTableFieldMapper.insert(newField);
         }
     }
+
+    /**
+     * 按 name + parentId 查找目录
+     */
+    private CoreDatasetGroup findDatasetFolderByNameAndParent(String name, Long parentId) {
+        QueryWrapper<CoreDatasetGroup> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("name", name).eq("node_type", "folder");
+        if (parentId != null && parentId != 0L) {
+            queryWrapper.eq("pid", parentId);
+        } else {
+            queryWrapper.and(w -> w.eq("pid", 0L).or().isNull("pid"));
+        }
+        return coreDatasetGroupMapper.selectOne(queryWrapper);
+    }
+
+    /**
+     * 创建或查找目录，返回目录ID
+     */
+    public Long createOrFindDatasetFolder(BackupFolder folder, Map<String, Long> folderMapping) {
+        String key = folder.getName() + "_" + (folder.getParentName() != null ? folder.getParentName() : "root");
+        if (folderMapping.containsKey(key)) {
+            return folderMapping.get(key);
+        }
+
+        // 先查找父目录ID
+        Long parentId = 0L;
+        if (folder.getParentName() != null) {
+            // 通过父目录名称查找父目录
+            String parentKey = folder.getParentName() + "_root";
+            parentId = folderMapping.getOrDefault(parentKey, 0L);
+        }
+
+        // 查找是否已存在
+        CoreDatasetGroup existing = findDatasetFolderByNameAndParent(folder.getName(), parentId);
+        if (existing != null) {
+            folderMapping.put(key, existing.getId());
+            return existing.getId();
+        }
+
+        // 创建新目录
+        CoreDatasetGroup newFolder = new CoreDatasetGroup();
+        newFolder.setName(folder.getName());
+        newFolder.setPid(parentId);
+        newFolder.setLevel(folder.getLevel() != null ? folder.getLevel() : 0);
+        newFolder.setNodeType("folder");
+        newFolder.setCreateBy("1");
+        newFolder.setCreateTime(System.currentTimeMillis());
+        coreDatasetGroupMapper.insert(newFolder);
+
+        // 重新查询获取ID
+        newFolder = coreDatasetGroupMapper.selectOne(new QueryWrapper<CoreDatasetGroup>()
+            .eq("name", folder.getName())
+            .eq("node_type", "folder")
+            .eq("pid", parentId));
+
+        folderMapping.put(key, newFolder.getId());
+        return newFolder.getId();
+    }
 }
