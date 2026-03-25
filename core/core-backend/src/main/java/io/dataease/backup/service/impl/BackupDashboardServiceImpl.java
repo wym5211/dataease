@@ -444,6 +444,77 @@ public class BackupDashboardServiceImpl implements BackupDashboardService {
     }
 
     @Override
+    public List<BackupChartView> collectChartsFromDataviews(List<BackupDataview> dataviews) {
+        List<BackupChartView> result = new ArrayList<>();
+        if (dataviews == null || dataviews.isEmpty()) {
+            return result;
+        }
+        try {
+            // 提取所有大屏 ID
+            List<Long> dataviewIds = dataviews.stream()
+                .map(d -> Long.parseLong(d.getId()))
+                .toList();
+
+            // 查询 sceneId 匹配的大屏图表
+            QueryWrapper<CoreChartView> queryWrapper = new QueryWrapper<>();
+            queryWrapper.in("scene_id", dataviewIds);
+            List<CoreChartView> charts = coreChartViewMapper.selectList(queryWrapper);
+
+            for (CoreChartView chart : charts) {
+                BackupChartView backup = new BackupChartView();
+                backup.setId(String.valueOf(chart.getId()));
+                backup.setTitle(chart.getTitle());
+                backup.setSceneId(chart.getSceneId());
+                backup.setTableId(chart.getTableId());
+                backup.setType(chart.getType());
+                backup.setRender(chart.getRender());
+                backup.setResultCount(chart.getResultCount());
+                backup.setResultMode(chart.getResultMode());
+                backup.setxAxis(chart.getxAxis());
+                backup.setxAxisExt(chart.getxAxisExt());
+                backup.setyAxis(chart.getyAxis());
+                backup.setyAxisExt(chart.getyAxisExt());
+                backup.setExtStack(chart.getExtStack());
+                backup.setExtBubble(chart.getExtBubble());
+                backup.setExtLabel(chart.getExtLabel());
+                backup.setExtTooltip(chart.getExtTooltip());
+                backup.setCustomAttr(chart.getCustomAttr());
+                backup.setCustomStyle(chart.getCustomStyle());
+                backup.setCustomFilter(chart.getCustomFilter());
+                backup.setDrillFields(chart.getDrillFields());
+                backup.setSenior(chart.getSenior());
+                backup.setCreateBy(chart.getCreateBy());
+                backup.setCreateTime(chart.getCreateTime());
+                backup.setUpdateTime(chart.getUpdateTime());
+                backup.setSnapshot(chart.getSnapshot());
+                backup.setStylePriority(chart.getStylePriority());
+                backup.setChartType(chart.getChartType());
+                backup.setIsPlugin(chart.getIsPlugin());
+                backup.setDataFrom(chart.getDataFrom());
+                backup.setViewFields(chart.getViewFields());
+                backup.setRefreshViewEnable(chart.getRefreshViewEnable());
+                backup.setRefreshUnit(chart.getRefreshUnit());
+                backup.setRefreshTime(chart.getRefreshTime());
+                backup.setLinkageActive(chart.getLinkageActive());
+                backup.setJumpActive(chart.getJumpActive());
+                backup.setCopyFrom(chart.getCopyFrom());
+                backup.setCopyId(chart.getCopyId());
+                backup.setAggregate(chart.getAggregate());
+                backup.setFlowMapStartName(chart.getFlowMapStartName());
+                backup.setFlowMapEndName(chart.getFlowMapEndName());
+                backup.setExtColor(chart.getExtColor());
+                backup.setCustomAttrMobile(chart.getCustomAttrMobile());
+                backup.setCustomStyleMobile(chart.getCustomStyleMobile());
+                backup.setSortPriority(chart.getSortPriority());
+                result.add(backup);
+            }
+        } catch (Exception e) {
+            LogUtil.getLogger().error("Collect charts from dataviews failed", e);
+        }
+        return result;
+    }
+
+    @Override
     public void importCharts(List<BackupChartView> charts,
                              Map<String, Long> dashboardIdMapping,
                              Map<String, Long> datasetIdMapping,

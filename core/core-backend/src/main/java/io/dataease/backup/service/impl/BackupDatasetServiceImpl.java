@@ -57,6 +57,9 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
                 backup.setCreateBy(ds.getCreateBy());
                 backup.setCreateTime(ds.getCreateTime());
                 backup.setUpdateTime(ds.getLastUpdateTime());
+                backup.setPid(ds.getPid());
+                backup.setLevel(ds.getLevel());
+                backup.setNodeType(ds.getNodeType());
 
                 // 查询关联的 tables
                 QueryWrapper<CoreDatasetTable> tableQuery = new QueryWrapper<>();
@@ -120,6 +123,25 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
             }
         } catch (Exception e) {
             LogUtil.getLogger().error("Export datasets failed", e);
+        }
+        return result;
+    }
+
+    @Override
+    public List<BackupFolder> collectDatasetFolders() {
+        List<BackupFolder> result = new ArrayList<>();
+        Map<String, BackupFolder> folderMap = new HashMap<>();
+        try {
+            // Query all dataset groups to collect their parent folders
+            List<CoreDatasetGroup> allGroups = coreDatasetGroupMapper.selectList(null);
+
+            for (CoreDatasetGroup group : allGroups) {
+                if ("dataset".equals(group.getNodeType()) && group.getPid() != null && group.getPid() != 0L) {
+                    result.addAll(collectDatasetFolders(group.getId(), folderMap));
+                }
+            }
+        } catch (Exception e) {
+            LogUtil.getLogger().error("Collect dataset folders failed", e);
         }
         return result;
     }
@@ -198,7 +220,16 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
             return result;
         }
         if ("folder".equals(parent.getNodeType())) {
-            String key = parent.getName();
+            // 获取父目录名称用于key构建
+            String parentName = null;
+            if (parent.getPid() != null && parent.getPid() != 0L) {
+                CoreDatasetGroup grandParent = coreDatasetGroupMapper.selectById(parent.getPid());
+                if (grandParent != null) {
+                    parentName = grandParent.getName();
+                }
+            }
+            // 使用 name + parentName 作为唯一key，与createOrFindDatasetFolder保持一致
+            String key = parent.getName() + "_" + (parentName != null ? parentName : "root");
             if (folderMap.containsKey(key)) {
                 return result;
             }
@@ -209,13 +240,7 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
             folder.setLevel(parent.getLevel());
             folder.setNodeType(parent.getNodeType());
             folder.setResourceType("dataset");
-            // 设置父目录名称用于跨环境匹配
-            if (parent.getPid() != null && parent.getPid() != 0L) {
-                CoreDatasetGroup grandParent = coreDatasetGroupMapper.selectById(parent.getPid());
-                if (grandParent != null) {
-                    folder.setParentName(grandParent.getName());
-                }
-            }
+            folder.setParentName(parentName);
             folderMap.put(key, folder);
             result.add(folder);
             result.addAll(collectDatasetFolders(parent.getId(), folderMap));
@@ -429,6 +454,110 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
             newField.setGroupList(backupField.getGroupList());
             newField.setOtherGroup(backupField.getOtherGroup());
             coreDatasetTableFieldMapper.insert(newField);
+        }
+    }
+
+    /**
+     * 导入数据集列表（包含目录创建）
+     */
+    @Override
+    public void importDatasets(List<BackupDataset> datasets, List<BackupFolder> folders, boolean overwrite, Map<String, String> idMapping) {
+        if (datasets == null || datasets.isEmpty()) {
+            return;
+        }
+
+        // 按level排序，先创建低级目录
+        Map<String, Long> folderMapping = new HashMap<>();
+        if (folders != null && !folders.isEmpty()) {
+            List<BackupFolder> sortedFolders = folders.stream()
+                .sorted(java.util.Comparator.comparingInt(f -> f.getLevel() != null ? f.getLevel() : 0))
+                .toList();
+
+            for (BackupFolder folder : sortedFolders) {
+                createOrFindDatasetFolder(folder, folderMapping);
+            }
+        }
+
+        // 导入数据集
+        for (BackupDataset dataset : datasets) {
+            try {
+                String originalId = dataset.getId();
+                String newId = importDatasetWithTablesAndFolders(dataset, overwrite, idMapping, folderMapping);
+                idMapping.put(originalId, newId);
+            } catch (Exception e) {
+                LogUtil.getLogger().error("Import dataset failed: " + dataset.getName(), e);
+            }
+        }
+    }
+
+    /**
+     * 导入数据集及其关联的 tables 和 fields（带文件夹支持）
+     */
+    private String importDatasetWithTablesAndFolders(BackupDataset dataset, boolean overwrite,
+                                                      Map<String, String> idMapping,
+                                                      Map<String, Long> folderMapping) {
+        try {
+            QueryWrapper<CoreDatasetGroup> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("name", dataset.getName()).eq("node_type", "dataset");
+            CoreDatasetGroup existing = coreDatasetGroupMapper.selectOne(queryWrapper);
+
+            // 计算新pid：使用文件夹映射将原pid转换为新pid
+            Long newPid = 0L;
+            if (dataset.getPid() != null && dataset.getPid() != 0L) {
+                newPid = folderMapping.getOrDefault("id_" + dataset.getPid(), 0L);
+            }
+
+            String newDatasetId;
+            if (existing != null && overwrite) {
+                existing.setType(dataset.getType());
+                existing.setInfo(dataset.getModel());
+                if (dataset.getIsCross() != null) {
+                    existing.setIsCross(dataset.getIsCross());
+                }
+                existing.setPid(newPid);
+                coreDatasetGroupMapper.updateById(existing);
+                newDatasetId = String.valueOf(existing.getId());
+                // 覆盖模式下，先删除原有的 tables 和 fields
+                deleteExistingTablesAndFields(Long.parseLong(newDatasetId));
+            } else {
+                String newName = dataset.getName();
+                if (existing != null) {
+                    newName = generateUniqueName(dataset.getName());
+                }
+                CoreDatasetGroup newDs = new CoreDatasetGroup();
+                newDs.setName(newName);
+                newDs.setPid(newPid);
+                newDs.setLevel(dataset.getLevel() != null ? dataset.getLevel() : 0);
+                newDs.setNodeType("dataset");
+                newDs.setType(dataset.getType());
+                newDs.setInfo(dataset.getModel());
+                newDs.setUnionSql(dataset.getUnionSql());
+                if (dataset.getIsCross() != null) {
+                    newDs.setIsCross(dataset.getIsCross());
+                }
+                newDs.setCreateBy("1");
+                newDs.setCreateTime(System.currentTimeMillis());
+                coreDatasetGroupMapper.insert(newDs);
+                newDs = coreDatasetGroupMapper.selectOne(new QueryWrapper<CoreDatasetGroup>().eq("name", newName).eq("node_type", "dataset"));
+                newDatasetId = String.valueOf(newDs.getId());
+            }
+
+            // 更新 dataset ID 映射
+            idMapping.put(dataset.getId(), newDatasetId);
+
+            // 导入 tables 和 fields
+            if (dataset.getTables() != null) {
+                Map<String, String> tableIdMapping = new HashMap<>();
+                for (BackupDatasetTable backupTable : dataset.getTables()) {
+                    importDatasetTable(backupTable, newDatasetId, new HashMap<>(), tableIdMapping);
+                }
+            }
+
+            LogUtil.getLogger().info("=== Backup import dataset: id={}, name={}, newId={} ===", dataset.getId(), dataset.getName(), newDatasetId);
+            return newDatasetId;
+        } catch (Exception e) {
+            LogUtil.getLogger().error("Import dataset failed: " + dataset.getName(), e);
+            throw e;
         }
     }
 

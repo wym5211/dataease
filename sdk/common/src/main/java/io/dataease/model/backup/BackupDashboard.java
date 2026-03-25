@@ -61,6 +61,21 @@ public class BackupDashboard {
     private String folderPath;
 
     /**
+     * 父目录ID
+     */
+    private Long pid;
+
+    /**
+     * 层级深度
+     */
+    private Integer level;
+
+    /**
+     * 节点类型: folder
+     */
+    private String nodeType;
+
+    /**
      * 关联的视图ID列表
      */
     private List<String> viewIds;
@@ -69,4 +84,24 @@ public class BackupDashboard {
      * 仪表板样式配置
      */
     private String style;
+
+    /**
+     * 所属组织ID
+     */
+    private Long orgId;
+
+    /**
+     * 画布样式数据
+     */
+    private String canvasStyleData;
+
+    /**
+     * 组件数据
+     */
+    private String componentData;
+
+    /**
+     * 内容标识
+     */
+    private String contentId;
 }

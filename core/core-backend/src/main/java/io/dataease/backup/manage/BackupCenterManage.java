@@ -68,7 +68,7 @@ public class BackupCenterManage {
             }
             if ("dataview".equals(request.getType()) || "combined".equals(request.getType())) {
                 dataviews = backupDashboardService.exportDataviews();
-                charts.addAll(backupDashboardService.collectCharts(dataviews));
+                charts.addAll(backupDashboardService.collectChartsFromDataviews(dataviews));
             }
 
             exportPackage.setDatasources(datasources);

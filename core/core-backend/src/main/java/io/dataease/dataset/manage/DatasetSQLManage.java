@@ -140,7 +140,7 @@ public class DatasetSQLManage {
         if (ObjectUtils.isEmpty(union)) {
             return null;
         }
-        boolean isCross = dataTableInfoDTO.getIsCross();
+        boolean isCross = dataTableInfoDTO.getIsCross() != null && dataTableInfoDTO.getIsCross();
         DatasetTableDTO currentDs = union.get(0).getCurrentDs();
         SQLObj tableName = null;
         for (int i = 0; i < union.size(); i++) {

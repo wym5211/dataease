@@ -13,6 +13,7 @@ public interface BackupDashboardService {
     List<BackupDataview> exportDataviews();
     List<BackupFolder> collectDashboardFolders();
     List<BackupChartView> collectCharts(List<BackupDashboard> dashboards);
+    List<BackupChartView> collectChartsFromDataviews(List<BackupDataview> dataviews);
     void importDashboards(List<BackupDashboard> dashboards, List<BackupFolder> folders, boolean overwrite);
     void importDashboards(List<BackupDashboard> dashboards, List<BackupFolder> folders, boolean overwrite, Map<String, Long> chartIdMapping);
     void importCharts(List<BackupChartView> charts, Map<String, Long> dashboardIdMapping, Map<String, Long> datasetIdMapping, Map<String, Long> chartIdMapping);

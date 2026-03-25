@@ -239,7 +239,7 @@ public class DatasetDataManage {
             dsList.add(next.getValue().getType());
         }
         boolean needOrder = Utils.isNeedOrder(dsList);
-        boolean crossDs = datasetGroupInfoDTO.getIsCross();
+        boolean crossDs = datasetGroupInfoDTO.getIsCross() != null && datasetGroupInfoDTO.getIsCross();
         if (!crossDs) {
             if (notFullDs.contains(dsMap.entrySet().iterator().next().getValue().getType()) && (boolean) sqlMap.get("isFullJoin")) {
                 DEException.throwException(Translator.get("i18n_not_full"));
@@ -327,7 +327,7 @@ public class DatasetDataManage {
             for (Map.Entry<Long, DatasourceSchemaDTO> next : dsMap.entrySet()) {
                 dsList.add(next.getValue().getType());
             }
-            boolean crossDs = datasetGroupInfoDTO.getIsCross();
+            boolean crossDs = datasetGroupInfoDTO.getIsCross() != null && datasetGroupInfoDTO.getIsCross();
             if (!crossDs) {
                 if (notFullDs.contains(dsMap.entrySet().iterator().next().getValue().getType()) && (boolean) sqlMap.get("isFullJoin")) {
                     DEException.throwException(Translator.get("i18n_not_full"));
@@ -364,7 +364,7 @@ public class DatasetDataManage {
     public Long getDatasetTotal(DatasetGroupInfoDTO datasetGroupInfoDTO, String s, ChartExtRequest request) throws Exception {
         Map<String, Object> sqlMap = datasetSQLManage.getUnionSQLForEdit(datasetGroupInfoDTO, request);
         Map<Long, DatasourceSchemaDTO> dsMap = (Map<Long, DatasourceSchemaDTO>) sqlMap.get("dsMap");
-        boolean crossDs = datasetGroupInfoDTO.getIsCross();
+        boolean crossDs = datasetGroupInfoDTO.getIsCross() != null && datasetGroupInfoDTO.getIsCross();
         String sql;
         if (StringUtils.isEmpty(s)) {
             sql = (String) sqlMap.get("sql");
@@ -606,7 +606,7 @@ public class DatasetDataManage {
         allFields.addAll(datasetGroupInfoDTO.getAllFields());
 
         Map<Long, DatasourceSchemaDTO> dsMap = (Map<Long, DatasourceSchemaDTO>) sqlMap.get("dsMap");
-        boolean crossDs = datasetGroupInfoDTO.getIsCross();
+        boolean crossDs = datasetGroupInfoDTO.getIsCross() != null && datasetGroupInfoDTO.getIsCross();
         if (!crossDs) {
             sql = Utils.replaceSchemaAlias(sql, dsMap);
         }
@@ -717,7 +717,7 @@ public class DatasetDataManage {
             allFields.addAll(datasetGroupInfoDTO.getAllFields());
 
             Map<Long, DatasourceSchemaDTO> dsMap = (Map<Long, DatasourceSchemaDTO>) sqlMap.get("dsMap");
-            boolean crossDs = datasetGroupInfoDTO.getIsCross();
+            boolean crossDs = datasetGroupInfoDTO.getIsCross() != null && datasetGroupInfoDTO.getIsCross();
             if (!crossDs) {
                 sql = Utils.replaceSchemaAlias(sql, dsMap);
             }
@@ -884,7 +884,7 @@ public class DatasetDataManage {
             allFields.addAll(datasetGroupInfoDTO.getAllFields());
 
             dsMap = (Map<Long, DatasourceSchemaDTO>) sqlMap.get("dsMap");
-            crossDs = datasetGroupInfoDTO.getIsCross();
+            crossDs = datasetGroupInfoDTO.getIsCross() != null && datasetGroupInfoDTO.getIsCross();
             if (!crossDs) {
                 sql = Utils.replaceSchemaAlias(sql, dsMap);
             }
@@ -1115,7 +1115,7 @@ public class DatasetDataManage {
         allFields.addAll(datasetGroupInfoDTO.getAllFields());
 
         Map<Long, DatasourceSchemaDTO> dsMap = (Map<Long, DatasourceSchemaDTO>) sqlMap.get("dsMap");
-        boolean crossDs = datasetGroupInfoDTO.getIsCross();
+        boolean crossDs = datasetGroupInfoDTO.getIsCross() != null && datasetGroupInfoDTO.getIsCross();
         if (!crossDs) {
             sql = Utils.replaceSchemaAlias(sql, dsMap);
         }

@@ -419,38 +419,6 @@ private void importDatasetTable(BackupDatasetTable backupTable, String newDatase
     tableIdMapping.put(backupTable.getId(), newTableId);
 
     // 3. 导入 fields
-    QueryWrapper<CoreDatasetTable> tableQuery = new QueryWrapper<>();
-    tableQuery.eq("name", backupTable.getName()).eq("dataset_group_id", Long.parseLong(newDatasetId));
-    CoreDatasetTable existingTable = coreDatasetTableMapper.selectOne(tableQuery);
-
-    String newTableId;
-    if (existingTable != null) {
-        // 覆盖
-        existingTable.setTableName(backupTable.getTableName());
-        existingTable.setDatasourceId(newDatasourceId);
-        existingTable.setType(backupTable.getType());
-        existingTable.setInfo(backupTable.getInfo());
-        existingTable.setSqlVariableDetails(backupTable.getSqlVariableDetails());
-        coreDatasetTableMapper.updateById(existingTable);
-        newTableId = String.valueOf(existingTable.getId());
-    } else {
-        // 新建
-        CoreDatasetTable newTable = new CoreDatasetTable();
-        newTable.setName(backupTable.getName());
-        newTable.setTableName(backupTable.getTableName());
-        newTable.setDatasourceId(newDatasourceId);
-        newTable.setDatasetGroupId(Long.parseLong(newDatasetId));
-        newTable.setType(backupTable.getType());
-        newTable.setInfo(backupTable.getInfo());
-        newTable.setSqlVariableDetails(backupTable.getSqlVariableDetails());
-        coreDatasetTableMapper.insert(newTable);
-        newTableId = String.valueOf(newTable.getId());
-    }
-
-    // 更新 table ID 映射
-    tableIdMapping.put(backupTable.getId(), newTableId);
-
-    // 3. 导入 fields
     if (backupTable.getFields() != null) {
         for (BackupDatasetTableField backupField : backupTable.getFields()) {
             importDatasetTableField(backupField, newTableId, tableIdMapping);

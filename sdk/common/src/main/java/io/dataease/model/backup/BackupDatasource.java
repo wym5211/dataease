@@ -57,4 +57,9 @@ public class BackupDatasource {
      * 目录路径（用于日志追踪）
      */
     private String folderPath;
+
+    /**
+     * 父目录ID（用于导入时定位目录）
+     */
+    private Long pid;
 }

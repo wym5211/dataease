@@ -9,6 +9,7 @@ import lombok.Data;
 public class BackupDatasetTableField {
 
     private String id;
+    private String datasourceId;
     private String originName;
     private String name;
     private String dataeaseName;

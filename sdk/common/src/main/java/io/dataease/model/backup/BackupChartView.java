@@ -19,6 +19,32 @@ public class BackupChartView {
     private String xAxisExt;
     private String yAxis;
     private String yAxisExt;
+
+    // 手动实现getter/setter以匹配CoreChartView的命名约定
+    public String getxAxis() {
+        return xAxis;
+    }
+    public void setxAxis(String xAxis) {
+        this.xAxis = xAxis;
+    }
+    public String getxAxisExt() {
+        return xAxisExt;
+    }
+    public void setxAxisExt(String xAxisExt) {
+        this.xAxisExt = xAxisExt;
+    }
+    public String getyAxis() {
+        return yAxis;
+    }
+    public void setyAxis(String yAxis) {
+        this.yAxis = yAxis;
+    }
+    public String getyAxisExt() {
+        return yAxisExt;
+    }
+    public void setyAxisExt(String yAxisExt) {
+        this.yAxisExt = yAxisExt;
+    }
     private String extStack;
     private String extBubble;
     private String extLabel;

@@ -261,13 +261,17 @@ public class DatasetGroupManage {
     public DataSetBarVO queryBarInfo(Long id) {
         DataSetBarVO dataSetBarVO = coreDataSetExtMapper.queryBarInfo(id);
         // get creator
-        String userName = coreUserManage.getUserName(Long.valueOf(dataSetBarVO.getCreateBy()));
-        if (StringUtils.isNotBlank(userName)) {
-            dataSetBarVO.setCreator(userName);
+        if (StringUtils.isNotBlank(dataSetBarVO.getCreateBy())) {
+            String userName = coreUserManage.getUserName(Long.valueOf(dataSetBarVO.getCreateBy()));
+            if (StringUtils.isNotBlank(userName)) {
+                dataSetBarVO.setCreator(userName);
+            }
         }
-        String updateUserName = coreUserManage.getUserName(Long.valueOf(dataSetBarVO.getUpdateBy()));
-        if (StringUtils.isNotBlank(updateUserName)) {
-            dataSetBarVO.setUpdater(updateUserName);
+        if (StringUtils.isNotBlank(dataSetBarVO.getUpdateBy())) {
+            String updateUserName = coreUserManage.getUserName(Long.valueOf(dataSetBarVO.getUpdateBy()));
+            if (StringUtils.isNotBlank(updateUserName)) {
+                dataSetBarVO.setUpdater(updateUserName);
+            }
         }
         dataSetBarVO.setDatasourceDTOList(getDatasource(id));
         return dataSetBarVO;
@@ -278,7 +282,11 @@ public class DatasetGroupManage {
         wrapper.eq("dataset_group_id", datasetId);
         List<CoreDatasetTable> coreDatasetTables = coreDatasetTableMapper.selectList(wrapper);
         Set<Long> ids = new LinkedHashSet();
-        coreDatasetTables.forEach(ele -> ids.add(ele.getDatasourceId()));
+        coreDatasetTables.forEach(ele -> {
+            if (ele.getDatasourceId() != null) {
+                ids.add(ele.getDatasourceId());
+            }
+        });
         if (CollectionUtils.isEmpty(ids)) {
             DEException.throwException(Translator.get("i18n_dataset_create_error"));
         }
@@ -431,13 +439,17 @@ public class DatasetGroupManage {
         DatasetGroupInfoDTO dto = new DatasetGroupInfoDTO();
         BeanUtils.copyBean(dto, coreDatasetGroup);
         // get creator
-        String userName = coreUserManage.getUserName(Long.valueOf(dto.getCreateBy()));
-        if (StringUtils.isNotBlank(userName)) {
-            dto.setCreator(userName);
+        if (StringUtils.isNotBlank(dto.getCreateBy())) {
+            String userName = coreUserManage.getUserName(Long.valueOf(dto.getCreateBy()));
+            if (StringUtils.isNotBlank(userName)) {
+                dto.setCreator(userName);
+            }
         }
-        String updateUserName = coreUserManage.getUserName(Long.valueOf(dto.getUpdateBy()));
-        if (StringUtils.isNotBlank(updateUserName)) {
-            dto.setUpdater(updateUserName);
+        if (StringUtils.isNotBlank(dto.getUpdateBy())) {
+            String updateUserName = coreUserManage.getUserName(Long.valueOf(dto.getUpdateBy()));
+            if (StringUtils.isNotBlank(updateUserName)) {
+                dto.setUpdater(updateUserName);
+            }
         }
         dto.setUnionSql(null);
         if (StringUtils.equalsIgnoreCase(dto.getNodeType(), "dataset")) {
@@ -469,13 +481,17 @@ public class DatasetGroupManage {
         DatasetGroupInfoDTO dto = new DatasetGroupInfoDTO();
         BeanUtils.copyBean(dto, coreDatasetGroup);
         // get creator
-        String userName = coreUserManage.getUserName(Long.valueOf(dto.getCreateBy()));
-        if (StringUtils.isNotBlank(userName)) {
-            dto.setCreator(userName);
+        if (StringUtils.isNotBlank(dto.getCreateBy())) {
+            String userName = coreUserManage.getUserName(Long.valueOf(dto.getCreateBy()));
+            if (StringUtils.isNotBlank(userName)) {
+                dto.setCreator(userName);
+            }
         }
-        String updateUserName = coreUserManage.getUserName(Long.valueOf(dto.getUpdateBy()));
-        if (StringUtils.isNotBlank(updateUserName)) {
-            dto.setUpdater(updateUserName);
+        if (StringUtils.isNotBlank(dto.getUpdateBy())) {
+            String updateUserName = coreUserManage.getUserName(Long.valueOf(dto.getUpdateBy()));
+            if (StringUtils.isNotBlank(updateUserName)) {
+                dto.setUpdater(updateUserName);
+            }
         }
         dto.setUnionSql(null);
         if (StringUtils.equalsIgnoreCase(dto.getNodeType(), "dataset")) {

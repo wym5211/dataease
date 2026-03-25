@@ -68,6 +68,21 @@ public class BackupDataset {
     private String folderPath;
 
     /**
+     * 父目录ID
+     */
+    private Long pid;
+
+    /**
+     * 层级深度
+     */
+    private Integer level;
+
+    /**
+     * 节点类型: folder
+     */
+    private String nodeType;
+
+    /**
      * 关联的视图ID列表
      */
     private List<String> viewIds;
