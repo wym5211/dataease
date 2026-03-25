@@ -50,24 +50,33 @@ public class BackupCenterManage {
             List<BackupDataset> datasets = new ArrayList<>();
             List<BackupDashboard> dashboards = new ArrayList<>();
             List<BackupDataview> dataviews = new ArrayList<>();
+            List<BackupFolder> folders = new ArrayList<>();
+            List<BackupChartView> charts = new ArrayList<>();
 
             if ("datasource".equals(request.getType()) || "combined".equals(request.getType())) {
                 datasources = backupDatasourceService.exportDatasources();
+                folders.addAll(backupDatasourceService.collectDatasourceFolders());
             }
             if ("dataset".equals(request.getType()) || "combined".equals(request.getType())) {
                 datasets = backupDatasetService.exportDatasets();
+                folders.addAll(backupDatasetService.collectDatasetFolders());
             }
             if ("dashboard".equals(request.getType()) || "combined".equals(request.getType())) {
                 dashboards = backupDashboardService.exportDashboards();
+                folders.addAll(backupDashboardService.collectDashboardFolders());
+                charts.addAll(backupDashboardService.collectCharts(dashboards));
             }
             if ("dataview".equals(request.getType()) || "combined".equals(request.getType())) {
                 dataviews = backupDashboardService.exportDataviews();
+                charts.addAll(backupDashboardService.collectCharts(dataviews));
             }
 
             exportPackage.setDatasources(datasources);
             exportPackage.setDatasets(datasets);
             exportPackage.setDashboards(dashboards);
             exportPackage.setDataviews(dataviews);
+            exportPackage.setFolders(folders);
+            exportPackage.setCharts(charts);
 
             // Save to file
             File backupDir = new File(backupPath);
@@ -128,50 +137,67 @@ public class BackupCenterManage {
 
             // ID映射表：用于存储旧ID到新ID的映射关系
             Map<String, String> idMapping = new HashMap<>();
+            // 图表 ID 映射表：用于存储旧图表ID到新图表ID的映射关系
+            Map<String, Long> chartIdMapping = new HashMap<>();
+
+            // Get folders from export package
+            List<BackupFolder> folders = exportPackage.getFolders();
 
             // Import datasources
-            if (exportPackage.getDatasources() != null) {
-                for (BackupDatasource ds : exportPackage.getDatasources()) {
-                    try {
-                        String originalId = ds.getId();
-                        String newId = backupDatasourceService.importDatasource(ds, request.isOverwrite());
-                        idMapping.put(originalId, newId);
-                        successCount++;
-                    } catch (Exception e) {
-                        failCount++;
-                        LogUtil.getLogger().error("Import datasource failed: " + ds.getName(), e);
-                    }
+            if (exportPackage.getDatasources() != null && !exportPackage.getDatasources().isEmpty()) {
+                try {
+                    backupDatasourceService.importDatasources(exportPackage.getDatasources(), folders, request.isOverwrite(), idMapping);
+                    successCount += exportPackage.getDatasources().size();
+                } catch (Exception e) {
+                    failCount += exportPackage.getDatasources().size();
+                    LogUtil.getLogger().error("Import datasources failed", e);
                 }
             }
 
             // Import datasets
-            if (exportPackage.getDatasets() != null) {
-                for (BackupDataset ds : exportPackage.getDatasets()) {
-                    try {
-                        backupDatasetService.importDatasetWithTables(ds, request.isOverwrite(), idMapping);
-                        successCount++;
-                    } catch (Exception e) {
-                        failCount++;
-                        LogUtil.getLogger().error("Import dataset failed: " + ds.getName(), e);
-                    }
+            if (exportPackage.getDatasets() != null && !exportPackage.getDatasets().isEmpty()) {
+                try {
+                    backupDatasetService.importDatasets(exportPackage.getDatasets(), folders, request.isOverwrite(), idMapping);
+                    successCount += exportPackage.getDatasets().size();
+                } catch (Exception e) {
+                    failCount += exportPackage.getDatasets().size();
+                    LogUtil.getLogger().error("Import datasets failed", e);
                 }
             }
 
-            // Import dashboards
-            if (exportPackage.getDashboards() != null) {
-                for (BackupDashboard dashboard : exportPackage.getDashboards()) {
-                    try {
-                        backupDashboardService.importDashboard(dashboard, request.isOverwrite());
-                        successCount++;
-                    } catch (Exception e) {
-                        failCount++;
-                        LogUtil.getLogger().error("Import dashboard failed: " + dashboard.getName(), e);
+            // Import charts (before dashboards to build chartIdMapping)
+            if (exportPackage.getCharts() != null && !exportPackage.getCharts().isEmpty()) {
+                // Build dashboardIdMapping and datasetIdMapping from idMapping if available
+                Map<String, Long> dashboardIdMapping = new HashMap<>();
+                Map<String, Long> datasetIdMapping = new HashMap<>();
+                if (exportPackage.getIdMapping() != null) {
+                    if (exportPackage.getIdMapping().getDatasetIds() != null) {
+                        for (ExportPackage.IdPair pair : exportPackage.getIdMapping().getDatasetIds()) {
+                            datasetIdMapping.put(pair.getOldId(), Long.parseLong(pair.getNewId()));
+                        }
                     }
+                    if (exportPackage.getIdMapping().getDashboardIds() != null) {
+                        for (ExportPackage.IdPair pair : exportPackage.getIdMapping().getDashboardIds()) {
+                            dashboardIdMapping.put(pair.getOldId(), Long.parseLong(pair.getNewId()));
+                        }
+                    }
+                }
+                backupDashboardService.importCharts(exportPackage.getCharts(), dashboardIdMapping, datasetIdMapping, chartIdMapping);
+            }
+
+            // Import dashboards (using chartIdMapping to replace chart IDs in componentData)
+            if (exportPackage.getDashboards() != null && !exportPackage.getDashboards().isEmpty()) {
+                try {
+                    backupDashboardService.importDashboards(exportPackage.getDashboards(), folders, request.isOverwrite(), chartIdMapping);
+                    successCount += exportPackage.getDashboards().size();
+                } catch (Exception e) {
+                    failCount += exportPackage.getDashboards().size();
+                    LogUtil.getLogger().error("Import dashboards failed", e);
                 }
             }
 
             // Import dataviews
-            if (exportPackage.getDataviews() != null) {
+            if (exportPackage.getDataviews() != null && !exportPackage.getDataviews().isEmpty()) {
                 for (BackupDataview dataview : exportPackage.getDataviews()) {
                     try {
                         backupDashboardService.importDataview(dataview, request.isOverwrite());
