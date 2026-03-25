@@ -51,6 +51,11 @@ public class ExportPackage {
     private List<BackupDataview> dataviews;
 
     /**
+     * 图表列表
+     */
+    private List<BackupChartView> charts;
+
+    /**
      * 目录列表
      */
     private List<BackupFolder> folders;
