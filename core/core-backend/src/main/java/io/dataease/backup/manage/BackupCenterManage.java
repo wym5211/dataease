@@ -520,6 +520,7 @@ public class BackupCenterManage {
                 (rs, rowNum) -> new DependencyInfo.ResourceItem(rs.getString("id"), rs.getString("name"))
             );
         } catch (Exception e) {
+            LogUtil.getLogger().error("Query dataset datasources failed", e);
             return Collections.emptyList();
         }
     }
@@ -538,6 +539,7 @@ public class BackupCenterManage {
                 (rs, rowNum) -> new DependencyInfo.ResourceItem(rs.getString("id"), rs.getString("name"))
             );
         } catch (Exception e) {
+            LogUtil.getLogger().error("Query dashboard datasets failed", e);
             return Collections.emptyList();
         }
     }
