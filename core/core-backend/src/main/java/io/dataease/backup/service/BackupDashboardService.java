@@ -17,7 +17,7 @@ public interface BackupDashboardService {
     void importDashboards(List<BackupDashboard> dashboards, List<BackupFolder> folders, boolean overwrite);
     void importDashboards(List<BackupDashboard> dashboards, List<BackupFolder> folders, boolean overwrite, Map<String, Long> chartIdMapping);
     void importDashboards(List<BackupDashboard> dashboards, List<BackupFolder> folders, boolean overwrite, Map<String, Long> chartIdMapping, Map<String, Long> dashboardIdMapping);
-    void importCharts(List<BackupChartView> charts, Map<String, Long> dashboardIdMapping, Map<String, Long> datasetIdMapping, Map<String, Long> chartIdMapping);
+    void importCharts(List<BackupChartView> charts, Map<String, Long> dashboardIdMapping, Map<String, Long> datasetIdMapping, Map<String, Long> chartIdMapping, boolean overwrite);
     void importDashboard(BackupDashboard dashboard, boolean overwrite);
     void importDataview(BackupDataview dataview, boolean overwrite);
     void importDataview(BackupDataview dataview, boolean overwrite, Map<String, Long> chartIdMapping);
