@@ -1,5 +1,6 @@
 package io.dataease.backup.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.dataease.backup.service.BackupDashboardService;
 import io.dataease.model.backup.BackupDashboard;
@@ -615,15 +616,45 @@ public class BackupDashboardServiceImpl implements BackupDashboardService {
     public void importCharts(List<BackupChartView> charts,
                              Map<String, Long> dashboardIdMapping,
                              Map<String, Long> datasetIdMapping,
-                             Map<String, Long> chartIdMapping) {
+                             Map<String, Long> chartIdMapping,
+                             boolean overwrite) {
         if (charts == null || charts.isEmpty()) {
             LogUtil.getLogger().info("importCharts: charts 为空");
             return;
         }
-        LogUtil.getLogger().info("importCharts: 开始导入 {} 个图表", charts.size());
+        LogUtil.getLogger().info("importCharts: 开始导入 {} 个图表, overwrite={}", charts.size(), overwrite);
         for (BackupChartView chart : charts) {
             try {
                 LogUtil.getLogger().info("importCharts: 处理图表 title={}, id={}, sceneId={}", chart.getTitle(), chart.getId(), chart.getSceneId());
+
+                // 先计算 newSceneId（用于后续去重检查）
+                Long oldSceneId = chart.getSceneId();
+                Long newSceneId = dashboardIdMapping.get(String.valueOf(oldSceneId));
+                newSceneId = newSceneId != null ? newSceneId : oldSceneId;
+
+                // 检查是否已存在同名图表（在同一仪表板下）
+                CoreChartView existingChart = coreChartViewMapper.selectOne(
+                    new LambdaQueryWrapper<CoreChartView>()
+                        .eq(CoreChartView::getTitle, chart.getTitle())
+                        .eq(CoreChartView::getSceneId, newSceneId)
+                );
+
+                if (existingChart != null) {
+                    if (overwrite) {
+                        // 覆盖模式：更新已有图表
+                        LogUtil.getLogger().info("importCharts: 覆盖已有图表 title={}, id={}", chart.getTitle(), existingChart.getId());
+                        // 更新图表字段
+                        updateChartFromBackup(existingChart, chart, datasetIdMapping, newSceneId);
+                        chartIdMapping.put(chart.getId(), existingChart.getId());
+                        continue;
+                    } else {
+                        // 非覆盖模式：重命名后创建
+                        LogUtil.getLogger().info("importCharts: 重命名图表 title={}", chart.getTitle());
+                        String newTitle = generateUniqueChartTitle(chart.getTitle(), newSceneId);
+                        chart.setTitle(newTitle);
+                    }
+                }
+
                 // 不检查原ID是否存在，直接创建新图表
                 LogUtil.getLogger().info("importCharts: 创建新图表 title={}", chart.getTitle());
                 CoreChartView newChart = new CoreChartView();
@@ -690,6 +721,73 @@ public class BackupDashboardServiceImpl implements BackupDashboardService {
             }
         }
         LogUtil.getLogger().info("importCharts: 完成, chartIdMapping 大小={}", chartIdMapping.size());
+    }
+
+    private void updateChartFromBackup(CoreChartView existing, BackupChartView backup, Map<String, Long> datasetIdMapping, Long newSceneId) {
+        // 设置 sceneId（不更改，保持关联到目标仪表板）
+        existing.setSceneId(newSceneId);
+
+        // 替换 tableId
+        Long oldTableId = backup.getTableId();
+        Long newTableId = datasetIdMapping.get(String.valueOf(oldTableId));
+        existing.setTableId(newTableId != null ? newTableId : oldTableId);
+
+        // 更新其他可变更字段
+        existing.setType(backup.getType());
+        existing.setRender(backup.getRender());
+        existing.setResultCount(backup.getResultCount());
+        existing.setResultMode(backup.getResultMode());
+        existing.setxAxis(backup.getxAxis());
+        existing.setxAxisExt(backup.getxAxisExt());
+        existing.setyAxis(backup.getyAxis());
+        existing.setyAxisExt(backup.getyAxisExt());
+        existing.setExtStack(backup.getExtStack());
+        existing.setExtBubble(backup.getExtBubble());
+        existing.setExtLabel(backup.getExtLabel());
+        existing.setExtTooltip(backup.getExtTooltip());
+        existing.setCustomAttr(backup.getCustomAttr());
+        existing.setCustomStyle(backup.getCustomStyle());
+        existing.setCustomFilter(backup.getCustomFilter());
+        existing.setDrillFields(backup.getDrillFields());
+        existing.setSenior(backup.getSenior());
+        existing.setSnapshot(backup.getSnapshot());
+        existing.setStylePriority(backup.getStylePriority());
+        existing.setChartType(backup.getChartType());
+        existing.setDataFrom(backup.getDataFrom());
+        existing.setViewFields(backup.getViewFields());
+        existing.setRefreshViewEnable(backup.getRefreshViewEnable());
+        existing.setRefreshUnit(backup.getRefreshUnit());
+        existing.setRefreshTime(backup.getRefreshTime());
+        existing.setLinkageActive(backup.getLinkageActive());
+        existing.setJumpActive(backup.getJumpActive());
+        existing.setCopyFrom(backup.getCopyFrom());
+        existing.setCopyId(backup.getCopyId());
+        existing.setAggregate(backup.getAggregate());
+        existing.setFlowMapStartName(backup.getFlowMapStartName());
+        existing.setFlowMapEndName(backup.getFlowMapEndName());
+        existing.setExtColor(backup.getExtColor());
+        existing.setCustomAttrMobile(backup.getCustomAttrMobile());
+        existing.setCustomStyleMobile(backup.getCustomStyleMobile());
+        existing.setSortPriority(backup.getSortPriority());
+        existing.setUpdateTime(System.currentTimeMillis());
+
+        coreChartViewMapper.updateById(existing);
+    }
+
+    private String generateUniqueChartTitle(String baseTitle, Long sceneId) {
+        for (int i = 1; i <= 1000; i++) {
+            String newTitle = baseTitle + "_" + i;
+            Long count = coreChartViewMapper.selectCount(
+                new LambdaQueryWrapper<CoreChartView>()
+                    .eq(CoreChartView::getTitle, newTitle)
+                    .eq(CoreChartView::getSceneId, sceneId)
+            );
+            if (count == 0) {
+                return newTitle;
+            }
+        }
+        // Fallback: use timestamp
+        return baseTitle + "_" + System.currentTimeMillis();
     }
 
     @Override
