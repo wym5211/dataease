@@ -137,3 +137,23 @@ export const getImportModes = (): Promise<IResponse> => {
 export const getBackupPath = (): Promise<IResponse> => {
   return request.get({ url: '/backupCenter/backupPath' })
 }
+
+// 依赖信息接口
+export interface DependencyInfo {
+  hasDependencies: boolean
+  dependencies: {
+    datasources: { id: string; name: string }[]
+    datasets: { id: string; name: string }[]
+  }
+}
+
+// 检测资源依赖
+export const checkDependencies = (
+  type: 'dataset' | 'dashboard' | 'dataview',
+  resourceIds: string[]
+): Promise<IResponse<DependencyInfo>> => {
+  return request.post({
+    url: '/backupCenter/checkDependencies',
+    data: { type, resourceIds }
+  })
+}
