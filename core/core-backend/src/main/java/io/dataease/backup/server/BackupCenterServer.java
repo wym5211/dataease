@@ -4,6 +4,7 @@ import io.dataease.api.backup.BackupCenterApi;
 import io.dataease.backup.manage.BackupCenterManage;
 import io.dataease.model.backup.BackupRequest;
 import io.dataease.model.backup.BackupResponse;
+import io.dataease.model.backup.DependencyInfo;
 import io.dataease.model.backup.ExportPackage;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletResponse;
@@ -117,5 +118,15 @@ public class BackupCenterServer implements BackupCenterApi {
     @GetMapping("/backupPath")
     public String getBackupPath() {
         return backupCenterManage.getBackupPath();
+    }
+
+    @Override
+    @Operation(summary = "检测资源依赖")
+    @PostMapping("/checkDependencies")
+    public DependencyInfo checkDependencies(@RequestBody Map<String, Object> request) {
+        String type = (String) request.get("type");
+        @SuppressWarnings("unchecked")
+        List<String> resourceIds = (List<String>) request.get("resourceIds");
+        return backupCenterManage.checkDependencies(type, resourceIds);
     }
 }

@@ -10,12 +10,14 @@ import io.dataease.utils.LogUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -34,6 +36,9 @@ public class BackupCenterManage {
 
     @Autowired
     private BackupDashboardService backupDashboardService;
+
+    @Autowired
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     private Map<String, ExportPackage> exportPackages = new HashMap<>();
 
@@ -458,6 +463,82 @@ public class BackupCenterManage {
         } catch (Exception e) {
             LogUtil.getLogger().error("Parse export package failed", e);
             return null;
+        }
+    }
+
+    public DependencyInfo checkDependencies(String type, List<String> resourceIds) {
+        DependencyInfo result = new DependencyInfo();
+        DependencyInfo.Dependencies dependencies = result.getDependencies();
+
+        if (resourceIds == null || resourceIds.isEmpty()) {
+            result.setHasDependencies(false);
+            return result;
+        }
+
+        switch (type) {
+            case "dataset":
+                List<DependencyInfo.ResourceItem> datasources = queryDatasetDatasources(resourceIds);
+                dependencies.getDatasources().addAll(datasources);
+                break;
+            case "dashboard":
+            case "dataview":
+                List<DependencyInfo.ResourceItem> datasets = queryDashboardDatasets(resourceIds);
+                dependencies.getDatasets().addAll(datasets);
+                if (!datasets.isEmpty()) {
+                    List<String> datasetIds = datasets.stream()
+                        .map(DependencyInfo.ResourceItem::getId)
+                        .distinct()
+                        .collect(Collectors.toList());
+                    List<DependencyInfo.ResourceItem> ds = queryDatasetDatasources(datasetIds);
+                    dependencies.getDatasources().addAll(ds);
+                }
+                break;
+            default:
+                break;
+        }
+
+        dependencies.setDatasources(new ArrayList<>(new HashSet<>(dependencies.getDatasources())));
+        dependencies.setDatasets(new ArrayList<>(new HashSet<>(dependencies.getDatasets())));
+
+        result.setHasDependencies(
+            !dependencies.getDatasources().isEmpty() || !dependencies.getDatasets().isEmpty()
+        );
+        return result;
+    }
+
+    private List<DependencyInfo.ResourceItem> queryDatasetDatasources(List<String> datasetIds) {
+        if (datasetIds == null || datasetIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        try {
+            String sql = "SELECT DISTINCT d.id, d.name FROM core_datasource d " +
+                         "INNER JOIN core_dataset_table dt ON d.id = dt.datasource_id " +
+                         "WHERE dt.id IN (:ids)";
+            return namedParameterJdbcTemplate.query(
+                sql,
+                Map.of("ids", datasetIds),
+                (rs, rowNum) -> new DependencyInfo.ResourceItem(rs.getString("id"), rs.getString("name"))
+            );
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
+    }
+
+    private List<DependencyInfo.ResourceItem> queryDashboardDatasets(List<String> dashboardIds) {
+        if (dashboardIds == null || dashboardIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        try {
+            String sql = "SELECT DISTINCT dt.id, dt.name FROM core_dataset_table dt " +
+                         "INNER JOIN core_chart_view cv ON dt.id = cv.table_id " +
+                         "WHERE cv.scene_id IN (:ids)";
+            return namedParameterJdbcTemplate.query(
+                sql,
+                Map.of("ids", dashboardIds),
+                (rs, rowNum) -> new DependencyInfo.ResourceItem(rs.getString("id"), rs.getString("name"))
+            );
+        } catch (Exception e) {
+            return Collections.emptyList();
         }
     }
 }

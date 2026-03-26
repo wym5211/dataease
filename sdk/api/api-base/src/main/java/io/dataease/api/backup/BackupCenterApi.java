@@ -5,6 +5,7 @@ import io.dataease.auth.DeApiPath;
 import io.dataease.auth.DePermit;
 import io.dataease.model.backup.BackupRequest;
 import io.dataease.model.backup.BackupResponse;
+import io.dataease.model.backup.DependencyInfo;
 import io.dataease.model.backup.ExportPackage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -78,4 +79,8 @@ public interface BackupCenterApi {
     @Operation(summary = "获取导出目录")
     @GetMapping("/backupPath")
     String getBackupPath();
+
+    @Operation(summary = "检测资源依赖")
+    @PostMapping("/checkDependencies")
+    DependencyInfo checkDependencies(@RequestBody Map<String, Object> request);
 }
