@@ -149,7 +149,7 @@ import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus-secondary'
 import { useI18n } from '@/hooks/web/useI18n'
 import { exportData, importData, previewBackup, uploadBackup, downloadBackup, checkDependencies } from '@/api/backup'
-import type { DependencyInfo } from '@/api/backup'
+import type { DependencyInfo, ExportPackage } from '@/api/backup'
 import ResourceSelectDialog from './ResourceSelectDialog.vue'
 
 const { t } = useI18n()
@@ -157,9 +157,14 @@ const { t } = useI18n()
 const visible = ref(false)
 const loading = ref(false)
 const activeTab = ref('export')
+interface FileListItem {
+  name: string
+  raw: File
+}
+
 const uploadRef = ref(null)
-const previewData = ref(null)
-const fileList = ref([])
+const previewData = ref<ExportPackage | null>(null)
+const fileList = ref<FileListItem[]>([])
 const resourceSelectDialog = ref<InstanceType<typeof ResourceSelectDialog>>()
 const dependencyDialogVisible = ref(false)
 const dependencyInfo = ref<DependencyInfo | null>(null)
@@ -304,7 +309,12 @@ const handleImport = async () => {
   }
 }
 
-const handleFileChange = async (uploadFile, uploadFiles) => {
+interface UploadFile {
+  raw: File
+  name: string
+}
+
+const handleFileChange = async (uploadFile: UploadFile, uploadFiles: UploadFile[]) => {
   // 只保留最新选择的文件
   if (uploadFiles && uploadFiles.length > 1) {
     // 更新 v-model 绑定的 fileList 来替换旧文件
