@@ -157,6 +157,43 @@
         </el-col>
       </el-row>
     </div>
+
+    <!-- 资源选择弹窗 -->
+    <ResourceSelectDialog ref="resourceSelectDialog" @confirm="onResourceSelected" />
+
+    <!-- 依赖确认弹窗 -->
+    <el-dialog
+      v-model="dependencyDialogVisible"
+      :title="t('backup.dependency_detected')"
+      width="500px"
+      :close-on-click-modal="false"
+    >
+      <p>{{ t('backup.dependency_desc', { type: getTypeName(exportForm.type) }) }}</p>
+      <el-checkbox-group v-model="selectedDependencyIds" style="margin-top: 16px">
+        <div
+          v-for="ds in dependencyInfo?.dependencies?.datasources"
+          :key="ds.id"
+          style="margin-bottom: 8px"
+        >
+          <el-checkbox :label="ds.id">{{ ds.name }} ({{ t('backup.datasource') }})</el-checkbox>
+        </div>
+        <div
+          v-for="dt in dependencyInfo?.dependencies?.datasets"
+          :key="dt.id"
+          style="margin-bottom: 8px"
+        >
+          <el-checkbox :label="dt.id">{{ dt.name }} ({{ t('backup.dataset') }})</el-checkbox>
+        </div>
+      </el-checkbox-group>
+      <template #footer>
+        <el-button @click="onDependencyConfirm(false)">{{
+          t('backup.export_selected_only')
+        }}</el-button>
+        <el-button type="primary" @click="onDependencyConfirm(true)">{{
+          t('backup.export_all')
+        }}</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -171,9 +208,11 @@ import {
   previewBackup,
   uploadBackup,
   downloadBackup,
-  getBackupHistory
+  getBackupHistory,
+  checkDependencies
 } from '@/api/backup'
-import type { BackupRequest, ExportPackage } from '@/api/backup'
+import type { BackupRequest, ExportPackage, DependencyInfo } from '@/api/backup'
+import ResourceSelectDialog from '@/components/backup/ResourceSelectDialog.vue'
 
 interface BackupHistoryItem {
   id: string
@@ -219,6 +258,11 @@ const exporting = ref(false)
 const importing = ref(false)
 const uploadRef = ref()
 const fileList = ref([])
+const resourceSelectDialog = ref()
+const dependencyDialogVisible = ref(false)
+const dependencyInfo = ref<DependencyInfo | null>(null)
+const pendingSelectedIds = ref<string[]>([])
+const selectedDependencyIds = ref<string[]>([])
 
 onMounted(() => {
   if (isAdmin.value) {
@@ -238,11 +282,65 @@ const loadHistory = async () => {
 }
 
 const handleExport = async () => {
+  if (exportForm.value.type === 'combined') {
+    doExport([])
+  } else {
+    resourceSelectDialog.value?.open(
+      exportForm.value.type as 'datasource' | 'dataset' | 'dashboard' | 'dataview'
+    )
+  }
+}
+
+const onResourceSelected = async (selectedIds: string[]) => {
+  if (exportForm.value.type === 'datasource') {
+    doExport(selectedIds)
+  } else {
+    try {
+      exporting.value = true
+      const result = await checkDependencies(
+        exportForm.value.type as 'dataset' | 'dashboard' | 'dataview',
+        selectedIds
+      )
+      if (result.data?.hasDependencies) {
+        pendingSelectedIds.value = selectedIds
+        dependencyInfo.value = result.data
+        selectedDependencyIds.value = [
+          ...result.data.dependencies.datasources.map(d => d.id),
+          ...result.data.dependencies.datasets.map(d => d.id)
+        ]
+        dependencyDialogVisible.value = true
+      } else {
+        doExport(selectedIds)
+      }
+    } catch (e) {
+      console.error('Dependency check failed:', e)
+      ElMessage.warning(t('backup.dependency_check_failed'))
+      doExport(selectedIds)
+    } finally {
+      exporting.value = false
+    }
+  }
+}
+
+const onDependencyConfirm = (includeDeps: boolean) => {
+  dependencyDialogVisible.value = false
+  if (includeDeps && dependencyInfo.value) {
+    const allIds = [...pendingSelectedIds.value, ...selectedDependencyIds.value]
+    doExport(allIds)
+  } else {
+    doExport(pendingSelectedIds.value)
+  }
+  dependencyInfo.value = null
+  pendingSelectedIds.value = []
+  selectedDependencyIds.value = []
+}
+
+const doExport = async (resourceIds: string[]) => {
   try {
     exporting.value = true
     const result = await exportData({
       type: exportForm.value.type,
-      resourceIds: [],
+      resourceIds,
       options: exportForm.value.options
     })
 

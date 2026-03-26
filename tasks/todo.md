@@ -340,6 +340,84 @@
    - `handleCheckAllChange` 参数：`any` → `boolean`
    - 所有 filter/map 回调参数使用 `OptionItem` 类型
 
+---
+
+## Task: 后端添加依赖检测接口
+
+### 计划
+
+- [x] 1. 创建 DependencyInfo.java DTO
+- [x] 2. 修改 BackupCenterApi.java 添加接口定义
+- [x] 3. 修改 BackupCenterServer.java 实现接口
+- [x] 4. 修改 BackupCenterManage.java 添加检测逻辑
+- [x] 5. 提交代码
+
+### 完成情况
+
+**修改内容：**
+
+1. **DependencyInfo.java** (新建)
+   - 文件：`sdk/common/src/main/java/io/dataease/model/backup/DependencyInfo.java`
+   - 包含 `hasDependencies` 字段和 `Dependencies` 内部类
+   - `ResourceItem` 内部类包含 `id` 和 `name` 字段，实现了 `equals` 和 `hashCode`
+
+2. **BackupCenterApi.java** (修改)
+   - 添加 `checkDependencies` 接口定义
+   - 添加 `DependencyInfo` import
+
+3. **BackupCenterServer.java** (修改)
+   - 实现 `checkDependencies` 方法
+   - 从 request 中提取 `type` 和 `resourceIds`
+
+4. **BackupCenterManage.java** (修改)
+   - 添加 `NamedParameterJdbcTemplate` 依赖注入
+   - 添加 `checkDependencies` 公共方法
+   - 添加 `queryDatasetDatasources` 私有方法（查询数据集依赖的数据源）
+   - 添加 `queryDashboardDatasets` 私有方法（查询仪表板/大屏依赖的数据集）
+
+**提交：** `5e42c0a7d feat(backup): add dependency check API`
+
+---
+
+## Task 4: 修改 ExportImportDialog 集成选择器
+
+### 计划
+
+- [x] 1. Template 部分修改
+  - 移除导出面板中数据源和数据集的 `el-tree-select` 选择器
+  - 在对话框外部添加 `ResourceSelectDialog` 组件
+  - 添加依赖确认对话框（el-dialog）
+
+- [x] 2. Script 部分修改
+  - 导入 `ResourceSelectDialog` 组件
+  - 导入 `checkDependencies` 和 `DependencyInfo` 类型
+  - 添加依赖确认相关的响应式变量
+  - 修改 `handleExport` 函数逻辑
+  - 添加 `onResourceSelected` 函数
+  - 添加 `onDependencyConfirm` 函数
+  - 添加 `doExport` 统一导出逻辑
+
+- [x] 3. 提交代码
+
+### 完成情况
+
+**修改内容：**
+1. Template 部分：
+   - 移除了内联的 `el-tree-select` 组件（数据源和数据集选择器）
+   - 添加了 `ResourceSelectDialog` 组件引用
+   - 添加了依赖确认对话框 `el-dialog`
+
+2. Script 部分：
+   - 导入 `ResourceSelectDialog` 组件
+   - 导入 `checkDependencies` 和 `DependencyInfo`
+   - 添加响应式变量：`resourceSelectDialog`, `dependencyDialogVisible`, `dependencyInfo`, `pendingSelectedIds`
+   - 修改 `handleExport` 逻辑：combined 类型直接导出，其他类型打开选择器
+   - 添加 `onResourceSelected`：处理选择回调，检测依赖
+   - 添加 `onDependencyConfirm`：处理依赖确认
+   - 添加 `doExport`：统一导出逻辑
+
+---
+
 **2026-03-19 bar/line 图表组件修复**：
 修复了 7 个图表文件中的所有 `@typescript-eslint/no-explicit-any` 警告：
 

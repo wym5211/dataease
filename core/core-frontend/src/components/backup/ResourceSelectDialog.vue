@@ -52,11 +52,7 @@
 
     <template #footer>
       <el-button @click="handleClose">{{ t('commons.cancel') }}</el-button>
-      <el-button
-        type="primary"
-        :disabled="selectedCount === 0"
-        @click="handleConfirm"
-      >
+      <el-button type="primary" :disabled="selectedCount === 0" @click="handleConfirm">
         {{ t('backup.confirm_export') }}
       </el-button>
     </template>
@@ -67,7 +63,12 @@
 import { ref, computed, watch } from 'vue'
 import { Search, Folder } from '@element-plus/icons-vue'
 import { useI18n } from '@/hooks/web/useI18n'
-import { getDatasourceList, getDatasetTree, getDashboardTree, getDataviewTree } from '@/api/resourceTree'
+import {
+  getDatasourceList,
+  getDatasetTree,
+  getDashboardTree,
+  getDataviewTree
+} from '@/api/resourceTree'
 import type { TreeNode } from '@/api/resourceTree'
 
 const { t } = useI18n()
@@ -102,7 +103,7 @@ const selectedCount = computed(() => {
   return checkedNodes.length
 })
 
-watch(filterText, (val) => {
+watch(filterText, val => {
   treeRef.value?.filter(val)
 })
 
@@ -130,7 +131,7 @@ const loadTreeData = async (type: ResourceType) => {
         break
       case 'dataset':
         response = await getDatasetTree()
-        treeData.value = ((response?.data as any[]) || [])
+        treeData.value = (response?.data as any[]) || []
         break
       case 'dashboard':
         response = await getDashboardTree()
