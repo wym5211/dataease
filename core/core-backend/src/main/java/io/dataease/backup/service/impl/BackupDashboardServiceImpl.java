@@ -659,10 +659,8 @@ public class BackupDashboardServiceImpl implements BackupDashboardService {
                 LogUtil.getLogger().info("importCharts: 创建新图表 title={}", chart.getTitle());
                 CoreChartView newChart = new CoreChartView();
                 newChart.setTitle(chart.getTitle());
-                // 替换 sceneId
-                Long oldSceneId = chart.getSceneId();
-                Long newSceneId = dashboardIdMapping.get(String.valueOf(oldSceneId));
-                newChart.setSceneId(newSceneId != null ? newSceneId : oldSceneId);
+                // 复用已计算的 newSceneId
+                newChart.setSceneId(newSceneId);
                 // 替换 tableId
                 Long oldTableId = chart.getTableId();
                 Long newTableId = datasetIdMapping.get(String.valueOf(oldTableId));

@@ -9,7 +9,8 @@
       "Bash(playwright-cli close:*)",
       "Bash(playwright-cli open:*)",
       "Bash(playwright-cli snapshot:*)",
-      "Bash(playwright-cli fill:*)"
+      "Bash(playwright-cli fill:*)",
+      "Bash(claude plugin:*)"
     ]
   }
 }
