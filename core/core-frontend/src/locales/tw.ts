@@ -769,7 +769,18 @@ export default {
     file_name: '檔案名稱',
     resource_count: '資源數量',
     status: '狀態',
-    operation: '操作'
+    operation: '操作',
+    select_resource_title: '選擇要匯出的{type}',
+    selected_count: '已選擇 {count} 個資源',
+    no_selection: '請至少選擇一個資源',
+    no_resources: '暫無可匯出的資源',
+    dependency_detected: '檢測到依賴資源',
+    dependency_desc: '您選擇的{type}依賴以下資源，是否一併匯出？',
+    dependency_check_failed: '依賴檢測失敗，將僅匯出所選資源',
+    export_selected_only: '僅匯出所選',
+    export_all: '全部匯出',
+    search_resource: '搜尋資源',
+    confirm_export: '確認匯出'
   },
   user: {
     change_password: '修改密碼',

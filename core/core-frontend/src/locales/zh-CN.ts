@@ -772,7 +772,18 @@ export default {
     file_name: '文件名',
     resource_count: '资源数量',
     status: '状态',
-    operation: '操作'
+    operation: '操作',
+    select_resource_title: '选择要导出的{type}',
+    selected_count: '已选择 {count} 个资源',
+    no_selection: '请至少选择一个资源',
+    no_resources: '暂无可导出的资源',
+    dependency_detected: '检测到依赖资源',
+    dependency_desc: '您选择的{type}依赖以下资源，是否一并导出？',
+    dependency_check_failed: '依赖检测失败，将仅导出所选资源',
+    export_selected_only: '仅导出所选',
+    export_all: '全部导出',
+    search_resource: '搜索资源',
+    confirm_export: '确认导出'
   },
   user: {
     change_password: '修改密码',

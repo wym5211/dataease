@@ -794,7 +794,18 @@ export default {
     file_name: 'File Name',
     resource_count: 'Resource Count',
     status: 'Status',
-    operation: 'Operation'
+    operation: 'Operation',
+    select_resource_title: 'Select {type} to export',
+    selected_count: '{count} resources selected',
+    no_selection: 'Please select at least one resource',
+    no_resources: 'No resources available for export',
+    dependency_detected: 'Dependencies detected',
+    dependency_desc: 'The {type} you selected depends on the following resources. Export them together?',
+    dependency_check_failed: 'Dependency check failed. Only selected resources will be exported',
+    export_selected_only: 'Export selected only',
+    export_all: 'Export all',
+    search_resource: 'Search resources',
+    confirm_export: 'Confirm export'
   },
   user: {
     change_password: 'Change Password',
