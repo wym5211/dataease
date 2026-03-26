@@ -186,7 +186,7 @@ public class BackupCenterManage {
                     }
                 }
                 LogUtil.getLogger().info("调用 importCharts 前, datasetIdMapping 大小: {}, chartIdMapping 大小: {}, dashboardIdMapping 大小: {}", datasetIdMapping.size(), chartIdMapping.size(), dashboardIdMapping.size());
-                backupDashboardService.importCharts(exportPackage.getCharts(), dashboardIdMapping, datasetIdMapping, chartIdMapping);
+                backupDashboardService.importCharts(exportPackage.getCharts(), dashboardIdMapping, datasetIdMapping, chartIdMapping, request.isOverwrite());
                 LogUtil.getLogger().info("调用 importCharts 后, chartIdMapping 大小: {}", chartIdMapping.size());
             } else {
                 LogUtil.getLogger().info("没有图表需要导入, charts 为空或 null");
