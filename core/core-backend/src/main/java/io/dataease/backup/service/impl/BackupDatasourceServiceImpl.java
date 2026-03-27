@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.dataease.backup.service.BackupDatasourceService;
 import io.dataease.datasource.dao.auto.entity.CoreDatasource;
 import io.dataease.datasource.dao.auto.mapper.CoreDatasourceMapper;
+import io.dataease.datasource.manage.DataSourceManage;
 import io.dataease.extensions.datasource.dto.DatasourceDTO;
 import io.dataease.datasource.provider.CalciteProvider;
 import io.dataease.model.backup.BackupDatasource;
@@ -28,6 +29,9 @@ public class BackupDatasourceServiceImpl implements BackupDatasourceService {
 
     @Autowired
     private CalciteProvider calciteProvider;
+
+    @Autowired
+    private DataSourceManage dataSourceManage;
 
     private Logger logger = LogUtil.getLogger();
 
@@ -90,7 +94,7 @@ public class BackupDatasourceServiceImpl implements BackupDatasourceService {
                 BeanUtils.copyBean(datasourceDTO, existing);
                 logger.info("=== Backup import (overwrite): updating datasource, id={}, name={} ===", existing.getId(), existing.getName());
                 calciteProvider.update(datasourceDTO);
-                waitForSchemaReady(existing.getId());
+                waitForSchemaReady(existing);
 
                 return String.valueOf(existing.getId());
             } else if (existing != null) {
@@ -114,7 +118,7 @@ public class BackupDatasourceServiceImpl implements BackupDatasourceService {
                 BeanUtils.copyBean(datasourceDTO, newDs);
                 logger.info("=== Backup import: registering datasource (renamed), id={}, name={} ===", newDs.getId(), newDs.getName());
                 calciteProvider.update(datasourceDTO);
-                waitForSchemaReady(newDs.getId());
+                waitForSchemaReady(newDs);
 
                 return String.valueOf(newDs.getId());
             } else {
@@ -137,7 +141,7 @@ public class BackupDatasourceServiceImpl implements BackupDatasourceService {
                 BeanUtils.copyBean(datasourceDTO, newDs);
                 logger.info("=== Backup import: registering datasource, id={}, name={} ===", newDs.getId(), newDs.getName());
                 calciteProvider.update(datasourceDTO);
-                waitForSchemaReady(newDs.getId());
+                waitForSchemaReady(newDs);
 
                 return String.valueOf(newDs.getId());
             }
@@ -161,7 +165,8 @@ public class BackupDatasourceServiceImpl implements BackupDatasourceService {
         return baseName + "_" + System.currentTimeMillis();
     }
 
-    private void waitForSchemaReady(Long datasourceId) {
+    private void waitForSchemaReady(CoreDatasource coreDatasource) {
+        Long datasourceId = coreDatasource.getId();
         // calciteProvider.update是异步的，需要等待schema构建完成
         // 等待最多5秒，每500ms检查一次，实际验证schema是否准备好
         for (int i = 0; i < MAX_WAIT_RETRIES; i++) {
@@ -169,6 +174,8 @@ public class BackupDatasourceServiceImpl implements BackupDatasourceService {
                 Thread.sleep(WAIT_INTERVAL_MS);
                 if (calciteProvider.isSchemaReady(datasourceId)) {
                     logger.info("=== Schema is ready for datasource {} after {} ms ===", datasourceId, (i + 1) * WAIT_INTERVAL_MS);
+                    coreDatasource.setStatus("Success");
+                    dataSourceManage.innerEditStatus(coreDatasource);
                     return;
                 }
                 logger.debug("=== Waiting for schema to be ready for datasource {}, attempt {} ===", datasourceId, i + 1);
@@ -180,6 +187,8 @@ public class BackupDatasourceServiceImpl implements BackupDatasourceService {
             }
         }
         logger.warn("=== Schema may not be ready for datasource {} after {} ms ===", datasourceId, MAX_WAIT_RETRIES * WAIT_INTERVAL_MS);
+        coreDatasource.setStatus("Error");
+        dataSourceManage.innerEditStatus(coreDatasource);
     }
 
     /**
@@ -418,115 +427,135 @@ public class BackupDatasourceServiceImpl implements BackupDatasourceService {
             logger.info("=== importDatasources: folders is null or empty ===");
         }
 
-        // 导入数据源（跳过 type = "folder" 的记录，它们已在 folders 中处理）
+        // 第一阶段：创建所有数据源（DB操作，串行），收集需要注册 Calcite 的数据源
+        List<CoreDatasource> pendingCalcite = new ArrayList<>();
         for (BackupDatasource datasource : datasources) {
             if ("folder".equals(datasource.getType())) {
-                // 跳过文件夹类型，它们已在上面通过 createOrFindDatasourceFolder 处理
                 continue;
             }
             try {
                 String originalId = datasource.getId();
-                String newId = importDatasource(datasource, overwrite, idMapping, folderMapping);
-                idMapping.put(originalId, newId);
+                CoreDatasource created = createDatasourceInDb(datasource, overwrite, idMapping, folderMapping);
+                idMapping.put(originalId, String.valueOf(created.getId()));
+                pendingCalcite.add(created);
             } catch (Exception e) {
                 logger.error("Import datasource failed: " + datasource.getName(), e);
             }
         }
+
+        // 第二阶段：并行注册 Calcite schema + 统一等待
+        if (!pendingCalcite.isEmpty()) {
+            registerCalciteSchemasParallel(pendingCalcite);
+        }
+    }
+
+    /**
+     * 仅创建数据源到数据库，不注册 Calcite
+     */
+    private CoreDatasource createDatasourceInDb(BackupDatasource datasource, boolean overwrite, Map<String, String> idMapping, Map<String, Long> folderMapping) {
+        QueryWrapper<CoreDatasource> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("name", datasource.getName());
+        CoreDatasource existing = coreDatasourceMapper.selectOne(queryWrapper);
+
+        Long newPid = 0L;
+        if (datasource.getPid() != null && datasource.getPid() != 0L) {
+            newPid = folderMapping.getOrDefault("id_" + datasource.getPid(), 0L);
+        }
+
+        if (existing != null && overwrite) {
+            existing.setDescription(datasource.getDescription());
+            existing.setType(datasource.getType());
+            existing.setConfiguration(datasource.getConfiguration());
+            existing.setPid(newPid);
+            existing.setUpdateTime(System.currentTimeMillis());
+            coreDatasourceMapper.updateById(existing);
+            logger.info("=== Backup import (overwrite): updated datasource in DB, id={}, name={} ===", existing.getId(), existing.getName());
+            return existing;
+        } else if (existing != null) {
+            String newName = generateUniqueName(datasource.getName());
+            CoreDatasource newDs = new CoreDatasource();
+            newDs.setName(newName);
+            newDs.setDescription(datasource.getDescription());
+            newDs.setType(datasource.getType());
+            newDs.setConfiguration(datasource.getConfiguration());
+            newDs.setPid(newPid);
+            newDs.setEditType("1");
+            newDs.setCreateTime(System.currentTimeMillis());
+            newDs.setUpdateTime(System.currentTimeMillis());
+            coreDatasourceMapper.insert(newDs);
+            newDs = coreDatasourceMapper.selectOne(new QueryWrapper<CoreDatasource>().eq("name", newName));
+            logger.info("=== Backup import: created datasource in DB (renamed), id={}, name={} ===", newDs.getId(), newDs.getName());
+            return newDs;
+        } else {
+            CoreDatasource newDs = new CoreDatasource();
+            newDs.setName(datasource.getName());
+            newDs.setDescription(datasource.getDescription());
+            newDs.setType(datasource.getType());
+            newDs.setConfiguration(datasource.getConfiguration());
+            newDs.setPid(newPid);
+            newDs.setEditType("1");
+            newDs.setCreateTime(System.currentTimeMillis());
+            newDs.setUpdateTime(System.currentTimeMillis());
+            coreDatasourceMapper.insert(newDs);
+            newDs = coreDatasourceMapper.selectOne(new QueryWrapper<CoreDatasource>().eq("name", datasource.getName()));
+            logger.info("=== Backup import: created datasource in DB, id={}, name={}, type={} ===", newDs.getId(), newDs.getName(), newDs.getType());
+            return newDs;
+        }
+    }
+
+    /**
+     * 注册所有数据源的 Calcite schema（update 内部异步提交到线程池），
+     * 然后统一等待就绪并更新状态
+     */
+    private void registerCalciteSchemasParallel(List<CoreDatasource> datasources) {
+        // 触发所有数据源的 Calcite schema 异步构建
+        for (CoreDatasource ds : datasources) {
+            try {
+                DatasourceDTO datasourceDTO = new DatasourceDTO();
+                BeanUtils.copyBean(datasourceDTO, ds);
+                calciteProvider.update(datasourceDTO);
+            } catch (Exception e) {
+                logger.error("=== Calcite update failed for datasource {}, marking as Error ===", ds.getName(), e);
+                ds.setStatus("Error");
+                dataSourceManage.innerEditStatus(ds);
+            }
+        }
+
+        // 等待所有 schema 构建完成（统一等待，所有数据源并行构建）
+        for (int i = 0; i < MAX_WAIT_RETRIES; i++) {
+            try {
+                Thread.sleep(WAIT_INTERVAL_MS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+
+        // 检查每个数据源的 schema 状态并更新
+        for (CoreDatasource ds : datasources) {
+            if (ds.getStatus() != null) {
+                continue;
+            }
+            if (calciteProvider.isSchemaReady(ds.getId())) {
+                ds.setStatus("Success");
+            } else {
+                ds.setStatus("Error");
+                logger.warn("=== Schema NOT ready for datasource {} ===", ds.getId());
+            }
+            dataSourceManage.innerEditStatus(ds);
+        }
+        logger.info("=== Calcite schema registration completed: {} datasources ===", datasources.size());
     }
 
     /**
      * 导入数据源（带ID映射表和文件夹映射）
      */
     private String importDatasource(BackupDatasource datasource, boolean overwrite, Map<String, String> idMapping, Map<String, Long> folderMapping) {
-        try {
-            QueryWrapper<CoreDatasource> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("name", datasource.getName());
-            CoreDatasource existing = coreDatasourceMapper.selectOne(queryWrapper);
-
-            // 计算新pid：使用文件夹映射将原pid转换为新pid
-            Long newPid = 0L;
-            if (datasource.getPid() != null && datasource.getPid() != 0L) {
-                // 在folderMapping中查找原pid对应的新pid
-                newPid = folderMapping.getOrDefault("id_" + datasource.getPid(), 0L);
-            }
-
-            if (existing != null && overwrite) {
-                // 覆盖模式：更新现有数据源
-                existing.setDescription(datasource.getDescription());
-                existing.setType(datasource.getType());
-                existing.setConfiguration(datasource.getConfiguration());
-                existing.setPid(newPid);
-                existing.setUpdateTime(System.currentTimeMillis());
-                coreDatasourceMapper.updateById(existing);
-
-                // 更新Calcite连接池
-                DatasourceDTO datasourceDTO = new DatasourceDTO();
-                BeanUtils.copyBean(datasourceDTO, existing);
-                logger.info("=== Backup import (overwrite): updating datasource, id={}, name={} ===", existing.getId(), existing.getName());
-                calciteProvider.update(datasourceDTO);
-                waitForSchemaReady(existing.getId());
-
-                return String.valueOf(existing.getId());
-            } else if (existing != null) {
-                // 非覆盖模式：重命名后创建新数据源
-                String newName = generateUniqueName(datasource.getName());
-                CoreDatasource newDs = new CoreDatasource();
-                newDs.setName(newName);
-                newDs.setDescription(datasource.getDescription());
-                newDs.setType(datasource.getType());
-                newDs.setConfiguration(datasource.getConfiguration());
-                newDs.setPid(newPid);
-                newDs.setEditType("1");
-                newDs.setCreateTime(System.currentTimeMillis());
-                newDs.setUpdateTime(System.currentTimeMillis());
-                coreDatasourceMapper.insert(newDs);
-
-                // MyBatis-Plus insert后需要重新查询获取带ID的完整实体
-                newDs = coreDatasourceMapper.selectOne(new QueryWrapper<CoreDatasource>().eq("name", newName));
-
-                // 注册Calcite连接池
-                DatasourceDTO datasourceDTO = new DatasourceDTO();
-                BeanUtils.copyBean(datasourceDTO, newDs);
-                logger.info("=== Backup import: registering datasource (renamed), id={}, name={} ===", newDs.getId(), newDs.getName());
-                calciteProvider.update(datasourceDTO);
-                waitForSchemaReady(newDs.getId());
-
-                return String.valueOf(newDs.getId());
-            } else {
-                // 不存在：直接创建
-                CoreDatasource newDs = new CoreDatasource();
-                newDs.setName(datasource.getName());
-                newDs.setDescription(datasource.getDescription());
-                newDs.setType(datasource.getType());
-                newDs.setConfiguration(datasource.getConfiguration());
-                newDs.setPid(newPid);
-                newDs.setEditType("1");
-                newDs.setCreateTime(System.currentTimeMillis());
-                newDs.setUpdateTime(System.currentTimeMillis());
-                coreDatasourceMapper.insert(newDs);
-
-                // MyBatis-Plus insert后需要重新查询获取带ID的完整实体
-                newDs = coreDatasourceMapper.selectOne(new QueryWrapper<CoreDatasource>().eq("name", datasource.getName()));
-
-                // 注册Calcite连接池
-                DatasourceDTO datasourceDTO = new DatasourceDTO();
-                BeanUtils.copyBean(datasourceDTO, newDs);
-                logger.info("=== Backup import: registering datasource, id={}, name={}, type={} ===", newDs.getId(), newDs.getName(), newDs.getType());
-                try {
-                    calciteProvider.update(datasourceDTO);
-                    // 等待异步schema构建完成
-                    waitForSchemaReady(newDs.getId());
-                    logger.info("=== Backup import: calcite registration completed ===");
-                } catch (Exception e) {
-                    logger.error("=== Backup import: calcite registration failed ===", e);
-                    throw e;
-                }
-
-                return String.valueOf(newDs.getId());
-            }
-        } catch (Exception e) {
-            logger.error("Import datasource failed: " + datasource.getName(), e);
-            throw e;
-        }
+        CoreDatasource ds = createDatasourceInDb(datasource, overwrite, idMapping, folderMapping);
+        DatasourceDTO datasourceDTO = new DatasourceDTO();
+        BeanUtils.copyBean(datasourceDTO, ds);
+        calciteProvider.update(datasourceDTO);
+        waitForSchemaReady(ds);
+        return String.valueOf(ds.getId());
     }
 }

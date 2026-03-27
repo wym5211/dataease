@@ -470,7 +470,7 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
             if (dataset.getTables() != null) {
                 Map<String, String> tableIdMapping = new HashMap<>();
                 for (BackupDatasetTable backupTable : dataset.getTables()) {
-                    importDatasetTable(backupTable, newDatasetId, datasourceIdMapping, tableIdMapping);
+                    importDatasetTable(backupTable, newDatasetId, datasourceIdMapping, tableIdMapping, null);
                 }
             }
 
@@ -503,17 +503,14 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
 
     private void importDatasetTable(BackupDatasetTable backupTable, String newDatasetId,
                                     Map<String, String> datasourceIdMapping,
-                                    Map<String, String> tableIdMapping) {
-        // 1. datasourceId 按名称匹配，如果失败则使用ID映射
+                                    Map<String, String> tableIdMapping,
+                                    Map<String, Long> datasourceNameToId) {
+        // 1. datasourceId 从预查询的 Map 中查找，如果失败则使用ID映射
         Long newDatasourceId = null;
-        if (backupTable.getDatasourceName() != null) {
-            // 按名称查找数据源
-            QueryWrapper<CoreDatasource> dsQuery = new QueryWrapper<>();
-            dsQuery.eq("name", backupTable.getDatasourceName());
-            CoreDatasource ds = coreDatasourceMapper.selectOne(dsQuery);
-            if (ds != null) {
-                newDatasourceId = ds.getId();
-                LogUtil.getLogger().info("=== Found datasource by name: {} -> {} ===", backupTable.getDatasourceName(), newDatasourceId);
+        if (backupTable.getDatasourceName() != null && datasourceNameToId != null) {
+            newDatasourceId = datasourceNameToId.get(backupTable.getDatasourceName());
+            if (newDatasourceId != null) {
+                LogUtil.getLogger().info("=== Found datasource by name from cache: {} -> {} ===", backupTable.getDatasourceName(), newDatasourceId);
             }
         }
 
@@ -656,15 +653,17 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
             }
         }
 
+        // 批量查询数据源名称，消除 N+1 查询
+        Map<String, Long> datasourceNameToId = batchQueryDatasourceNames(datasets);
+
         // 导入数据集（跳过 nodeType = "folder" 的记录，它们已在 folders 中处理）
         for (BackupDataset dataset : datasets) {
             if ("folder".equals(dataset.getNodeType())) {
-                // 跳过文件夹类型，它们已在上面通过 createOrFindDatasetFolder 处理
                 continue;
             }
             try {
                 String originalId = dataset.getId();
-                String newId = importDatasetWithTablesAndFolders(dataset, overwrite, idMapping, folderMapping, datasourceIdMapping);
+                String newId = importDatasetWithTablesAndFolders(dataset, overwrite, idMapping, folderMapping, datasourceIdMapping, datasourceNameToId);
                 idMapping.put(originalId, newId);
             } catch (Exception e) {
                 LogUtil.getLogger().error("Import dataset failed: " + dataset.getName(), e);
@@ -673,12 +672,41 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
     }
 
     /**
+     * 收集所有数据集中引用的数据源名称，一次批量查询
+     */
+    private Map<String, Long> batchQueryDatasourceNames(List<BackupDataset> datasets) {
+        Set<String> datasourceNames = new HashSet<>();
+        for (BackupDataset dataset : datasets) {
+            if (dataset.getTables() != null) {
+                for (BackupDatasetTable table : dataset.getTables()) {
+                    if (table.getDatasourceName() != null) {
+                        datasourceNames.add(table.getDatasourceName());
+                    }
+                }
+            }
+        }
+        Map<String, Long> result = new HashMap<>();
+        if (datasourceNames.isEmpty()) {
+            return result;
+        }
+        QueryWrapper<CoreDatasource> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in("name", datasourceNames);
+        List<CoreDatasource> datasources = coreDatasourceMapper.selectList(queryWrapper);
+        for (CoreDatasource ds : datasources) {
+            result.put(ds.getName(), ds.getId());
+        }
+        LogUtil.getLogger().info("=== Batch queried {} datasource names, found {} ===", datasourceNames.size(), result.size());
+        return result;
+    }
+
+    /**
      * 导入数据集及其关联的 tables 和 fields（带文件夹支持）
      */
     private String importDatasetWithTablesAndFolders(BackupDataset dataset, boolean overwrite,
                                                       Map<String, String> idMapping,
                                                       Map<String, Long> folderMapping,
-                                                      Map<String, String> datasourceIdMapping) {
+                                                      Map<String, String> datasourceIdMapping,
+                                                      Map<String, Long> datasourceNameToId) {
         try {
             QueryWrapper<CoreDatasetGroup> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("name", dataset.getName()).eq("node_type", "dataset");
@@ -733,7 +761,7 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
             if (dataset.getTables() != null) {
                 Map<String, String> tableIdMapping = new HashMap<>();
                 for (BackupDatasetTable backupTable : dataset.getTables()) {
-                    importDatasetTable(backupTable, newDatasetId, datasourceIdMapping, tableIdMapping);
+                    importDatasetTable(backupTable, newDatasetId, datasourceIdMapping, tableIdMapping, datasourceNameToId);
                 }
             }
 
