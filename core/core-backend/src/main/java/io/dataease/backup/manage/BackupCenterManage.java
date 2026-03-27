@@ -391,7 +391,16 @@ public class BackupCenterManage {
 
     public ExportPackage preview(MultipartFile file) {
         try {
-            File tempFile = File.createTempFile("preview_", ".tmp");
+            String originalName = file.getOriginalFilename();
+            String suffix = ".tmp";
+            if (originalName != null) {
+                if (originalName.endsWith(".zip") || originalName.endsWith(".debk")) {
+                    suffix = originalName.substring(originalName.lastIndexOf('.'));
+                } else if (originalName.endsWith(".json")) {
+                    suffix = ".json";
+                }
+            }
+            File tempFile = File.createTempFile("preview_", suffix);
             file.transferTo(tempFile);
             ExportPackage exportPackage = parseExportPackage(tempFile);
             tempFile.delete();
