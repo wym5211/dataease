@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 public class BackupResponse {
 
@@ -46,4 +49,14 @@ public class BackupResponse {
      * 导出时间
      */
     private Long exportTime;
+
+    /**
+     * 缺失数据集的图表列表
+     */
+    private List<ChartImportResult.ChartMissingDataset> missingDatasets = new ArrayList<>();
+
+    /**
+     * 缺失数据集的图表数量
+     */
+    private int missingChartCount;
 }

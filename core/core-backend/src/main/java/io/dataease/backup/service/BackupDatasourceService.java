@@ -9,10 +9,22 @@ import java.util.Map;
 public interface BackupDatasourceService {
     List<BackupDatasource> exportDatasources();
     /**
+     * 导出指定ID的数据源
+     * @param ids 数据源ID列表，为空时导出全部
+     * @return 数据源列表
+     */
+    List<BackupDatasource> exportDatasources(List<String> ids);
+    /**
      * 收集数据源的目录链
      * @return 目录列表
      */
     List<BackupFolder> collectDatasourceFolders();
+    /**
+     * 收集指定数据源的目录链
+     * @param ids 数据源ID列表
+     * @return 目录列表
+     */
+    List<BackupFolder> collectDatasourceFolders(List<String> ids);
     /**
      * 导入数据源
      * @param datasource 数据源信息

@@ -10,7 +10,8 @@ public class BackupChartView {
     private String id;                    // 原 ID (Long -> String)
     private String title;                 // 标题
     private Long sceneId;                 // 场景ID（导入时替换为新仪表板ID）
-    private Long tableId;                 // 数据集表ID（导入时替换为新数据集ID）
+    private Long tableId;                 // 数据集ID（导入时替换为新数据集ID）
+    private String datasetName;            // 数据集名称（导出时填充，导入时用于按名称匹配）
     private String type;                  // 图表类型
     private String render;                // 渲染方式
     private Integer resultCount;

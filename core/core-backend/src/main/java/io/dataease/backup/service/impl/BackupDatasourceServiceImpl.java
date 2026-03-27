@@ -36,10 +36,20 @@ public class BackupDatasourceServiceImpl implements BackupDatasourceService {
 
     @Override
     public List<BackupDatasource> exportDatasources() {
+        return exportDatasources(null);
+    }
+
+    @Override
+    public List<BackupDatasource> exportDatasources(List<String> ids) {
         List<BackupDatasource> result = new ArrayList<>();
         try {
             QueryWrapper<CoreDatasource> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("pid", 0);
+            // 如果指定了 ids，则按 ID 列表过滤；否则只导出根目录的数据源
+            if (ids != null && !ids.isEmpty()) {
+                queryWrapper.in("id", ids);
+            } else {
+                queryWrapper.eq("pid", 0);
+            }
             List<CoreDatasource> datasources = coreDatasourceMapper.selectList(queryWrapper);
 
             for (CoreDatasource ds : datasources) {
@@ -68,6 +78,7 @@ public class BackupDatasourceServiceImpl implements BackupDatasourceService {
             CoreDatasource existing = coreDatasourceMapper.selectOne(queryWrapper);
 
             if (existing != null && overwrite) {
+                // 覆盖模式：更新现有数据源
                 existing.setDescription(datasource.getDescription());
                 existing.setType(datasource.getType());
                 existing.setConfiguration(datasource.getConfiguration());
@@ -77,20 +88,14 @@ public class BackupDatasourceServiceImpl implements BackupDatasourceService {
                 // 更新Calcite连接池
                 DatasourceDTO datasourceDTO = new DatasourceDTO();
                 BeanUtils.copyBean(datasourceDTO, existing);
-                logger.info("=== Backup import (overwrite): updating datasource to calcite, id={}, name={}, type={} ===", existing.getId(), existing.getName(), existing.getType());
+                logger.info("=== Backup import (overwrite): updating datasource, id={}, name={} ===", existing.getId(), existing.getName());
                 calciteProvider.update(datasourceDTO);
-                // 等待异步schema更新完成
                 waitForSchemaReady(existing.getId());
-                logger.info("=== Backup import (overwrite): calcite update completed ===");
 
                 return String.valueOf(existing.getId());
-            } else {
-                // overwrite=false: rename and create new
-                String newName = datasource.getName();
-                if (existing != null) {
-                    // name exists, need to rename
-                    newName = generateUniqueName(datasource.getName());
-                }
+            } else if (existing != null) {
+                // 非覆盖模式：重命名后创建新数据源
+                String newName = generateUniqueName(datasource.getName());
                 CoreDatasource newDs = new CoreDatasource();
                 newDs.setName(newName);
                 newDs.setDescription(datasource.getDescription());
@@ -102,22 +107,37 @@ public class BackupDatasourceServiceImpl implements BackupDatasourceService {
                 newDs.setUpdateTime(System.currentTimeMillis());
                 coreDatasourceMapper.insert(newDs);
 
-                // MyBatis-Plus insert后需要重新查询获取带ID的完整实体
                 newDs = coreDatasourceMapper.selectOne(new QueryWrapper<CoreDatasource>().eq("name", newName));
 
                 // 注册Calcite连接池
                 DatasourceDTO datasourceDTO = new DatasourceDTO();
                 BeanUtils.copyBean(datasourceDTO, newDs);
-                logger.info("=== Backup import: registering datasource, id={}, name={}, type={} ===", newDs.getId(), newDs.getName(), newDs.getType());
-                try {
-                    calciteProvider.update(datasourceDTO);
-                    // 等待异步schema构建完成
-                    waitForSchemaReady(newDs.getId());
-                    logger.info("=== Backup import: calcite registration completed ===");
-                } catch (Exception e) {
-                    logger.error("=== Backup import: calcite registration failed ===", e);
-                    throw e;
-                }
+                logger.info("=== Backup import: registering datasource (renamed), id={}, name={} ===", newDs.getId(), newDs.getName());
+                calciteProvider.update(datasourceDTO);
+                waitForSchemaReady(newDs.getId());
+
+                return String.valueOf(newDs.getId());
+            } else {
+                // 不存在：直接创建
+                CoreDatasource newDs = new CoreDatasource();
+                newDs.setName(datasource.getName());
+                newDs.setDescription(datasource.getDescription());
+                newDs.setType(datasource.getType());
+                newDs.setConfiguration(datasource.getConfiguration());
+                newDs.setPid(0L);
+                newDs.setEditType("1");
+                newDs.setCreateTime(System.currentTimeMillis());
+                newDs.setUpdateTime(System.currentTimeMillis());
+                coreDatasourceMapper.insert(newDs);
+
+                newDs = coreDatasourceMapper.selectOne(new QueryWrapper<CoreDatasource>().eq("name", datasource.getName()));
+
+                // 注册Calcite连接池
+                DatasourceDTO datasourceDTO = new DatasourceDTO();
+                BeanUtils.copyBean(datasourceDTO, newDs);
+                logger.info("=== Backup import: registering datasource, id={}, name={} ===", newDs.getId(), newDs.getName());
+                calciteProvider.update(datasourceDTO);
+                waitForSchemaReady(newDs.getId());
 
                 return String.valueOf(newDs.getId());
             }
@@ -143,38 +163,114 @@ public class BackupDatasourceServiceImpl implements BackupDatasourceService {
 
     private void waitForSchemaReady(Long datasourceId) {
         // calciteProvider.update是异步的，需要等待schema构建完成
-        // 等待最多5秒，每500ms检查一次
+        // 等待最多5秒，每500ms检查一次，实际验证schema是否准备好
         for (int i = 0; i < MAX_WAIT_RETRIES; i++) {
             try {
                 Thread.sleep(WAIT_INTERVAL_MS);
+                if (calciteProvider.isSchemaReady(datasourceId)) {
+                    logger.info("=== Schema is ready for datasource {} after {} ms ===", datasourceId, (i + 1) * WAIT_INTERVAL_MS);
+                    return;
+                }
                 logger.debug("=== Waiting for schema to be ready for datasource {}, attempt {} ===", datasourceId, i + 1);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
+            } catch (Exception e) {
+                logger.warn("=== Error checking schema status for datasource {}, attempt {}: {} ===", datasourceId, i + 1, e.getMessage());
             }
         }
-        logger.info("=== Waited {} ms for schema to be ready for datasource {} ===", MAX_WAIT_RETRIES * WAIT_INTERVAL_MS, datasourceId);
+        logger.warn("=== Schema may not be ready for datasource {} after {} ms ===", datasourceId, MAX_WAIT_RETRIES * WAIT_INTERVAL_MS);
     }
 
     /**
      * Collect all datasource folders (pid != 0) and build folder chain for exported datasources
      */
+    @Override
     public List<BackupFolder> collectDatasourceFolders() {
+        return collectDatasourceFolders(null);
+    }
+
+    /**
+     * Collect datasource folders for specified datasource IDs
+     */
+    @Override
+    public List<BackupFolder> collectDatasourceFolders(List<String> ids) {
         List<BackupFolder> result = new ArrayList<>();
         Map<String, BackupFolder> folderMap = new HashMap<>();
         try {
-            // Query all datasources (not just root) to collect their parent folders
-            List<CoreDatasource> allDatasources = coreDatasourceMapper.selectList(null);
+            // Query all folders (type = "folder")
+            QueryWrapper<CoreDatasource> folderQuery = new QueryWrapper<>();
+            folderQuery.eq("type", "folder");
+            List<CoreDatasource> allFolders = coreDatasourceMapper.selectList(folderQuery);
+
+            // Collect folders that contain datasources (for parent folder chain)
+            List<CoreDatasource> allDatasources;
+            if (ids != null && !ids.isEmpty()) {
+                QueryWrapper<CoreDatasource> queryWrapper = new QueryWrapper<>();
+                queryWrapper.in("id", ids);
+                allDatasources = coreDatasourceMapper.selectList(queryWrapper);
+            } else {
+                allDatasources = coreDatasourceMapper.selectList(null);
+            }
 
             for (CoreDatasource ds : allDatasources) {
-                if (ds.getPid() != null && ds.getPid() != 0L) {
+                if ("folder".equals(ds.getType())) {
+                    // 这是一个文件夹，添加到结果中
+                    String key = ds.getName() + "_" + (ds.getPid() != null && ds.getPid() != 0L ?
+                        getFolderNameById(ds.getPid()) : "root");
+                    if (!folderMap.containsKey(key)) {
+                        BackupFolder bf = new BackupFolder();
+                        bf.setId(String.valueOf(ds.getId()));
+                        bf.setName(ds.getName());
+                        bf.setPid(ds.getPid());
+                        bf.setLevel(1);
+                        bf.setNodeType("folder");
+                        bf.setResourceType("datasource");
+                        if (ds.getPid() != null && ds.getPid() != 0L) {
+                            bf.setParentName(getFolderNameById(ds.getPid()));
+                        }
+                        folderMap.put(key, bf);
+                        result.add(bf);
+                    }
+                } else if (ds.getPid() != null && ds.getPid() != 0L) {
+                    // 这是一个数据源，收集其父文件夹
                     result.addAll(collectDatasourceParentFolders(ds.getId(), folderMap, 1));
+                }
+            }
+
+            // Also add all folders directly (including empty folders) when not filtering by ids
+            if (ids == null || ids.isEmpty()) {
+                for (CoreDatasource folder : allFolders) {
+                    String key = folder.getName() + "_" + (folder.getPid() != null && folder.getPid() != 0L ?
+                        getFolderNameById(folder.getPid()) : "root");
+                    if (!folderMap.containsKey(key)) {
+                        BackupFolder bf = new BackupFolder();
+                        bf.setId(String.valueOf(folder.getId()));
+                        bf.setName(folder.getName());
+                        bf.setPid(folder.getPid());
+                        bf.setLevel(1);
+                        bf.setNodeType("folder");
+                        bf.setResourceType("datasource");
+                        if (folder.getPid() != null && folder.getPid() != 0L) {
+                            bf.setParentName(getFolderNameById(folder.getPid()));
+                        }
+                        folderMap.put(key, bf);
+                        result.add(bf);
+                    }
                 }
             }
         } catch (Exception e) {
             logger.error("Collect datasource folders failed", e);
         }
         return result;
+    }
+
+    private String getFolderNameById(Long folderId) {
+        if (folderId == null || folderId == 0L) {
+            return null;
+        }
+        CoreDatasource folder = coreDatasourceMapper.selectById(folderId);
+        return folder != null ? folder.getName() : null;
     }
 
     /**
@@ -218,7 +314,7 @@ public class BackupDatasourceServiceImpl implements BackupDatasourceService {
     }
 
     /**
-     * 按 name + parentName 查找目录
+     * 按 name + parentId 查找目录
      */
     private CoreDatasource findDatasourceFolderByNameAndParent(String name, Long parentId) {
         QueryWrapper<CoreDatasource> queryWrapper = new QueryWrapper<>();
@@ -226,6 +322,7 @@ public class BackupDatasourceServiceImpl implements BackupDatasourceService {
         if (parentId != null && parentId != 0L) {
             queryWrapper.eq("pid", parentId);
         } else {
+            // 根目录：同时匹配 pid = 0 和 pid IS NULL，因为不同系统/版本存储方式可能不同
             queryWrapper.and(w -> w.eq("pid", 0L).or().isNull("pid"));
         }
         return coreDatasourceMapper.selectOne(queryWrapper);
@@ -233,29 +330,45 @@ public class BackupDatasourceServiceImpl implements BackupDatasourceService {
 
     /**
      * 创建或查找目录，返回目录ID
+     * 如果目录在目标数据库中已存在，直接使用现有的，不创建新的
      */
     public Long createOrFindDatasourceFolder(BackupFolder folder, Map<String, Long> folderMapping) {
         String key = folder.getName() + "_" + (folder.getParentName() != null ? folder.getParentName() : "root");
+        logger.info("=== createOrFindDatasourceFolder: key={}, folderName={}, parentName={} ===", key, folder.getName(), folder.getParentName());
         if (folderMapping.containsKey(key)) {
+            logger.info("=== createOrFindDatasourceFolder: found in folderMapping, returning existing id ===");
             return folderMapping.get(key);
         }
 
         // 先查找父目录ID
         Long parentId = 0L;
         if (folder.getParentName() != null) {
-            // 通过父目录名称查找父目录
+            // 先在folderMapping中查找父目录
             String parentKey = folder.getParentName() + "_root";
             parentId = folderMapping.getOrDefault(parentKey, 0L);
+            logger.info("=== createOrFindDatasourceFolder: looking for parent, parentKey={}, parentId={} ===", parentKey, parentId);
+
+            // 如果在folderMapping中没找到，尝试在目标数据库中查找
+            if (parentId == 0L) {
+                CoreDatasource parentFolder = findDatasourceFolderByNameAndParent(folder.getParentName(), 0L);
+                logger.info("=== createOrFindDatasourceFolder: find in DB, parentFolder={} ===", parentFolder);
+                if (parentFolder != null) {
+                    parentId = parentFolder.getId();
+                    folderMapping.put(parentKey, parentId);
+                }
+            }
         }
 
-        // 查找是否已存在
+        // 查找是否已存在（按名称和父目录ID查找）
         CoreDatasource existing = findDatasourceFolderByNameAndParent(folder.getName(), parentId);
+        logger.info("=== createOrFindDatasourceFolder: finding existing folder, name={}, parentId={}, existing={} ===", folder.getName(), parentId, existing);
         if (existing != null) {
             folderMapping.put(key, existing.getId());
             // 同时存储oldFolderId -> newFolderId的映射
             if (folder.getId() != null) {
                 folderMapping.put("id_" + folder.getId(), existing.getId());
             }
+            logger.info("=== createOrFindDatasourceFolder: reusing existing folder id={} ===", existing.getId());
             return existing.getId();
         }
 
@@ -285,6 +398,7 @@ public class BackupDatasourceServiceImpl implements BackupDatasourceService {
 
     @Override
     public void importDatasources(List<BackupDatasource> datasources, List<BackupFolder> folders, boolean overwrite, Map<String, String> idMapping) {
+        logger.info("=== importDatasources called: datasources count={}, folders count={} ===", datasources != null ? datasources.size() : 0, folders != null ? folders.size() : 0);
         if (datasources == null || datasources.isEmpty()) {
             return;
         }
@@ -292,6 +406,7 @@ public class BackupDatasourceServiceImpl implements BackupDatasourceService {
         // 按level排序，先创建低级目录
         Map<String, Long> folderMapping = new HashMap<>();
         if (folders != null && !folders.isEmpty()) {
+            logger.info("=== importDatasources: processing {} folders ===", folders.size());
             List<BackupFolder> sortedFolders = folders.stream()
                 .sorted(Comparator.comparingInt(f -> f.getLevel() != null ? f.getLevel() : 0))
                 .toList();
@@ -299,10 +414,16 @@ public class BackupDatasourceServiceImpl implements BackupDatasourceService {
             for (BackupFolder folder : sortedFolders) {
                 createOrFindDatasourceFolder(folder, folderMapping);
             }
+        } else {
+            logger.info("=== importDatasources: folders is null or empty ===");
         }
 
-        // 导入数据源
+        // 导入数据源（跳过 type = "folder" 的记录，它们已在 folders 中处理）
         for (BackupDatasource datasource : datasources) {
+            if ("folder".equals(datasource.getType())) {
+                // 跳过文件夹类型，它们已在上面通过 createOrFindDatasourceFolder 处理
+                continue;
+            }
             try {
                 String originalId = datasource.getId();
                 String newId = importDatasource(datasource, overwrite, idMapping, folderMapping);
@@ -330,29 +451,25 @@ public class BackupDatasourceServiceImpl implements BackupDatasourceService {
             }
 
             if (existing != null && overwrite) {
+                // 覆盖模式：更新现有数据源
                 existing.setDescription(datasource.getDescription());
                 existing.setType(datasource.getType());
                 existing.setConfiguration(datasource.getConfiguration());
+                existing.setPid(newPid);
                 existing.setUpdateTime(System.currentTimeMillis());
                 coreDatasourceMapper.updateById(existing);
 
                 // 更新Calcite连接池
                 DatasourceDTO datasourceDTO = new DatasourceDTO();
                 BeanUtils.copyBean(datasourceDTO, existing);
-                logger.info("=== Backup import (overwrite): updating datasource to calcite, id={}, name={}, type={} ===", existing.getId(), existing.getName(), existing.getType());
+                logger.info("=== Backup import (overwrite): updating datasource, id={}, name={} ===", existing.getId(), existing.getName());
                 calciteProvider.update(datasourceDTO);
-                // 等待异步schema更新完成
                 waitForSchemaReady(existing.getId());
-                logger.info("=== Backup import (overwrite): calcite update completed ===");
 
                 return String.valueOf(existing.getId());
-            } else {
-                // overwrite=false: rename and create new
-                String newName = datasource.getName();
-                if (existing != null) {
-                    // name exists, need to rename
-                    newName = generateUniqueName(datasource.getName());
-                }
+            } else if (existing != null) {
+                // 非覆盖模式：重命名后创建新数据源
+                String newName = generateUniqueName(datasource.getName());
                 CoreDatasource newDs = new CoreDatasource();
                 newDs.setName(newName);
                 newDs.setDescription(datasource.getDescription());
@@ -366,6 +483,30 @@ public class BackupDatasourceServiceImpl implements BackupDatasourceService {
 
                 // MyBatis-Plus insert后需要重新查询获取带ID的完整实体
                 newDs = coreDatasourceMapper.selectOne(new QueryWrapper<CoreDatasource>().eq("name", newName));
+
+                // 注册Calcite连接池
+                DatasourceDTO datasourceDTO = new DatasourceDTO();
+                BeanUtils.copyBean(datasourceDTO, newDs);
+                logger.info("=== Backup import: registering datasource (renamed), id={}, name={} ===", newDs.getId(), newDs.getName());
+                calciteProvider.update(datasourceDTO);
+                waitForSchemaReady(newDs.getId());
+
+                return String.valueOf(newDs.getId());
+            } else {
+                // 不存在：直接创建
+                CoreDatasource newDs = new CoreDatasource();
+                newDs.setName(datasource.getName());
+                newDs.setDescription(datasource.getDescription());
+                newDs.setType(datasource.getType());
+                newDs.setConfiguration(datasource.getConfiguration());
+                newDs.setPid(newPid);
+                newDs.setEditType("1");
+                newDs.setCreateTime(System.currentTimeMillis());
+                newDs.setUpdateTime(System.currentTimeMillis());
+                coreDatasourceMapper.insert(newDs);
+
+                // MyBatis-Plus insert后需要重新查询获取带ID的完整实体
+                newDs = coreDatasourceMapper.selectOne(new QueryWrapper<CoreDatasource>().eq("name", datasource.getName()));
 
                 // 注册Calcite连接池
                 DatasourceDTO datasourceDTO = new DatasourceDTO();

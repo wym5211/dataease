@@ -20,8 +20,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class BackupDatasetServiceImpl implements BackupDatasetService {
@@ -40,10 +44,18 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
 
     @Override
     public List<BackupDataset> exportDatasets() {
+        return exportDatasets(null);
+    }
+
+    @Override
+    public List<BackupDataset> exportDatasets(List<String> ids) {
         List<BackupDataset> result = new ArrayList<>();
         try {
             QueryWrapper<CoreDatasetGroup> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("node_type", "dataset");
+            if (ids != null && !ids.isEmpty()) {
+                queryWrapper.in("id", ids);
+            }
             List<CoreDatasetGroup> datasets = coreDatasetGroupMapper.selectList(queryWrapper);
 
             for (CoreDatasetGroup ds : datasets) {
@@ -60,6 +72,20 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
                 backup.setPid(ds.getPid());
                 backup.setLevel(ds.getLevel());
                 backup.setNodeType(ds.getNodeType());
+
+                // 填充目录名称（用于导入时按名称匹配）
+                if (ds.getPid() != null && ds.getPid() != 0L) {
+                    CoreDatasetGroup parentFolder = coreDatasetGroupMapper.selectById(ds.getPid());
+                    if (parentFolder != null) {
+                        backup.setFolderName(parentFolder.getName());
+                        if (parentFolder.getPid() != null && parentFolder.getPid() != 0L) {
+                            CoreDatasetGroup grandParentFolder = coreDatasetGroupMapper.selectById(parentFolder.getPid());
+                            if (grandParentFolder != null) {
+                                backup.setParentFolderName(grandParentFolder.getName());
+                            }
+                        }
+                    }
+                }
 
                 // 查询关联的 tables
                 QueryWrapper<CoreDatasetTable> tableQuery = new QueryWrapper<>();
@@ -129,12 +155,48 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
 
     @Override
     public List<BackupFolder> collectDatasetFolders() {
+        return collectDatasetFolders(null);
+    }
+
+    @Override
+    public List<BackupFolder> collectDatasetFolders(List<String> ids) {
         List<BackupFolder> result = new ArrayList<>();
         Map<String, BackupFolder> folderMap = new HashMap<>();
         try {
-            // Query all dataset groups to collect their parent folders
-            List<CoreDatasetGroup> allGroups = coreDatasetGroupMapper.selectList(null);
+            // Query all dataset groups (folders and datasets)
+            List<CoreDatasetGroup> allGroups;
+            if (ids != null && !ids.isEmpty()) {
+                QueryWrapper<CoreDatasetGroup> queryWrapper = new QueryWrapper<>();
+                queryWrapper.in("id", ids);
+                allGroups = coreDatasetGroupMapper.selectList(queryWrapper);
+            } else {
+                allGroups = coreDatasetGroupMapper.selectList(null);
+            }
 
+            // First pass: collect all folders directly (including empty folders)
+            if (ids == null || ids.isEmpty()) {
+                for (CoreDatasetGroup group : allGroups) {
+                    if ("folder".equals(group.getNodeType())) {
+                        String key = buildFolderKey(group, folderMap);
+                        if (!folderMap.containsKey(key)) {
+                            BackupFolder bf = new BackupFolder();
+                            bf.setId(String.valueOf(group.getId()));
+                            bf.setName(group.getName());
+                            bf.setPid(group.getPid());
+                            bf.setLevel(group.getLevel() != null ? group.getLevel() : 1);
+                            bf.setNodeType("folder");
+                            bf.setResourceType("dataset");
+                            if (group.getPid() != null && group.getPid() != 0L) {
+                                bf.setParentName(getDatasetGroupNameById(group.getPid()));
+                            }
+                            folderMap.put(key, bf);
+                            result.add(bf);
+                        }
+                    }
+                }
+            }
+
+            // Second pass: collect parent folders for datasets
             for (CoreDatasetGroup group : allGroups) {
                 if ("dataset".equals(group.getNodeType()) && group.getPid() != null && group.getPid() != 0L) {
                     result.addAll(collectDatasetFolders(group.getId(), folderMap));
@@ -144,6 +206,104 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
             LogUtil.getLogger().error("Collect dataset folders failed", e);
         }
         return result;
+    }
+
+    private String buildFolderKey(CoreDatasetGroup group, Map<String, BackupFolder> folderMap) {
+        return group.getName() + "_" + (group.getPid() != null && group.getPid() != 0L ?
+            getDatasetGroupNameById(group.getPid()) : "root");
+    }
+
+    private String getDatasetGroupNameById(Long groupId) {
+        if (groupId == null || groupId == 0L) {
+            return null;
+        }
+        CoreDatasetGroup group = coreDatasetGroupMapper.selectById(groupId);
+        return group != null ? group.getName() : null;
+    }
+
+    @Override
+    public List<BackupDataset> exportDatasetsByTableIds(List<Long> tableIds) {
+        List<BackupDataset> result = new ArrayList<>();
+        if (tableIds == null || tableIds.isEmpty()) {
+            return result;
+        }
+        try {
+            // 从 CoreDatasetTable 获取 dataset_group_id
+            QueryWrapper<CoreDatasetTable> tableQuery = new QueryWrapper<>();
+            tableQuery.in("id", tableIds);
+            List<CoreDatasetTable> tables = coreDatasetTableMapper.selectList(tableQuery);
+
+            // 收集唯一的 dataset_group_id
+            Set<Long> datasetGroupIds = tables.stream()
+                .map(CoreDatasetTable::getDatasetGroupId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+            if (datasetGroupIds.isEmpty()) {
+                return result;
+            }
+
+            // 导出这些数据集
+            List<String> ids = datasetGroupIds.stream()
+                .map(String::valueOf)
+                .collect(Collectors.toList());
+            return exportDatasets(ids);
+        } catch (Exception e) {
+            LogUtil.getLogger().error("Export datasets by tableIds failed", e);
+        }
+        return result;
+    }
+
+    @Override
+    public List<BackupFolder> collectDatasetFoldersByTableIds(List<Long> tableIds) {
+        List<BackupFolder> result = new ArrayList<>();
+        if (tableIds == null || tableIds.isEmpty()) {
+            return result;
+        }
+        try {
+            // 从 CoreDatasetTable 获取 dataset_group_id
+            QueryWrapper<CoreDatasetTable> tableQuery = new QueryWrapper<>();
+            tableQuery.in("id", tableIds);
+            List<CoreDatasetTable> tables = coreDatasetTableMapper.selectList(tableQuery);
+
+            // 收集唯一的 dataset_group_id
+            Set<Long> datasetGroupIds = tables.stream()
+                .map(CoreDatasetTable::getDatasetGroupId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+            if (datasetGroupIds.isEmpty()) {
+                return result;
+            }
+
+            // 收集这些数据集的目录
+            List<String> ids = datasetGroupIds.stream()
+                .map(String::valueOf)
+                .collect(Collectors.toList());
+            return collectDatasetFolders(ids);
+        } catch (Exception e) {
+            LogUtil.getLogger().error("Collect dataset folders by tableIds failed", e);
+        }
+        return result;
+    }
+
+    @Override
+    public List<String> collectDatasourceIds(List<BackupDataset> datasets) {
+        Set<String> datasourceIds = new HashSet<>();
+        if (datasets == null || datasets.isEmpty()) {
+            return new ArrayList<>(datasourceIds);
+        }
+        for (BackupDataset dataset : datasets) {
+            if (dataset.getTables() != null) {
+                for (BackupDatasetTable table : dataset.getTables()) {
+                    if (table.getDatasourceId() != null) {
+                        datasourceIds.add(table.getDatasourceId());
+                    }
+                }
+            }
+        }
+        LogUtil.getLogger().info("collectDatasourceIds: 从 {} 个数据集中收集到 {} 个数据源ID", datasets.size(), datasourceIds.size());
+        return new ArrayList<>(datasourceIds);
     }
 
     @Override
@@ -344,7 +504,7 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
     private void importDatasetTable(BackupDatasetTable backupTable, String newDatasetId,
                                     Map<String, String> datasourceIdMapping,
                                     Map<String, String> tableIdMapping) {
-        // 1. datasourceId 按名称匹配
+        // 1. datasourceId 按名称匹配，如果失败则使用ID映射
         Long newDatasourceId = null;
         if (backupTable.getDatasourceName() != null) {
             // 按名称查找数据源
@@ -353,10 +513,28 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
             CoreDatasource ds = coreDatasourceMapper.selectOne(dsQuery);
             if (ds != null) {
                 newDatasourceId = ds.getId();
-            } else {
-                LogUtil.getLogger().warn("=== Datasource not found by name: {} for table: {} ===",
-                    backupTable.getDatasourceName(), backupTable.getName());
+                LogUtil.getLogger().info("=== Found datasource by name: {} -> {} ===", backupTable.getDatasourceName(), newDatasourceId);
             }
+        }
+
+        // 2. 如果按名称查找失败，尝试使用ID映射
+        if (newDatasourceId == null && backupTable.getDatasourceId() != null && datasourceIdMapping != null) {
+            String mappedDsId = datasourceIdMapping.get(backupTable.getDatasourceId());
+            if (mappedDsId != null) {
+                try {
+                    newDatasourceId = Long.parseLong(mappedDsId);
+                    LogUtil.getLogger().info("=== Found datasource by ID mapping: {} -> {} ===", backupTable.getDatasourceId(), newDatasourceId);
+                } catch (NumberFormatException e) {
+                    LogUtil.getLogger().warn("=== Invalid datasource ID in mapping: {} ===", mappedDsId);
+                }
+            } else {
+                LogUtil.getLogger().warn("=== Datasource ID not found in mapping: {} ===", backupTable.getDatasourceId());
+            }
+        }
+
+        if (newDatasourceId == null) {
+            LogUtil.getLogger().warn("=== Could not resolve datasource for table: {}, datasourceName: {}, datasourceId: {} ===",
+                backupTable.getName(), backupTable.getDatasourceName(), backupTable.getDatasourceId());
         }
 
         // 2. 创建或更新 table
@@ -461,7 +639,7 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
      * 导入数据集列表（包含目录创建）
      */
     @Override
-    public void importDatasets(List<BackupDataset> datasets, List<BackupFolder> folders, boolean overwrite, Map<String, String> idMapping) {
+    public void importDatasets(List<BackupDataset> datasets, List<BackupFolder> folders, boolean overwrite, Map<String, String> idMapping, Map<String, String> datasourceIdMapping) {
         if (datasets == null || datasets.isEmpty()) {
             return;
         }
@@ -478,11 +656,15 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
             }
         }
 
-        // 导入数据集
+        // 导入数据集（跳过 nodeType = "folder" 的记录，它们已在 folders 中处理）
         for (BackupDataset dataset : datasets) {
+            if ("folder".equals(dataset.getNodeType())) {
+                // 跳过文件夹类型，它们已在上面通过 createOrFindDatasetFolder 处理
+                continue;
+            }
             try {
                 String originalId = dataset.getId();
-                String newId = importDatasetWithTablesAndFolders(dataset, overwrite, idMapping, folderMapping);
+                String newId = importDatasetWithTablesAndFolders(dataset, overwrite, idMapping, folderMapping, datasourceIdMapping);
                 idMapping.put(originalId, newId);
             } catch (Exception e) {
                 LogUtil.getLogger().error("Import dataset failed: " + dataset.getName(), e);
@@ -495,16 +677,18 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
      */
     private String importDatasetWithTablesAndFolders(BackupDataset dataset, boolean overwrite,
                                                       Map<String, String> idMapping,
-                                                      Map<String, Long> folderMapping) {
+                                                      Map<String, Long> folderMapping,
+                                                      Map<String, String> datasourceIdMapping) {
         try {
             QueryWrapper<CoreDatasetGroup> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("name", dataset.getName()).eq("node_type", "dataset");
             CoreDatasetGroup existing = coreDatasetGroupMapper.selectOne(queryWrapper);
 
-            // 计算新pid：使用文件夹映射将原pid转换为新pid
+            // 计算新pid：使用目录名称在folderMapping中查找
             Long newPid = 0L;
-            if (dataset.getPid() != null && dataset.getPid() != 0L) {
-                newPid = folderMapping.getOrDefault("id_" + dataset.getPid(), 0L);
+            if (dataset.getFolderName() != null) {
+                String folderKey = dataset.getFolderName() + "_" + (dataset.getParentFolderName() != null ? dataset.getParentFolderName() : "root");
+                newPid = folderMapping.getOrDefault(folderKey, 0L);
             }
 
             String newDatasetId;
@@ -549,7 +733,7 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
             if (dataset.getTables() != null) {
                 Map<String, String> tableIdMapping = new HashMap<>();
                 for (BackupDatasetTable backupTable : dataset.getTables()) {
-                    importDatasetTable(backupTable, newDatasetId, new HashMap<>(), tableIdMapping);
+                    importDatasetTable(backupTable, newDatasetId, datasourceIdMapping, tableIdMapping);
                 }
             }
 
@@ -570,32 +754,58 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
         if (parentId != null && parentId != 0L) {
             queryWrapper.eq("pid", parentId);
         } else {
-            queryWrapper.and(w -> w.eq("pid", 0L).or().isNull("pid"));
+            // 根目录：精确匹配 pid = 0（不包括 NULL，避免匹配多条记录）
+            queryWrapper.eq("pid", 0L);
         }
-        return coreDatasetGroupMapper.selectOne(queryWrapper);
+        // 查找单条记录，如果有多条则取第一条（避免数据库中有重复数据的问题）
+        List<CoreDatasetGroup> list = coreDatasetGroupMapper.selectList(queryWrapper);
+        if (list != null && !list.isEmpty()) {
+            return list.get(0);
+        }
+        return null;
     }
 
     /**
      * 创建或查找目录，返回目录ID
+     * 如果目录在目标数据库中已存在，直接使用现有的，不创建新的
      */
     public Long createOrFindDatasetFolder(BackupFolder folder, Map<String, Long> folderMapping) {
         String key = folder.getName() + "_" + (folder.getParentName() != null ? folder.getParentName() : "root");
+        LogUtil.getLogger().info("=== createOrFindDatasetFolder: key={}, folderName={}, parentName={} ===", key, folder.getName(), folder.getParentName());
         if (folderMapping.containsKey(key)) {
+            LogUtil.getLogger().info("=== createOrFindDatasetFolder: found in folderMapping ===");
             return folderMapping.get(key);
         }
 
         // 先查找父目录ID
         Long parentId = 0L;
         if (folder.getParentName() != null) {
-            // 通过父目录名称查找父目录
+            // 先在folderMapping中查找父目录
             String parentKey = folder.getParentName() + "_root";
             parentId = folderMapping.getOrDefault(parentKey, 0L);
+            LogUtil.getLogger().info("=== createOrFindDatasetFolder: looking for parent, parentKey={}, parentId={} ===", parentKey, parentId);
+
+            // 如果在folderMapping中没找到，尝试在目标数据库中查找
+            if (parentId == 0L) {
+                CoreDatasetGroup parentFolder = findDatasetFolderByNameAndParent(folder.getParentName(), 0L);
+                LogUtil.getLogger().info("=== createOrFindDatasetFolder: find in DB, parentFolder={} ===", parentFolder);
+                if (parentFolder != null) {
+                    parentId = parentFolder.getId();
+                    folderMapping.put(parentKey, parentId);
+                }
+            }
         }
 
-        // 查找是否已存在
+        // 查找是否已存在（按名称和父目录ID查找）
         CoreDatasetGroup existing = findDatasetFolderByNameAndParent(folder.getName(), parentId);
+        LogUtil.getLogger().info("=== createOrFindDatasetFolder: finding existing, name={}, parentId={}, existing={} ===", folder.getName(), parentId, existing);
         if (existing != null) {
             folderMapping.put(key, existing.getId());
+            // 同时存储oldFolderId -> newFolderId的映射
+            if (folder.getId() != null) {
+                folderMapping.put("id_" + folder.getId(), existing.getId());
+            }
+            LogUtil.getLogger().info("=== createOrFindDatasetFolder: reusing existing id={} ===", existing.getId());
             return existing.getId();
         }
 
@@ -616,6 +826,10 @@ public class BackupDatasetServiceImpl implements BackupDatasetService {
             .eq("pid", parentId));
 
         folderMapping.put(key, newFolder.getId());
+        // 同时存储oldFolderId -> newFolderId的映射
+        if (folder.getId() != null) {
+            folderMapping.put("id_" + folder.getId(), newFolder.getId());
+        }
         return newFolder.getId();
     }
 }

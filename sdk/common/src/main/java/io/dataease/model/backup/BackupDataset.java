@@ -73,6 +73,16 @@ public class BackupDataset {
     private Long pid;
 
     /**
+     * 目录名称（导出时填充，导入时用于按名称匹配）
+     */
+    private String folderName;
+
+    /**
+     * 父目录名称（导出时填充，导入时用于按名称匹配）
+     */
+    private String parentFolderName;
+
+    /**
      * 层级深度
      */
     private Integer level;

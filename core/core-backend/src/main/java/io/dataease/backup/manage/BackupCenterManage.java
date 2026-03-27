@@ -51,6 +51,9 @@ public class BackupCenterManage {
             exportPackage.setExportTime(System.currentTimeMillis());
             exportPackage.setType(request.getType());
 
+            List<String> resourceIds = request.getResourceIds();
+            boolean hasResourceIds = resourceIds != null && !resourceIds.isEmpty();
+
             List<BackupDatasource> datasources = new ArrayList<>();
             List<BackupDataset> datasets = new ArrayList<>();
             List<BackupDashboard> dashboards = new ArrayList<>();
@@ -59,21 +62,61 @@ public class BackupCenterManage {
             List<BackupChartView> charts = new ArrayList<>();
 
             if ("datasource".equals(request.getType()) || "combined".equals(request.getType())) {
-                datasources = backupDatasourceService.exportDatasources();
-                folders.addAll(backupDatasourceService.collectDatasourceFolders());
+                if (hasResourceIds && "datasource".equals(request.getType())) {
+                    datasources = backupDatasourceService.exportDatasources(resourceIds);
+                    folders.addAll(backupDatasourceService.collectDatasourceFolders(resourceIds));
+                } else {
+                    datasources = backupDatasourceService.exportDatasources();
+                    folders.addAll(backupDatasourceService.collectDatasourceFolders());
+                }
             }
             if ("dataset".equals(request.getType()) || "combined".equals(request.getType())) {
-                datasets = backupDatasetService.exportDatasets();
-                folders.addAll(backupDatasetService.collectDatasetFolders());
+                if (hasResourceIds && "dataset".equals(request.getType())) {
+                    datasets = backupDatasetService.exportDatasets(resourceIds);
+                    folders.addAll(backupDatasetService.collectDatasetFolders(resourceIds));
+                } else {
+                    datasets = backupDatasetService.exportDatasets();
+                    folders.addAll(backupDatasetService.collectDatasetFolders());
+                }
             }
             if ("dashboard".equals(request.getType()) || "combined".equals(request.getType())) {
-                dashboards = backupDashboardService.exportDashboards();
-                folders.addAll(backupDashboardService.collectDashboardFolders());
-                charts.addAll(backupDashboardService.collectCharts(dashboards));
+                if (hasResourceIds && "dashboard".equals(request.getType())) {
+                    dashboards = backupDashboardService.exportDashboards(resourceIds);
+                    folders.addAll(backupDashboardService.collectDashboardFolders(resourceIds));
+                    charts.addAll(backupDashboardService.collectCharts(dashboards));
+                } else {
+                    dashboards = backupDashboardService.exportDashboards();
+                    folders.addAll(backupDashboardService.collectDashboardFolders());
+                    charts.addAll(backupDashboardService.collectCharts(dashboards));
+                }
             }
             if ("dataview".equals(request.getType()) || "combined".equals(request.getType())) {
-                dataviews = backupDashboardService.exportDataviews();
-                charts.addAll(backupDashboardService.collectChartsFromDataviews(dataviews));
+                if (hasResourceIds && "dataview".equals(request.getType())) {
+                    dataviews = backupDashboardService.exportDataviews(resourceIds);
+                    charts.addAll(backupDashboardService.collectChartsFromDataviews(dataviews));
+                } else {
+                    dataviews = backupDashboardService.exportDataviews();
+                    charts.addAll(backupDashboardService.collectChartsFromDataviews(dataviews));
+                }
+            }
+
+            // 当导出仪表板/大屏时，自动导出关联的数据集和数据源（如果还没有导出）
+            if (!charts.isEmpty() && datasets.isEmpty()) {
+                List<Long> tableIds = backupDashboardService.collectTableIds(charts);
+                if (!tableIds.isEmpty()) {
+                    LogUtil.getLogger().info("导出仪表板/大屏时自动导出关联的数据集, tableIds 数量: {}", tableIds.size());
+                    datasets = backupDatasetService.exportDatasetsByTableIds(tableIds);
+                    folders.addAll(backupDatasetService.collectDatasetFoldersByTableIds(tableIds));
+                }
+            }
+            // 当导出了数据集但还没有导出数据源时，自动导出关联的数据源
+            if (!datasets.isEmpty() && datasources.isEmpty()) {
+                List<String> datasourceIds = backupDatasetService.collectDatasourceIds(datasets);
+                if (!datasourceIds.isEmpty()) {
+                    LogUtil.getLogger().info("导出仪表板/大屏时自动导出关联的数据源, datasourceIds 数量: {}", datasourceIds.size());
+                    datasources = backupDatasourceService.exportDatasources(datasourceIds);
+                    folders.addAll(backupDatasourceService.collectDatasourceFolders(datasourceIds));
+                }
             }
 
             exportPackage.setDatasources(datasources);
@@ -140,8 +183,10 @@ public class BackupCenterManage {
             int successCount = 0;
             int failCount = 0;
 
-            // ID映射表：用于存储旧ID到新ID的映射关系
-            Map<String, String> idMapping = new HashMap<>();
+            // 数据源 ID 映射表：用于存储旧数据源ID到新数据源ID的映射关系
+            Map<String, String> datasourceIdMapping = new HashMap<>();
+            // 数据集 ID 映射表：用于存储旧数据集ID到新数据集ID的映射关系
+            Map<String, String> datasetIdMapping = new HashMap<>();
             // 图表 ID 映射表：用于存储旧图表ID到新图表ID的映射关系
             Map<String, Long> chartIdMapping = new HashMap<>();
             // 仪表板 ID 映射表：用于存储旧仪表板ID到新仪表板ID的映射关系
@@ -151,12 +196,20 @@ public class BackupCenterManage {
 
             // Get folders from export package
             List<BackupFolder> folders = exportPackage.getFolders();
+            LogUtil.getLogger().info("=== importData: type={}, overwrite={}, datasources={}, datasets={}, dashboards={}, folders={} ===",
+                exportPackage.getType(),
+                request.isOverwrite(),
+                exportPackage.getDatasources() != null ? exportPackage.getDatasources().size() : 0,
+                exportPackage.getDatasets() != null ? exportPackage.getDatasets().size() : 0,
+                exportPackage.getDashboards() != null ? exportPackage.getDashboards().size() : 0,
+                folders != null ? folders.size() : 0);
 
             // Import datasources
             if (exportPackage.getDatasources() != null && !exportPackage.getDatasources().isEmpty()) {
                 try {
-                    backupDatasourceService.importDatasources(exportPackage.getDatasources(), folders, request.isOverwrite(), idMapping);
+                    backupDatasourceService.importDatasources(exportPackage.getDatasources(), folders, request.isOverwrite(), datasourceIdMapping);
                     successCount += exportPackage.getDatasources().size();
+                    LogUtil.getLogger().info("=== Datasource ID mapping size: {} ===", datasourceIdMapping.size());
                 } catch (Exception e) {
                     failCount += exportPackage.getDatasources().size();
                     LogUtil.getLogger().error("Import datasources failed", e);
@@ -166,7 +219,7 @@ public class BackupCenterManage {
             // Import datasets
             if (exportPackage.getDatasets() != null && !exportPackage.getDatasets().isEmpty()) {
                 try {
-                    backupDatasetService.importDatasets(exportPackage.getDatasets(), folders, request.isOverwrite(), idMapping);
+                    backupDatasetService.importDatasets(exportPackage.getDatasets(), folders, request.isOverwrite(), datasetIdMapping, datasourceIdMapping);
                     successCount += exportPackage.getDatasets().size();
                 } catch (Exception e) {
                     failCount += exportPackage.getDatasets().size();
@@ -174,14 +227,14 @@ public class BackupCenterManage {
                 }
             }
 
-            // 从 idMapping 构建 datasetIdMapping（用于图表导入时替换 tableId）
-            Map<String, Long> datasetIdMapping = new HashMap<>();
-            for (Map.Entry<String, String> entry : idMapping.entrySet()) {
-                datasetIdMapping.put(entry.getKey(), Long.parseLong(entry.getValue()));
+            // 从 datasetIdMapping 构建 datasetIdMappingForChart（用于图表导入时替换 tableId）
+            Map<String, Long> datasetIdMappingForChart = new HashMap<>();
+            for (Map.Entry<String, String> entry : datasetIdMapping.entrySet()) {
+                datasetIdMappingForChart.put(entry.getKey(), Long.parseLong(entry.getValue()));
             }
-            LogUtil.getLogger().info("构建 datasetIdMapping 完成, 大小: {}", datasetIdMapping.size());
+            LogUtil.getLogger().info("构建 datasetIdMappingForChart 完成, 大小: {}", datasetIdMappingForChart.size());
 
-            // Import charts (before dashboards to build chartIdMapping)
+            // Import charts (before dashboards to build chartIdMapping) - 使用按名称匹配的方式
             if (exportPackage.getCharts() != null && !exportPackage.getCharts().isEmpty()) {
                 LogUtil.getLogger().info("开始导入图表, charts 数量: {}", exportPackage.getCharts().size());
                 // dashboardIdMapping 从 exportPackage.getIdMapping() 获取（仅在导出时有值）
@@ -190,9 +243,21 @@ public class BackupCenterManage {
                         dashboardIdMapping.put(pair.getOldId(), Long.parseLong(pair.getNewId()));
                     }
                 }
-                LogUtil.getLogger().info("调用 importCharts 前, datasetIdMapping 大小: {}, chartIdMapping 大小: {}, dashboardIdMapping 大小: {}", datasetIdMapping.size(), chartIdMapping.size(), dashboardIdMapping.size());
-                backupDashboardService.importCharts(exportPackage.getCharts(), dashboardIdMapping, datasetIdMapping, chartIdMapping, request.isOverwrite());
-                LogUtil.getLogger().info("调用 importCharts 后, chartIdMapping 大小: {}", chartIdMapping.size());
+                LogUtil.getLogger().info("调用 importChartsWithResult 前, chartIdMapping 大小: {}, dashboardIdMapping 大小: {}", chartIdMapping.size(), dashboardIdMapping.size());
+                ChartImportResult chartImportResult = backupDashboardService.importChartsWithResult(
+                    exportPackage.getCharts(), dashboardIdMapping, request.isOverwrite());
+
+                // 将成功导入的图表添加到 chartIdMapping
+                for (ChartImportResult.ChartInfo chartInfo : chartImportResult.getImportedCharts()) {
+                    chartIdMapping.put(chartInfo.getOldId(), chartInfo.getNewChartId());
+                }
+
+                // 设置缺失数据集信息到响应
+                response.setMissingDatasets(chartImportResult.getMissingDatasets());
+                response.setMissingChartCount(chartImportResult.getMissingCount());
+
+                LogUtil.getLogger().info("调用 importChartsWithResult 后, 成功: {}, 缺失: {}, chartIdMapping 大小: {}",
+                    chartImportResult.getSuccessCount(), chartImportResult.getMissingCount(), chartIdMapping.size());
             } else {
                 LogUtil.getLogger().info("没有图表需要导入, charts 为空或 null");
             }
@@ -217,6 +282,10 @@ public class BackupCenterManage {
             // Import dataviews (using chartIdMapping to replace chart IDs in componentData)
             if (exportPackage.getDataviews() != null && !exportPackage.getDataviews().isEmpty()) {
                 for (BackupDataview dataview : exportPackage.getDataviews()) {
+                    if ("folder".equals(dataview.getNodeType())) {
+                        // 跳过文件夹类型，它们已在 folders 中处理
+                        continue;
+                    }
                     try {
                         backupDashboardService.importDataview(dataview, request.isOverwrite(), chartIdMapping, dataviewIdMapping);
                         successCount++;

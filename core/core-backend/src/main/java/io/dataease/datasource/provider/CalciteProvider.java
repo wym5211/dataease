@@ -1700,6 +1700,18 @@ public class CalciteProvider extends Provider {
         return null;
     }
 
+    public boolean isSchemaReady(Long dsId) {
+        try {
+            Connection connection = take();
+            CalciteConnection calciteConnection = connection.unwrap(CalciteConnection.class);
+            SchemaPlus rootSchema = calciteConnection.getRootSchema();
+            return rootSchema.getSubSchema(String.format(SQLConstants.SCHEMA, dsId)) != null;
+        } catch (Exception e) {
+            LogUtil.error(e.getMessage(), e);
+            return false;
+        }
+    }
+
     public void exec(EngineRequest engineRequest) throws Exception {
         DatasourceConfiguration configuration = JsonUtil.parseObject(engineRequest.getEngine().getConfiguration(), DatasourceConfiguration.class);
         int queryTimeout = configuration.getQueryTimeout();
