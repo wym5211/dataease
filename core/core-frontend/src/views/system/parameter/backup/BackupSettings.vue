@@ -89,17 +89,17 @@
                       formatTime(previewData.exportTime)
                     }}</el-descriptions-item>
                     <el-descriptions-item :label="t('backup.include_count')">
-                      <span v-if="previewData.datasources?.length"
-                        >{{ t('backup.datasource') }}: {{ previewData.datasources.length }}</span
+                      <span v-if="realDatasourceCount"
+                        >{{ t('backup.datasource') }}: {{ realDatasourceCount }}</span
                       >
-                      <span v-if="previewData.datasets?.length">
-                        | {{ t('backup.dataset') }}: {{ previewData.datasets.length }}</span
+                      <span v-if="realDatasetCount">
+                        | {{ t('backup.dataset') }}: {{ realDatasetCount }}</span
                       >
-                      <span v-if="previewData.dashboards?.length">
-                        | {{ t('backup.dashboard') }}: {{ previewData.dashboards.length }}</span
+                      <span v-if="realDashboardCount">
+                        | {{ t('backup.dashboard') }}: {{ realDashboardCount }}</span
                       >
-                      <span v-if="previewData.dataviews?.length">
-                        | {{ t('backup.dataview') }}: {{ previewData.dataviews.length }}</span
+                      <span v-if="realDataviewCount">
+                        | {{ t('backup.dataview') }}: {{ realDataviewCount }}</span
                       >
                     </el-descriptions-item>
                   </el-descriptions>
@@ -239,6 +239,15 @@ const { t } = useI18n()
 const userStore = useUserStoreWithOut()
 
 const isAdmin = computed(() => String(userStore.getUid) === '1')
+
+const filterOutFolders = (list: any[] | undefined) => {
+  if (!list) return 0
+  return list.filter((item: any) => item.type !== 'folder' && item.nodeType !== 'folder').length
+}
+const realDatasourceCount = computed(() => filterOutFolders(previewData.value?.datasources))
+const realDatasetCount = computed(() => filterOutFolders(previewData.value?.datasets))
+const realDashboardCount = computed(() => filterOutFolders(previewData.value?.dashboards))
+const realDataviewCount = computed(() => filterOutFolders(previewData.value?.dataviews))
 
 const exportForm = ref<{ type: BackupRequest['type']; options: { compress: boolean } }>({
   type: 'datasource',

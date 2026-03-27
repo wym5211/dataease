@@ -65,8 +65,8 @@
                 formatTime(previewData.exportTime)
               }}</el-descriptions-item>
               <el-descriptions-item :label="t('backup.include_count')">
-                <span v-if="previewData.datasources?.length"
-                  >{{ t('backup.datasource') }}: {{ previewData.datasources.length }}</span
+                <span v-if="realDatasourceCount"
+                  >{{ t('backup.datasource') }}: {{ realDatasourceCount }}</span
                 >
                 <span v-if="previewData.datasets?.length">
                   {{ t('backup.dataset') }}: {{ previewData.datasets.length }}</span
@@ -164,6 +164,10 @@ interface FileListItem {
 
 const uploadRef = ref(null)
 const previewData = ref<ExportPackage | null>(null)
+const realDatasourceCount = computed(() => {
+  if (!previewData.value?.datasources) return 0
+  return previewData.value.datasources.filter((ds: any) => ds.type !== 'folder').length
+})
 const fileList = ref<FileListItem[]>([])
 const resourceSelectDialog = ref<InstanceType<typeof ResourceSelectDialog>>()
 const dependencyDialogVisible = ref(false)

@@ -116,6 +116,13 @@ const handleCheck = () => {
   // 触发 selectedCount 重新计算
 }
 
+const typeNames: Record<ResourceType, string> = {
+  datasource: t('backup.datasource'),
+  dataset: t('backup.dataset'),
+  dashboard: t('backup.dashboard'),
+  dataview: t('backup.dataview')
+}
+
 const loadTreeData = async (type: ResourceType) => {
   loading.value = true
   try {
@@ -123,23 +130,23 @@ const loadTreeData = async (type: ResourceType) => {
     switch (type) {
       case 'datasource':
         response = await getDatasourceList()
-        const list = (response?.data as any[]) || []
-        treeData.value = list.map((item: any) => ({
+        const dsTree = wrapRootNode(response?.data, typeNames[type])
+        treeData.value = dsTree.map((item: any) => ({
           ...item,
-          leaf: true
+          leaf: !item.children
         }))
         break
       case 'dataset':
         response = await getDatasetTree()
-        treeData.value = (response?.data as any[]) || []
+        treeData.value = wrapRootNode(response?.data, typeNames[type])
         break
       case 'dashboard':
         response = await getDashboardTree()
-        treeData.value = extractTreeChildren(response?.data)
+        treeData.value = wrapRootNode(response?.data, typeNames[type])
         break
       case 'dataview':
         response = await getDataviewTree()
-        treeData.value = extractTreeChildren(response?.data)
+        treeData.value = wrapRootNode(response?.data, typeNames[type])
         break
     }
   } catch (e) {
@@ -150,10 +157,10 @@ const loadTreeData = async (type: ResourceType) => {
   }
 }
 
-const extractTreeChildren = (data: any): TreeNode[] => {
+const wrapRootNode = (data: any, label: string): TreeNode[] => {
   if (!data) return []
-  if (data.id === '0' && data.children) {
-    return data.children
+  if (Array.isArray(data) && data.length > 0 && data[0].id == 0 && data[0].children) {
+    return [{ ...data[0], name: label }]
   }
   if (Array.isArray(data)) {
     return data
