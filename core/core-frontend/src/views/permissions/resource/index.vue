@@ -28,7 +28,6 @@
             <el-option label="仪表板" value="dashboard" />
             <el-option label="数据集" value="dataset" />
             <el-option label="数据源" value="datasource" />
-            <el-option label="图表" value="chart" />
             <el-option label="大屏" value="screen" />
           </el-select>
         </el-form-item>
@@ -280,7 +279,6 @@ const resourceTypeLabel = computed(() => {
     dashboard: '仪表板',
     dataset: '数据集',
     datasource: '数据源',
-    chart: '图表',
     screen: '大屏'
   }
   return labels[selectedResourceType.value as keyof typeof labels] || '资源'
@@ -416,7 +414,6 @@ const getResourceTypeLabel = (type: string): string => {
     dashboard: '仪表板',
     dataset: '数据集',
     datasource: '数据源',
-    chart: '图表',
     screen: '大屏',
     folder: '文件夹'
   }
@@ -566,13 +563,6 @@ const viewResource = () => {
   }
   if (resourceType === 'screen') {
     const newWindow = window.open(`#/dvCanvas?dvId=${resourceId}`, '_blank')
-    if (!newWindow) {
-      ElMessage.warning('无法打开新窗口，请检查浏览器弹窗设置')
-    }
-    return
-  }
-  if (resourceType === 'chart') {
-    const newWindow = window.open(`#/chart?id=${resourceId}`, '_blank')
     if (!newWindow) {
       ElMessage.warning('无法打开新窗口，请检查浏览器弹窗设置')
     }

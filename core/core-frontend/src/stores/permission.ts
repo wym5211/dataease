@@ -111,7 +111,6 @@ const EXCLUDED_MENUS = ['sys-setting', 'permissions', 'template-market', 'toolbo
 const RESOURCE_TYPE_FLAG_MAP: Record<string, string> = {
   dashboard: 'dashboard',
   screen: 'dataV',
-  chart: 'dashboard',
   dataset: 'dataset',
   datasource: 'datasource'
 }
@@ -119,7 +118,6 @@ const RESOURCE_TYPE_FLAG_MAP: Record<string, string> = {
 const RESOURCE_TYPE_ROOT_LABEL_MAP: Record<string, string> = {
   dashboard: '仪表板',
   screen: '数据大屏',
-  chart: '图表',
   dataset: '数据集',
   datasource: '数据源'
 }
