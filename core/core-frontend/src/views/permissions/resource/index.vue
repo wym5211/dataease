@@ -634,7 +634,7 @@ onMounted(async () => {
 .header-bar {
   margin-bottom: 16px;
   padding: 16px;
-  background: #f5f7fa;
+  background: #f5f6f7;
   border-radius: 4px;
 }
 
@@ -651,7 +651,7 @@ onMounted(async () => {
 .resource-tree-panel {
   flex: 1;
   background: #fff;
-  border: 1px solid #e4e7ed;
+  border: 1px solid #dee0e3;
   border-radius: 4px;
   display: flex;
   flex-direction: column;
@@ -660,7 +660,7 @@ onMounted(async () => {
 .detail-panel {
   width: 400px;
   background: #fff;
-  border: 1px solid #e4e7ed;
+  border: 1px solid #dee0e3;
   border-radius: 4px;
   display: flex;
   flex-direction: column;
@@ -668,8 +668,8 @@ onMounted(async () => {
 
 .panel-header {
   padding: 12px 16px;
-  background: #f5f7fa;
-  border-bottom: 1px solid #e4e7ed;
+  background: #f5f6f7;
+  border-bottom: 2px solid var(--ed-color-primary);
   font-weight: 500;
   display: flex;
   justify-content: space-between;
@@ -691,7 +691,7 @@ onMounted(async () => {
 
 .node-icon {
   font-size: 16px;
-  color: #909399;
+  color: #8f959e;
 }
 
 .node-label {
@@ -705,7 +705,7 @@ onMounted(async () => {
 
 .info-icon {
   font-size: 14px;
-  color: #909399;
+  color: #8f959e;
   cursor: help;
 }
 
@@ -725,7 +725,7 @@ onMounted(async () => {
 .permission-actions {
   margin-top: 16px;
   padding: 16px;
-  background: #f5f7fa;
+  background: #f5f6f7;
   border-radius: 4px;
 }
 
@@ -738,7 +738,7 @@ onMounted(async () => {
 .related-menus {
   margin-top: 16px;
   padding: 16px;
-  background: #f5f7fa;
+  background: #f5f6f7;
   border-radius: 4px;
 }
 
@@ -779,7 +779,7 @@ onMounted(async () => {
 }
 
 .change-item .el-icon.revoke {
-  color: #f56c6c;
+  color: #f54a45;
 }
 
 .change-desc {

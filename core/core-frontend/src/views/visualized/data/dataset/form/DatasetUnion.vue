@@ -1151,7 +1151,7 @@ const emits = defineEmits([
           v-if="!ele.isShadow"
           @click="handlePathClick(ele)"
           class="path-union"
-          :style="{ borderColor: ele.sqlChangeFlag ? '#F54A45' : '' }"
+          :style="{ borderColor: ele.sqlChangeFlag ? '#f54a45' : '' }"
         >
           <el-icon>
             <Icon><component class="svg-icon" :is="iconName[ele.to.unionType]"></component></Icon>

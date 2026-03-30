@@ -246,14 +246,14 @@ defineExpose({
 
 .preview {
   margin-top: 5px;
-  border: 1px solid #e6e6e6;
+  border: 1px solid #dee0e3;
   height: 310px !important;
   overflow: hidden;
   background-size: 100% 100% !important;
 }
 
 .preview-show {
-  border-left: 1px solid #e6e6e6;
+  border-left: 1px solid #dee0e3;
   height: 310px;
   background-size: 100% 100% !important;
 }

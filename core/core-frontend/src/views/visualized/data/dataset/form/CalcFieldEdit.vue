@@ -664,7 +664,7 @@ initFunction()
     align-items: center;
     justify-content: center;
     background: #ffffff;
-    border: 1px solid #bbbfc4;
+    border: 1px solid #dee0e3;
     border-radius: 4px;
 
     .is-active {
@@ -786,7 +786,7 @@ initFunction()
 
   .not-allow {
     cursor: not-allowed;
-    color: #bbbfc4 !important;
+    color: #dee0e3 !important;
   }
 }
 .item-dimension,
@@ -882,7 +882,7 @@ initFunction()
 .calcu-field {
   .cm-scroller {
     height: 320px;
-    border: 1px solid #bbbfc4;
+    border: 1px solid #dee0e3;
     border-radius: 4px;
     overflow-y: auto;
     background: #fff;

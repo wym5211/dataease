@@ -320,15 +320,16 @@ import { deepCopy } from '@/utils/utils'
 import { ACTION_SELECTION } from '@/custom-component/component-list'
 const dvMainStore = dvMainStoreWithOut()
 const { dvInfo, canvasViewInfo, componentData, curComponent } = storeToRefs(dvMainStore)
-const linkageInfoTree = ref<any>(null)
-const linkageInfoTreeDiffDs = ref<any>(null)
+const linkageInfoTree = ref<unknown>(null)
+const linkageInfoTreeDiffDs = ref<unknown>(null)
 const { t } = useI18n()
 const dialogShow = ref(false)
 const loading = ref(false)
-const curLinkageTargetViewsInfo = ref<any[]>([])
-const curLinkageTargetViewsInfoSameDs = ref<any[]>([])
-const curLinkageTargetViewsInfoDiffDs = ref<any[]>([])
+const curLinkageTargetViewsInfo = ref<Record<string, unknown>[]>([])
+const curLinkageTargetViewsInfoSameDs = ref<Record<string, unknown>[]>([])
+const curLinkageTargetViewsInfoDiffDs = ref<Record<string, unknown>[]>([])
 const snapshotStore = snapshotStoreWithOut()
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const state = reactive<any>({
   sourceLinkageInfo: {},
   showSelected: false,
@@ -389,14 +390,14 @@ const diffDsShow = computed(
     curComponent.value.innerType !== 'indicator'
 )
 
-const dialogInit = (viewItem: any) => {
+const dialogInit = (viewItem: Record<string, unknown>) => {
   state.showSelected = false
   dialogShow.value = true
   state.initState = false
   init(viewItem)
 }
 
-const linkageSetting = (curViewId: any) => {
+const linkageSetting = (curViewId: string) => {
   // sourceViewId 也加入查询
   const targetViewIds = []
   findAllViewsId(componentData.value, targetViewIds)
@@ -454,7 +455,7 @@ const linkageSetting = (curViewId: any) => {
   })
 }
 
-const init = (viewItem: any) => {
+const init = (viewItem: Record<string, unknown>) => {
   state.initState = false
   state.viewId = viewItem.id
   curLinkageTargetViewsInfo.value = []
@@ -673,7 +674,7 @@ defineExpose({
 
 .preview {
   margin-top: 5px;
-  border: 1px solid #e6e6e6;
+  border: 1px solid #dee0e3;
   border-radius: 4px;
   height: 470px !important;
   overflow: hidden;
@@ -681,7 +682,7 @@ defineExpose({
 }
 
 .preview-show {
-  border-left: 1px solid #e6e6e6;
+  border-left: 1px solid #dee0e3;
   height: 470px;
   background-size: 100% 100% !important;
 }
@@ -707,7 +708,7 @@ defineExpose({
   font-size: 12px;
   line-height: 24px;
   height: 24px;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .select-filed {
@@ -716,7 +717,7 @@ defineExpose({
   text-overflow: ellipsis; /*超出部分文字以...显示*/
   color: #3d4d66;
   font-size: 12px;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .custom-position {
@@ -853,7 +854,7 @@ span {
 }
 
 .set-name-area {
-  font-weight: 600;
+  font-weight: 500;
   margin-right: 20px;
 }
 
@@ -954,7 +955,7 @@ span {
   color: var(--deTextDisable);
 }
 .outer-content-mirror {
-  border: 1px solid #bbbfc4;
+  border: 1px solid #dee0e3;
   border-radius: 4px;
   height: 100%;
   overflow: hidden;

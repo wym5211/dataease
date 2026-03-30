@@ -432,7 +432,7 @@ onMounted(() => {
 .topbar-icon-active {
   cursor: pointer;
   transition: 0.1s;
-  border-radius: 3px;
+  border-radius: 4px;
   font-size: 22px;
   background-color: rgb(245, 245, 245);
 
@@ -519,7 +519,7 @@ onMounted(() => {
   outline: 0;
   margin: 0;
   transition: 0.1s;
-  border-radius: 3px;
+  border-radius: 4px;
 
   &:hover {
     background-color: rgba(245, 246, 247, 1);
@@ -561,7 +561,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0px 5px 10px 0px #1f23291a;
+  box-shadow: 0px 4px 12px 0px rgba(31, 35, 41, 0.1);
 
   &:hover {
     .ed-icon {
@@ -641,7 +641,7 @@ onMounted(() => {
 }
 .filter-icon-span {
   float: left;
-  border: 1px solid #bbbfc4;
+  border: 1px solid #dee0e3;
   width: 32px;
   height: 32px;
   border-radius: 4px;

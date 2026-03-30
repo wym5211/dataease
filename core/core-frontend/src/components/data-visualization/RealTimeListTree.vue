@@ -688,6 +688,7 @@ const canvasChange = () => {
         font-size: 12px;
         padding: 0 2px 0 8px;
         user-select: none;
+        transition: background-color 0.15s ease;
 
         .component-icon {
           color: #a6a6a6;
@@ -750,6 +751,7 @@ const canvasChange = () => {
       }
       .activated {
         background-color: var(--ed-color-primary-1a, rgba(51, 112, 255, 0.1)) !important;
+        border-left: 2px solid var(--ed-color-primary);
         :deep(.component-icon) {
           color: var(--ed-color-primary);
         }
@@ -829,7 +831,7 @@ const canvasChange = () => {
 
 .layer-area {
   font-size: 12px;
-  font-weight: bold;
+  font-weight: 500;
   height: 36px;
   line-height: 36px;
   padding: 0 8px;
@@ -847,7 +849,7 @@ const canvasChange = () => {
     min-width: 24px;
     border: none;
     height: 6px;
-    border-radius: 3px;
+    border-radius: 4px;
     .ed-switch__action {
       left: 0;
       box-shadow: 0 2px 4px rgba(31, 35, 41, 0.12);

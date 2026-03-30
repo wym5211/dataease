@@ -174,7 +174,7 @@ const resetCustomColor = () => {
   }
 
   .color-custom-select {
-    border-radius: 3px;
+    border-radius: 4px;
     overflow: hidden;
     position: absolute;
     top: 6px;
@@ -198,7 +198,7 @@ const resetCustomColor = () => {
   .color-custom {
     position: relative;
     .color-item {
-      border-radius: 3px;
+      border-radius: 4px;
       width: 14px;
       height: 14px;
       position: relative;
@@ -207,7 +207,7 @@ const resetCustomColor = () => {
         content: '';
         width: calc(100% + 2px);
         height: calc(100% + 2px);
-        border-radius: 3px;
+        border-radius: 4px;
         position: absolute;
         top: -2px;
         border: 1px solid;

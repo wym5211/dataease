@@ -125,7 +125,8 @@ const initCarousel = () => {
   carouselTimer && clearInterval(carouselTimer)
   carouselTimer = null
   const picLength = element.value.propValue.urlList?.length || 0
-  const threshold = ((parseJson(view.value.senior) as any) || {}).threshold || {}
+  const threshold =
+    ((parseJson(view.value.senior) as Record<string, unknown>) || {}).threshold || {}
   // 非编辑状态 未启用条件样式 存在图片 启用轮播
   if (!isEditMode.value && !threshold.enable && picLength > 0 && element.value.carousel?.enable) {
     const switchTime = (element.value.carousel.time || 5) * 1000
@@ -191,7 +192,7 @@ const conditionAdaptor = (chart: Chart) => {
   if (!chart || !chart.senior) {
     return
   }
-  const threshold = ((parseJson(chart.senior) as any) || {}).threshold || {}
+  const threshold = ((parseJson(chart.senior) as Record<string, unknown>) || {}).threshold || {}
   if (!threshold.enable) {
     return
   }
@@ -230,7 +231,7 @@ const withInit = () => {
 
 const calcData = (viewCalc: Chart, callback) => {
   isError.value = false
-  const threshold = ((parseJson(viewCalc.senior) as any) || {}).threshold || {}
+  const threshold = ((parseJson(viewCalc.senior) as Record<string, unknown>) || {}).threshold || {}
   if (!threshold.enable) {
     withInit()
     callback?.()
@@ -242,7 +243,7 @@ const calcData = (viewCalc: Chart, callback) => {
     v.render = 'antv'
     v.resultCount = 1
     getData(v)
-      .then((res: any) => {
+      .then((res: Record<string, unknown>) => {
         if (res.code && res.code !== 0) {
           isError.value = true
           errMsg.value = res.msg
@@ -252,7 +253,9 @@ const calcData = (viewCalc: Chart, callback) => {
           state.data = res?.data
           state.viewDataInfo = res
           state.totalItems = res?.totalItems
-          const curViewInfo = (canvasViewInfo.value as any)[element.value.id]
+          const curViewInfo = (canvasViewInfo.value as Record<string, Record<string, unknown>>)[
+            element.value.id
+          ]
           curViewInfo['curFields'] = res.data.fields
           dvMainStore.setViewDataDetails(element.value.id, res)
           initReady.value = true

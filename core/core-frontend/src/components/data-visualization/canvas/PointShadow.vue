@@ -66,7 +66,7 @@ const styleInfo = computed(() => {
   align-items: center;
   position: absolute;
   color: rgba(2, 52, 96, 1);
-  font-weight: bold;
+  font-weight: 500;
   background-color: rgba(179, 212, 252);
 }
 </style>

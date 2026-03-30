@@ -97,7 +97,7 @@ const setBoard = () => {
   width: 130px;
   height: 80px;
   margin: 0 auto;
-  border-radius: 3px;
+  border-radius: 4px;
   box-sizing: border-box;
 }
 
@@ -105,7 +105,7 @@ const setBoard = () => {
   color: deepskyblue;
   cursor: pointer;
   border: solid 1px #4b8fdf;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .template-img > i {
@@ -130,7 +130,7 @@ const setBoard = () => {
 .template-img-active {
   color: deepskyblue;
   border: solid 1px red;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .svg-background {

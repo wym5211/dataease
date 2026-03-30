@@ -78,7 +78,7 @@ const switchValue = computed({
     min-width: 24px;
     border: none;
     height: 6px;
-    border-radius: 3px;
+    border-radius: 4px;
     .ed-switch__action {
       left: 0;
       box-shadow: 0 2px 4px rgba(31, 35, 41, 0.12);

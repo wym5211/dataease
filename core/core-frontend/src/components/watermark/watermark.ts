@@ -8,8 +8,8 @@ import { isISOMobile } from '@/utils/utils'
 const dvMainStore = dvMainStoreWithOut()
 
 const { dvInfo } = storeToRefs(dvMainStore)
-const userInfo = ref<any>(null)
-export function watermark(settings: Record<string, any>, domId: string) {
+const userInfo = ref<Record<string, unknown> | null>(null)
+export function watermark(settings: Record<string, unknown>, domId: string) {
   const watermarkDom = document.getElementById(domId)
   if (!watermarkDom) {
     return
@@ -154,7 +154,7 @@ export function getNow() {
   return time
 }
 export function activeWatermarkCheckUser(domId: string, canvasId: string, scale = 1) {
-  const info = dvInfo.value as any
+  const info = dvInfo.value as Record<string, unknown>
   if (info.watermarkInfo) {
     if (userInfo.value && userInfo.value.model !== 'lose') {
       activeWatermark(

@@ -661,7 +661,7 @@ import { guid } from '@/views/visualized/data/dataset/form/util'
 import treeSort from '@/utils/treeSortUtils'
 const dvMainStore = dvMainStoreWithOut()
 const { dvInfo, canvasViewInfo, componentData } = storeToRefs(dvMainStore)
-const linkJumpInfoTree = ref<any>(null)
+const linkJumpInfoTree = ref<unknown>(null)
 const { t } = useI18n()
 const dialogShow = ref(false)
 const snapshotStore = snapshotStoreWithOut()
@@ -676,6 +676,7 @@ const selectSourceTips = t('visualization.select_target_resource')
 
 const targetSource = t('visualization.target_dashboard_dataV')
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const state = reactive<any>({
   curDataVWeight: 0,
   activeCollapse: 'view',
@@ -742,7 +743,7 @@ const state = reactive<any>({
 })
 const { wsCache } = useCache()
 
-const outerContentEditor = ref<any>(null)
+const outerContentEditor = ref<unknown>(null)
 
 const resetParams = () => {
   state.linkJump = null
@@ -754,7 +755,7 @@ const resetParams = () => {
   state.linkJumpInfo = null
 }
 
-const dialogInit = (viewItem: any) => {
+const dialogInit = (viewItem: Record<string, unknown>) => {
   resetParams()
   state.showSelected = false
   dialogShow.value = true
@@ -762,7 +763,7 @@ const dialogInit = (viewItem: any) => {
   init(viewItem)
 }
 
-const initCurFilterFieldArray = (componentDataCheck: any[]) => {
+const initCurFilterFieldArray = (componentDataCheck: Record<string, unknown>[]) => {
   componentDataCheck.forEach(componentItem => {
     if (componentItem.component === 'VQuery' && componentItem.propValue instanceof Array) {
       componentItem.propValue.forEach(filterItem => {
@@ -786,7 +787,7 @@ const initCurFilterFieldArray = (componentDataCheck: any[]) => {
 
 const isIndicator = computed(() => 'indicator' === state.viewType)
 
-const init = (viewItem: any) => {
+const init = (viewItem: Record<string, unknown>) => {
   state.initState = false
   state.viewId = viewItem.id
   state.viewType = viewItem.type
@@ -923,7 +924,7 @@ const save = () => {
       state.loading = false
     })
 }
-const nodeClick = (data: any) => {
+const nodeClick = (data: Record<string, unknown>) => {
   if (!data) {
     return
   }
@@ -995,7 +996,7 @@ const getPanelViewList = (dvId: string) => {
   })
 }
 
-const dvNodeClick = (data: any) => {
+const dvNodeClick = (data: Record<string, unknown>) => {
   if (data.leaf) {
     state.curDataVWeight = data.weight
     state.linkJumpInfo.targetViewInfoList = []
@@ -1028,7 +1029,7 @@ const deleteLinkJumpFieldById = (targetId: string) => {
   }
 }
 
-const fieldIdDisabledCheck = (targetViewInfo: any) => {
+const fieldIdDisabledCheck = (targetViewInfo: Record<string, unknown>) => {
   return (
     (state.viewIdFieldArrayMap[targetViewInfo.targetViewId] &&
       state.viewIdFieldArrayMap[targetViewInfo.targetViewId].length === 1 &&
@@ -1037,7 +1038,7 @@ const fieldIdDisabledCheck = (targetViewInfo: any) => {
   )
 }
 
-const viewInfoOnChange = (targetViewInfo: any) => {
+const viewInfoOnChange = (targetViewInfo: Record<string, unknown>) => {
   if (
     state.viewIdFieldArrayMap[targetViewInfo.targetViewId] &&
     state.viewIdFieldArrayMap[targetViewInfo.targetViewId].length === 1 &&
@@ -1048,7 +1049,7 @@ const viewInfoOnChange = (targetViewInfo: any) => {
     targetViewInfo.targetFieldId = null
   }
 }
-const sourceFieldCheckedChange = (data: any) => {
+const sourceFieldCheckedChange = (data: Record<string, unknown>) => {
   nextTick(() => {
     linkJumpInfoTree.value.setCurrentKey(data.sourceFieldId)
     nodeClick(data)
@@ -1101,7 +1102,7 @@ const resourceEdit = async (resourceId: string) => {
   initOpenHandler(newWindow)
 }
 
-const openHandler = ref<any>(null)
+const openHandler = ref<unknown>(null)
 const initOpenHandler = (newWindow: Window | null) => {
   if (openHandler?.value) {
     const pm = {
@@ -1141,7 +1142,7 @@ defineExpose({
 
 .preview {
   margin-top: 5px;
-  border: 1px solid #e6e6e6;
+  border: 1px solid #dee0e3;
   border-radius: 4px;
   height: 470px !important;
   overflow: hidden;
@@ -1149,13 +1150,13 @@ defineExpose({
 }
 
 .preview-show {
-  border-left: 1px solid #e6e6e6;
+  border-left: 1px solid #dee0e3;
   height: 470px;
   background-size: 100% 100% !important;
 }
 
 .top_border {
-  border-top: 1px solid #e6e6e6;
+  border-top: 1px solid #dee0e3;
 }
 
 .slot-class {
@@ -1179,7 +1180,7 @@ defineExpose({
   font-size: 12px;
   line-height: 24px;
   height: 24px;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .select-filed {
@@ -1191,7 +1192,7 @@ defineExpose({
   font-size: 12px;
   line-height: 35px;
   height: 35px;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .custom-position {
@@ -1334,7 +1335,7 @@ span {
 }
 
 .set-name-area {
-  font-weight: 600;
+  font-weight: 500;
   margin-right: 20px;
 }
 
@@ -1368,7 +1369,7 @@ span {
 
   .settings-header {
     height: auto;
-    border-bottom: 1px solid #e6e6e6;
+    border-bottom: 1px solid #dee0e3;
 
     .radio-group-box {
       margin-top: 8px;
@@ -1511,7 +1512,7 @@ span {
   color: var(--deTextDisable);
 }
 .outer-content-mirror {
-  border: 1px solid #bbbfc4;
+  border: 1px solid #dee0e3;
   border-radius: 4px;
   height: calc(100% - 30px);
   width: 100%;
@@ -1530,7 +1531,7 @@ span {
 }
 
 .outer-content-right {
-  border: 1px solid #bbbfc4;
+  border: 1px solid #dee0e3;
   border-radius: 4px;
   height: calc(100% - 30px);
   width: 100%;

@@ -138,9 +138,9 @@ export const useLocaleStore = defineStore('locales', {
 
       // 合并基础国际化配置和自定义配置
       this.currentLocale.elLocale = {
-        ...(baseLocale as any),
-        el: mergeLocaleData((baseLocale as any).el || {}, customData)
-      } as any
+        ...(baseLocale as ElementPlusLocale),
+        el: mergeLocaleData((baseLocale as ElementPlusLocale).el || {}, customData)
+      } as ElementPlusLocale
 
       // 同时更新Element Plus的国际化配置
       if (this.currentLocale.elLocale) {
@@ -155,9 +155,9 @@ export const useLocaleStore = defineStore('locales', {
 
       // 合并基础国际化配置和自定义配置
       this.currentLocale.elLocale = {
-        ...(baseLocale as any),
-        el: mergeLocaleData((baseLocale as any).el || {}, customData)
-      } as any
+        ...(baseLocale as ElementPlusLocale),
+        el: mergeLocaleData((baseLocale as ElementPlusLocale).el || {}, customData)
+      } as ElementPlusLocale
 
       // 同时更新Element Plus的国际化配置
       if (this.currentLocale.elLocale) {

@@ -92,7 +92,7 @@ defineExpose({
       >
         <template #label>
           <label class="m-label">
-            计算字段[{{ paramsItem.name }}] <span style="color: red">*</span>
+            计算字段[{{ paramsItem.name }}] <span style="color: #f54a45">*</span>
           </label>
         </template>
         <el-input-number

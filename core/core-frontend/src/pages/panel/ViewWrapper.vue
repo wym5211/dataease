@@ -29,7 +29,7 @@ const viewInfo = ref()
 const userViewEnlargeRef = ref()
 const dvMainStore = dvMainStoreWithOut()
 const { t } = useI18n()
-const openHandler = ref<any>(null)
+const openHandler = ref<Record<string, unknown> | null>(null)
 const state = reactive({
   canvasDataPreview: null,
   canvasStylePreview: null,
@@ -113,7 +113,12 @@ onBeforeMount(async () => {
   initCanvasData(
     embeddedParams.dvId,
     { busiFlag: embeddedParams.busiFlag },
-    function ({ canvasDataResult, canvasStyleResult, dvInfo, canvasViewInfoPreview }: any) {
+    function ({
+      canvasDataResult,
+      canvasStyleResult,
+      dvInfo,
+      canvasViewInfoPreview
+    }: Record<string, unknown>) {
       state.canvasDataPreview = canvasDataResult
       state.canvasStylePreview = canvasStyleResult
       state.canvasViewInfoPreview = canvasViewInfoPreview
@@ -142,7 +147,7 @@ onBeforeMount(async () => {
             return false
           })
         } else if (ele.component === 'DeTabs') {
-          ;(ele.propValue as any[]).forEach(tabItem => {
+          ;(ele.propValue as Record<string, unknown>[]).forEach(tabItem => {
             return (tabItem.componentData || []).some(itx => {
               if (itx.id === chartId) {
                 config.value = itx
@@ -160,7 +165,7 @@ onBeforeMount(async () => {
     }
   )
 })
-const userViewEnlargeOpen = (opt: any) => {
+const userViewEnlargeOpen = (opt: Record<string, unknown>) => {
   userViewEnlargeRef.value.dialogInit(state.canvasStylePreview, viewInfo.value, config.value, opt)
 }
 

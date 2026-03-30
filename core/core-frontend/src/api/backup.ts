@@ -35,10 +35,10 @@ export interface ExportPackage {
   type: string
   exportTime: number
   exportBy: number
-  datasources?: any[]
-  datasets?: any[]
-  dashboards?: any[]
-  dataviews?: any[]
+  datasources?: Record<string, unknown>[]
+  datasets?: Record<string, unknown>[]
+  dashboards?: Record<string, unknown>[]
+  dataviews?: Record<string, unknown>[]
 }
 
 // 导出资源

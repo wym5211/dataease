@@ -359,7 +359,7 @@ const resetChanges = () => {
 .header-bar {
   margin-bottom: 16px;
   padding: 16px;
-  background: #f5f7fa;
+  background: #f5f6f7;
   border-radius: 4px;
 }
 
@@ -376,7 +376,7 @@ const resetChanges = () => {
 .tree-panel {
   flex: 1;
   background: #fff;
-  border: 1px solid #e4e7ed;
+  border: 1px solid #dee0e3;
   border-radius: 4px;
   display: flex;
   flex-direction: column;
@@ -385,7 +385,7 @@ const resetChanges = () => {
 .detail-panel {
   width: 400px;
   background: #fff;
-  border: 1px solid #e4e7ed;
+  border: 1px solid #dee0e3;
   border-radius: 4px;
   display: flex;
   flex-direction: column;
@@ -393,8 +393,8 @@ const resetChanges = () => {
 
 .panel-header {
   padding: 12px 16px;
-  background: #f5f7fa;
-  border-bottom: 1px solid #e4e7ed;
+  background: #f5f6f7;
+  border-bottom: 2px solid var(--ed-color-primary);
   font-weight: 500;
   display: flex;
   justify-content: space-between;
@@ -416,7 +416,7 @@ const resetChanges = () => {
 
 .node-icon {
   font-size: 16px;
-  color: #909399;
+  color: #8f959e;
 }
 
 .node-label {
@@ -444,7 +444,7 @@ const resetChanges = () => {
 .permission-actions {
   margin-top: 16px;
   padding: 16px;
-  background: #f5f7fa;
+  background: #f5f6f7;
   border-radius: 4px;
 }
 
@@ -457,7 +457,7 @@ const resetChanges = () => {
 .related-resources {
   margin-top: 16px;
   padding: 16px;
-  background: #f5f7fa;
+  background: #f5f6f7;
   border-radius: 4px;
 }
 
@@ -492,7 +492,7 @@ const resetChanges = () => {
 }
 
 .change-item .el-icon.revoke {
-  color: #f56c6c;
+  color: #f54a45;
 }
 
 .change-desc {

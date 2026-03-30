@@ -131,7 +131,7 @@ const loadTreeData = async (type: ResourceType) => {
       case 'datasource':
         response = await getDatasourceList()
         const dsTree = wrapRootNode(response?.data, typeNames[type])
-        treeData.value = dsTree.map((item: any) => ({
+        treeData.value = dsTree.map((item: Record<string, unknown>) => ({
           ...item,
           leaf: !item.children
         }))
@@ -157,7 +157,7 @@ const loadTreeData = async (type: ResourceType) => {
   }
 }
 
-const wrapRootNode = (data: any, label: string): TreeNode[] => {
+const wrapRootNode = (data: unknown, label: string): TreeNode[] => {
   if (!data) return []
   if (Array.isArray(data) && data.length > 0 && data[0].id == 0 && data[0].children) {
     return [{ ...data[0], name: label }]

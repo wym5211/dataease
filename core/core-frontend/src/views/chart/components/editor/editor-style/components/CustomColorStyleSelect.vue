@@ -568,7 +568,7 @@ const colorItemBorderColor = (index, state) => {
   line-height: 28px;
 
   border-radius: 4px;
-  border: 1px solid #bbbfc4;
+  border: 1px solid #dee0e3;
   padding: 0 7px;
   width: 28px;
   height: 28px;
@@ -610,7 +610,7 @@ const colorItemBorderColor = (index, state) => {
     .color-item {
       width: 20px;
       height: 20px;
-      border-radius: 3px;
+      border-radius: 4px;
       margin-right: 4px;
       cursor: pointer;
       padding: 2px;
@@ -680,7 +680,7 @@ const colorItemBorderColor = (index, state) => {
     .color-item {
       width: 20px;
       height: 20px;
-      border-radius: 3px;
+      border-radius: 4px;
       margin-right: 4px;
       margin-bottom: 4px;
       cursor: pointer;

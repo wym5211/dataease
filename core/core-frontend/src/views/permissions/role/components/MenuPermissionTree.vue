@@ -237,7 +237,7 @@ watch(
   .tree-toolbar {
     margin-bottom: 16px;
     padding-bottom: 16px;
-    border-bottom: 1px solid #e4e7ed;
+    border-bottom: 1px solid #dee0e3;
   }
 
   .custom-tree-node {
@@ -246,7 +246,7 @@ watch(
     gap: 8px;
 
     .menu-icon {
-      color: #909399;
+      color: #8f959e;
     }
 
     .node-type {

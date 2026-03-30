@@ -545,7 +545,7 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 24px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #e4e7ed;
+  border-bottom: 1px solid #dee0e3;
 }
 
 .header-left {
@@ -569,7 +569,7 @@ onMounted(() => {
   justify-content: flex-end;
   margin-top: 24px;
   padding-top: 16px;
-  border-top: 1px solid #e4e7ed;
+  border-top: 1px solid #dee0e3;
 }
 
 .audit-detail {
@@ -594,8 +594,8 @@ onMounted(() => {
   }
 
   .change-content {
-    background: #f5f7fa;
-    border: 1px solid #e4e7ed;
+    background: #f5f6f7;
+    border: 1px solid #dee0e3;
     border-radius: 4px;
     padding: 12px;
     font-size: 12px;
@@ -615,7 +615,7 @@ onMounted(() => {
   .rollback-info {
     margin-top: 16px;
     padding: 16px;
-    background: #f5f7fa;
+    background: #f5f6f7;
     border-radius: 4px;
 
     p {
@@ -632,6 +632,6 @@ onMounted(() => {
 }
 
 :deep(.el-table__row:hover) {
-  background-color: #f5f7fa;
+  background-color: #f5f6f7;
 }
 </style>

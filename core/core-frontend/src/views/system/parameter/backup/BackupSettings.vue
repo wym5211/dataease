@@ -240,9 +240,11 @@ const userStore = useUserStoreWithOut()
 
 const isAdmin = computed(() => String(userStore.getUid) === '1')
 
-const filterOutFolders = (list: any[] | undefined) => {
+const filterOutFolders = (list: Record<string, unknown>[] | undefined) => {
   if (!list) return 0
-  return list.filter((item: any) => item.type !== 'folder' && item.nodeType !== 'folder').length
+  return list.filter(
+    (item: Record<string, unknown>) => item.type !== 'folder' && item.nodeType !== 'folder'
+  ).length
 }
 const realDatasourceCount = computed(() => filterOutFolders(previewData.value?.datasources))
 const realDatasetCount = computed(() => filterOutFolders(previewData.value?.datasets))
@@ -481,7 +483,7 @@ const formatTime = (timestamp: number) => {
     .description {
       margin-bottom: 16px;
       font-size: 14px;
-      color: #909399;
+      color: #8f959e;
     }
   }
 }
@@ -489,7 +491,7 @@ const formatTime = (timestamp: number) => {
 .preview-info {
   padding: 12px;
   margin: 16px 0;
-  background: #f5f7fa;
+  background: #f5f6f7;
   border-radius: 4px;
 }
 

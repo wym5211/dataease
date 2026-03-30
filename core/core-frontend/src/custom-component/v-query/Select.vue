@@ -62,7 +62,7 @@ interface SelectConfig {
     label: string
     value: string
   }[]
-  optionFilter: any[]
+  optionFilter: string[]
 }
 
 const { t } = useI18n()
@@ -93,7 +93,7 @@ const props = defineProps({
   }
 })
 const { config } = toRefs(props)
-let enumValueArr: any[] = []
+let enumValueArr: Record<string, string>[] = []
 const selectValue = ref<string | string[] | undefined | null>()
 const loading = ref(false)
 const multiple = ref(false)
@@ -979,7 +979,7 @@ defineExpose({
 
 <style lang="less">
 .filter-select-popper_class {
-  --ed-fill-color-light: #f5f7fa47;
+  --ed-fill-color-light: #f5f6f747;
   font-family: var(--de-canvas_custom_font);
   .ed-vl__window.ed-select-dropdown__list {
     min-width: 200px;

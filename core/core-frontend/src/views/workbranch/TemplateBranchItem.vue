@@ -76,7 +76,7 @@ const templateInnerPreview = () => {
 <style scoped lang="less">
 .template {
   overflow: hidden;
-  border: 1px solid #d9d9d9;
+  border: 1px solid #dee0e3;
   border-radius: 4px;
   display: flex;
   flex-wrap: wrap;
@@ -101,7 +101,7 @@ const templateInnerPreview = () => {
   .apply {
     padding: 8px 12px;
     background: #fff;
-    border-top: 1px solid #d9d9d9;
+    border-top: 1px solid #dee0e3;
     position: absolute;
     width: 100%;
     left: 0;

@@ -393,13 +393,13 @@ import { iconFieldMap } from '../icon-group/field-list'
 import Icon from '../icon-custom/src/Icon.vue'
 const dvMainStore = dvMainStoreWithOut()
 const { dvInfo, componentData } = storeToRefs(dvMainStore)
-const outerParamsInfoTree = ref<any>(null)
+const outerParamsInfoTree = ref<Record<string, unknown> | null>(null)
 const { t } = useI18n()
 const curEditDataId = ref<string | null>(null)
 const snapshotStore = snapshotStoreWithOut()
 import icon_info_outlined from '@/assets/svg/icon_info_outlined.svg'
 
-const state = reactive<any>({
+const state = reactive<Record<string, unknown>>({
   filterExpand: true,
   datasetExpand: true,
   loading: false,
@@ -483,9 +483,9 @@ const matchModeChange = baseFilter => {
   }
 }
 
-const argRefs = ref<Record<string, any>>({})
+const argRefs = ref<Record<string, unknown>>({})
 
-const setArgRef = (el: any, id: string) => {
+const setArgRef = (el: unknown, id: string) => {
   if (el) {
     argRefs.value[id] = el
   }
@@ -526,7 +526,7 @@ const validateArgs = (val: string, id: string) => {
   }
 }
 
-const closeEdit = (params: any) => {
+const closeEdit = (params: Record<string, unknown>) => {
   if (!params.paramName || params.paramName.length < 2 || params.paramName.length > 25) {
     ElMessage({
       message: t('commons.params_value') + t('common.input_limit', [2, 25]),
@@ -541,7 +541,11 @@ const closeEdit = (params: any) => {
   curEditDataId.value = null
 }
 
-const outerParamsOperation = (cmd: string, node: any, data: any) => {
+const outerParamsOperation = (
+  cmd: string,
+  node: Record<string, unknown>,
+  data: Record<string, unknown>
+) => {
   if (cmd === 'rename') {
     curEditDataId.value = data.paramsInfoId
   } else if (cmd === 'delete') {
@@ -605,7 +609,7 @@ const initParams = async () => {
   getPanelViewList(dvInfo.value.id)
 }
 
-const findFields = (type: string, datasetFields: any[]) => {
+const findFields = (type: string, datasetFields: Record<string, unknown>[]) => {
   if (type === 'parameterList') {
     return datasetFields.filter(field => field.attachId.indexOf('DE') > -1)
   } else {
@@ -613,7 +617,7 @@ const findFields = (type: string, datasetFields: any[]) => {
   }
 }
 
-const datasetInfoChange = (datasetInfo: any) => {
+const datasetInfoChange = (datasetInfo: Record<string, unknown>) => {
   let viewCheckCount = 0
   datasetInfo.datasetViews.forEach(dsView => {
     if (dsView['checked']) {
@@ -626,9 +630,9 @@ const datasetInfoChange = (datasetInfo: any) => {
 }
 
 const paramsCheckedAdaptor = (
-  outerParamsInfo: any,
-  newBaseFilterInfo: any[],
-  newBaseDatasetInfo: any[]
+  outerParamsInfo: Record<string, unknown>,
+  newBaseFilterInfo: Record<string, unknown>[],
+  newBaseDatasetInfo: Record<string, unknown>[]
 ) => {
   const dsFieldIdSelected = {}
   const dsFilterMatchMode = {}
@@ -756,7 +760,7 @@ const save = () => {
   })
 }
 
-const nodeClick = (data: any) => {
+const nodeClick = (data: Record<string, unknown>) => {
   state.outerParamsInfo = state.mapOuterParamsInfoArray[data.paramsInfoId]
   state.curNodeId = data.paramsInfoId
 }
@@ -790,14 +794,14 @@ const getPanelViewList = (dvId: string) => {
   })
 }
 
-const initSelected = (data: any) => {
+const initSelected = (data: Record<string, unknown>) => {
   nextTick(() => {
     outerParamsInfoTree.value.setCurrentKey(data.paramsInfoId)
     nodeClick(data)
   })
 }
 
-const sourceFieldCheckedChange = (data: any) => {
+const sourceFieldCheckedChange = (data: Record<string, unknown>) => {
   if (data.checked) {
     state.outerParams.checked = true
   }
@@ -820,7 +824,7 @@ const addOuterParamsInfo = () => {
   initSelected(outerParamsInfo)
 }
 
-const removeOuterParamsInfo = (node: any, data: any) => {
+const removeOuterParamsInfo = (node: Record<string, unknown>, data: Record<string, unknown>) => {
   const parent = node.parent
   const children = parent.data.children || parent.data
   const index = children.findIndex(d => d.paramsInfoId === data.paramsInfoId)
@@ -830,7 +834,7 @@ const removeOuterParamsInfo = (node: any, data: any) => {
     state.curNodeId = null
   }
 }
-const batchSelectChange = (value: boolean, baseDatasetInfo: any) => {
+const batchSelectChange = (value: boolean, baseDatasetInfo: Record<string, unknown>) => {
   // do change
   baseDatasetInfo.datasetViews.forEach(viewInfo => {
     viewInfo.checked = value
@@ -861,7 +865,7 @@ defineExpose({
 
 .preview {
   margin-top: 5px;
-  border: 1px solid #e6e6e6;
+  border: 1px solid #dee0e3;
   border-radius: 4px;
   height: 470px !important;
   overflow: hidden;
@@ -873,7 +877,7 @@ defineExpose({
   line-height: 40px;
   font-size: 12px;
   color: #3d4d66;
-  border-bottom: 1px solid #e6e6e6;
+  border-bottom: 1px solid #dee0e3;
   .head-text {
     margin-left: 16px;
     font-weight: 500;
@@ -919,7 +923,7 @@ defineExpose({
   align-items: center;
 }
 .preview-show {
-  border-left: 1px solid #e6e6e6;
+  border-left: 1px solid #dee0e3;
   background-size: 100% 100% !important;
   height: 100%;
   overflow-y: auto;
@@ -1012,7 +1016,7 @@ defineExpose({
   font-size: 12px;
   line-height: 24px;
   height: 24px;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .select-filed {
@@ -1024,7 +1028,7 @@ defineExpose({
   font-size: 12px;
   line-height: 35px;
   height: 35px;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 :deep(.ed-popover) {
@@ -1181,7 +1185,7 @@ defineExpose({
 }
 
 .params-attach-setting {
-  border-left: 1px solid #e6e6e6;
+  border-left: 1px solid #dee0e3;
 }
 
 .params-attach-content {

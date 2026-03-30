@@ -6,7 +6,7 @@
           <el-radio-group v-model="state.streamMediaInfoTemp.videoType">
             <el-radio :label="'flv'">FLV</el-radio>
           </el-radio-group>
-          <span style="margin-left: 3px; font-size: 8px; color: #909399">
+          <span style="margin-left: 3px; font-size: 8px; color: #8f959e">
             Tips:{{ t('visualization.live_tips') }}
           </span>
         </el-form-item>
@@ -140,7 +140,7 @@ watch(
   font-size: 12px;
   line-height: 24px;
   height: 24px;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .select-filed {
@@ -153,7 +153,7 @@ watch(
   font-size: 12px;
   line-height: 35px;
   height: 35px;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 :deep(.el-popover) {

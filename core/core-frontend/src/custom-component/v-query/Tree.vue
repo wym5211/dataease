@@ -44,7 +44,7 @@ interface SelectConfig {
   defaultValueCheck: boolean
   multiple: boolean
   name?: string
-  optionFilter: any[]
+  optionFilter: string[]
 }
 
 const customStyle:

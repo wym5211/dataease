@@ -165,7 +165,7 @@ watch(
 }
 
 .tips-area {
-  color: #909399;
+  color: #8f959e;
   font-size: 8px;
   margin-left: 10px;
   line-height: 40px;

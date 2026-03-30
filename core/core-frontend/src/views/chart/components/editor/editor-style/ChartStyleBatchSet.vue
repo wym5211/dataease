@@ -147,7 +147,7 @@ const onStyleAttrChange = params => {
 .select-view {
   font-size: 14px;
   margin-left: 10px;
-  font-weight: bold;
+  font-weight: 500;
   line-height: 20px;
 }
 .view-selected-message-class {
@@ -180,7 +180,7 @@ const onStyleAttrChange = params => {
   overflow: hidden;
   margin-left: 10px;
   font-size: 14px;
-  font-weight: bold;
+  font-weight: 500;
   color: #9ea6b2;
 }
 

@@ -17,7 +17,11 @@
       <div v-show="activeTab === 'export'" class="export-panel">
         <el-form :model="exportForm" label-position="top">
           <el-form-item :label="t('backup.export_type')">
-            <el-select v-model="exportForm.type" :placeholder="t('backup.select_export_type')" style="width: 100%">
+            <el-select
+              v-model="exportForm.type"
+              :placeholder="t('backup.select_export_type')"
+              style="width: 100%"
+            >
               <el-option :label="t('backup.datasource')" value="datasource" />
               <el-option :label="t('backup.dataset')" value="dataset" />
               <el-option :label="t('backup.dashboard')" value="dashboard" />
@@ -27,7 +31,9 @@
           </el-form-item>
 
           <el-form-item :label="t('backup.export_options')">
-            <el-checkbox v-model="exportForm.options.compress">{{ t('backup.compress_file') }}</el-checkbox>
+            <el-checkbox v-model="exportForm.options.compress">{{
+              t('backup.compress_file')
+            }}</el-checkbox>
           </el-form-item>
         </el-form>
       </div>
@@ -57,7 +63,9 @@
           <!-- 文件预览 -->
           <div v-if="previewData" class="preview-info">
             <el-descriptions :column="2" border>
-              <el-descriptions-item :label="t('backup.version')">{{ previewData.version }}</el-descriptions-item>
+              <el-descriptions-item :label="t('backup.version')">{{
+                previewData.version
+              }}</el-descriptions-item>
               <el-descriptions-item :label="t('backup.type')">{{
                 getTypeName(previewData.type)
               }}</el-descriptions-item>
@@ -139,7 +147,9 @@
     </div>
     <template #footer>
       <el-button @click="onDependencyConfirm(false)">{{ t('commons.no') }}</el-button>
-      <el-button type="primary" @click="onDependencyConfirm(true)">{{ t('commons.yes') }}</el-button>
+      <el-button type="primary" @click="onDependencyConfirm(true)">{{
+        t('commons.yes')
+      }}</el-button>
     </template>
   </el-dialog>
 </template>
@@ -148,7 +158,14 @@
 import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus-secondary'
 import { useI18n } from '@/hooks/web/useI18n'
-import { exportData, importData, previewBackup, uploadBackup, downloadBackup, checkDependencies } from '@/api/backup'
+import {
+  exportData,
+  importData,
+  previewBackup,
+  uploadBackup,
+  downloadBackup,
+  checkDependencies
+} from '@/api/backup'
 import type { DependencyInfo, ExportPackage } from '@/api/backup'
 import ResourceSelectDialog from './ResourceSelectDialog.vue'
 
@@ -166,7 +183,8 @@ const uploadRef = ref(null)
 const previewData = ref<ExportPackage | null>(null)
 const realDatasourceCount = computed(() => {
   if (!previewData.value?.datasources) return 0
-  return previewData.value.datasources.filter((ds: any) => ds.type !== 'folder').length
+  return previewData.value.datasources.filter((ds: Record<string, unknown>) => ds.type !== 'folder')
+    .length
 })
 const fileList = ref<FileListItem[]>([])
 const resourceSelectDialog = ref<InstanceType<typeof ResourceSelectDialog>>()
@@ -200,7 +218,9 @@ const handleExport = async () => {
   if (exportForm.value.type === 'combined') {
     doExport([])
   } else {
-    resourceSelectDialog.value?.open(exportForm.value.type as 'datasource' | 'dataset' | 'dashboard' | 'dataview')
+    resourceSelectDialog.value?.open(
+      exportForm.value.type as 'datasource' | 'dataset' | 'dashboard' | 'dataview'
+    )
   }
 }
 
@@ -405,7 +425,7 @@ defineExpose({
 .preview-info {
   margin: 16px 0;
   padding: 12px;
-  background: #f5f7fa;
+  background: #f5f6f7;
   border-radius: 4px;
 }
 

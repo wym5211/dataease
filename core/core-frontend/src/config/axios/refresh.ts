@@ -3,6 +3,7 @@ import { refreshApi } from '@/api/login'
 import { useUserStoreWithOut } from '@/store/modules/user'
 import { useRequestStoreWithOut } from '@/store/modules/request'
 import { logger } from '@/utils/logger'
+import type { InternalAxiosRequestConfig } from 'axios'
 
 import { isLink } from '@/utils/utils'
 const { wsCache } = useCache()
@@ -47,7 +48,7 @@ const cacheRequest = (cb: (token: string | null) => void) => {
   requestStore.addCacheRequest(cb)
 }
 
-export const configHandler = (config: any) => {
+export const configHandler = (config: InternalAxiosRequestConfig) => {
   const desktop = wsCache.get('app.desktop')
   if (desktop) {
     return config

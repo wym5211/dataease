@@ -174,19 +174,19 @@ import EmptyBackground from '../empty-background/src/EmptyBackground.vue'
 import { supportExtremumChartType } from '@/views/chart/components/js/extremumUitl'
 import ChartCarouselTooltip from '@/views/chart/components/js/g2plot_tooltip_carousel'
 import html2canvas from 'html2canvas'
-const AnyComponentWrapper = ComponentWrapper as any
+const AnyComponentWrapper = ComponentWrapper as typeof ComponentWrapper
 const downLoading = ref(false)
 const dvMainStore = dvMainStoreWithOut()
 const dialogShow = ref(false)
 const requestStore = useRequestStoreWithOut()
 const permissionStore = usePermissionStoreWithOut()
-const viewInfo = ref<any>(null)
-const config = ref<any>(null)
-const viewContainer = ref<any>(null)
+const viewInfo = ref<Record<string, unknown> | null>(null)
+const config = ref<Record<string, unknown> | null>(null)
+const viewContainer = ref<HTMLElement | null>(null)
 const { t } = useI18n()
 const optType = ref<string | null>(null)
-const chartComponentDetails = ref<any>(null)
-const chartComponentDetails2 = ref<any>(null)
+const chartComponentDetails = ref<Record<string, unknown> | null>(null)
+const chartComponentDetails2 = ref<Record<string, unknown> | null>(null)
 const { dvInfo, isIframe, canvasStyleData } = storeToRefs(dvMainStore)
 const exportLoading = ref(false)
 const sourceViewType = ref<string>('')
@@ -301,9 +301,9 @@ const pixelOptions = [
   }
 ]
 const dialogInit = (
-  canvasStyle: any,
-  view: any,
-  item: any,
+  canvasStyle: Record<string, unknown>,
+  view: Record<string, unknown>,
+  item: Record<string, unknown>,
   opt: string,
   params = { scale: 0.5 }
 ) => {

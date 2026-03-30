@@ -4066,7 +4066,7 @@ const deleteChartFieldItem = id => {
       destroy-on-close
     >
       <template #header>
-        <span style="font-size: 15px; font-weight: bold; color: #1f2329">
+        <span style="font-size: 15px; font-weight: 500; color: #1f2329">
           {{ t('chart.sort_priority') }}
         </span>
         <span style="color: #1f2329">({{ t('chart.sort_priority_tip') }})</span>
@@ -4668,7 +4668,7 @@ span {
     overflow-y: hidden;
     display: block;
     align-items: center;
-    border: 1px dashed #bbbfc4;
+    border: 1px dashed #dee0e3;
     background-color: rgba(31, 35, 41, 0.05);
     margin-top: 8px;
 
@@ -4712,7 +4712,7 @@ span {
       background: #fff;
       height: 28px;
       border-radius: 4px;
-      border: 1px solid #dcdfe6;
+      border: 1px solid #dee0e3;
       display: flex;
       color: #cccccc;
       align-items: center;

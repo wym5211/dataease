@@ -200,7 +200,7 @@ onMounted(() => {
           </span>
         </template>
         <template v-else>
-          <span style="color: red">{{ t('chart.invalid_field') }}</span>
+          <span style="color: #f54a45">{{ t('chart.invalid_field') }}</span>
         </template>
       </el-col>
     </el-row>

@@ -618,7 +618,7 @@ const saveExcelDs = (params, successCb, finallyCb) => {
     return
   }
 
-  let table: Record<string, any> = {}
+  let table: Record<string, unknown> = {}
   if (params) {
     form.value.name = params.name
   }
@@ -1187,7 +1187,7 @@ defineExpose({
     .left-api_params {
       border-top-left-radius: 4px;
       border-bottom-left-radius: 4px;
-      border: 1px solid #bbbfc4;
+      border: 1px solid #dee0e3;
       width: 300px;
       padding: 16px;
       .name-copy {
@@ -1210,7 +1210,7 @@ defineExpose({
     .right-api_params {
       border-top-right-radius: 4px;
       border-bottom-right-radius: 4px;
-      border: 1px solid #bbbfc4;
+      border: 1px solid #dee0e3;
       border-left: none;
       width: calc(100% - 200px);
     }
@@ -1300,7 +1300,7 @@ defineExpose({
       align-items: center;
       justify-content: center;
       background: #ffffff;
-      border: 1px solid #bbbfc4;
+      border: 1px solid #dee0e3;
       border-radius: 4px;
 
       .is-active {

@@ -348,7 +348,7 @@ const save = () => {
               />
             </div>
             <div class="mobile-com-mask" @click="addToMobile(item)">
-              <span v-show="item.component === 'DeStreamMedia'" style="color: #909399">{{
+              <span v-show="item.component === 'DeStreamMedia'" style="color: #8f959e">{{
                 t('visualization.mobile_ios_tips')
               }}</span>
             </div>

@@ -229,6 +229,7 @@ const expandClick = (component: RealTimeTabComponent) => {
         font-size: 12px;
         padding: 0 2px 0 15px;
         user-select: none;
+        transition: background-color 0.15s ease;
 
         .component-icon {
           color: #a6a6a6;
@@ -292,6 +293,7 @@ const expandClick = (component: RealTimeTabComponent) => {
       }
       .activated {
         background-color: var(--ed-color-primary-1a, rgba(51, 112, 255, 0.05)) !important;
+        border-left: 2px solid var(--ed-color-primary);
         :deep(.component-icon) {
           color: var(--ed-color-primary);
         }

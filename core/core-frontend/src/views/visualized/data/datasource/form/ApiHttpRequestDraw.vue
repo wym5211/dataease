@@ -126,7 +126,7 @@ const columns = shallowRef([])
 const valueList = shallowRef([])
 const tableData = shallowRef([])
 const apiItemBasicInfo = ref<FormInstance>()
-const xpackApiItemBasicInfo = ref<any>()
+const xpackApiItemBasicInfo = ref<Record<string, unknown>>
 const isSupportSetKey = ref(false)
 const isNumber = (_rule, value, callback) => {
   if (!value) {

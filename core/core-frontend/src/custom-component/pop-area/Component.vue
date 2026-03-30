@@ -40,7 +40,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, toRefs, type PropType } from 'vue'
+import {
+  computed,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  toRefs,
+  type Component,
+  type PropType
+} from 'vue'
 import { findDragComponent } from '@/utils/canvasUtils'
 import { guid } from '@/views/visualized/data/dataset/form/util'
 import { changeComponentSizeWithScale } from '@/utils/changeComponentsSizeWithScale'
@@ -56,23 +64,23 @@ const dvMainStore = dvMainStoreWithOut()
 const snapshotStore = snapshotStoreWithOut()
 const areaActive = ref(false)
 const { t } = useI18n()
-const AnyComponentWrapper = ComponentWrapper as any
+const AnyComponentWrapper = ComponentWrapper as Component
 
 const props = defineProps({
   dvInfo: {
-    type: Object as PropType<Record<string, any>>,
+    type: Object as PropType<Record<string, unknown>>,
     required: true
   },
   canvasStyleData: {
-    type: Object as PropType<Record<string, any>>,
+    type: Object as PropType<Record<string, unknown>>,
     required: true
   },
   popComponentData: {
-    type: Array as PropType<any[]>,
+    type: Array as PropType<Record<string, unknown>[]>,
     required: true
   },
   canvasViewInfo: {
-    type: Object as PropType<Record<string, any>>,
+    type: Object as PropType<Record<string, unknown>>,
     required: true
   },
   canvasId: {
@@ -91,7 +99,7 @@ const props = defineProps({
     default: 'preview'
   },
   canvasState: {
-    type: Object as PropType<Record<string, any>>,
+    type: Object as PropType<Record<string, unknown>>,
     required: true
   }
 })
@@ -109,7 +117,7 @@ const innerScale = computed(() =>
   props.showPosition === 'preview' ? props.scale : props.scale * 100
 )
 
-const curActive = (item: any) => {
+const curActive = (item: Record<string, unknown>) => {
   return curComponent.value?.id === item.id && props.showPosition === 'popEdit'
 }
 
@@ -165,7 +173,7 @@ const customPopStyle = computed(() => {
 const popCanvasStyle = computed(() => {
   if (canvasState.value.curPointArea === 'hidden') {
     let queryCount = 0
-    popComponentData.value.forEach((popItem: any) => {
+    popComponentData.value.forEach((popItem: Record<string, unknown>) => {
       queryCount = 0 + popItem.propValue.length
     })
     return {

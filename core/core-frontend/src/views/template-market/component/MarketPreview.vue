@@ -286,7 +286,7 @@ onMounted(() => {
 .topbar-icon-active {
   cursor: pointer;
   transition: 0.1s;
-  border-radius: 3px;
+  border-radius: 4px;
   font-size: 22px;
   background-color: rgb(245, 245, 245);
 
@@ -372,7 +372,7 @@ onMounted(() => {
   outline: 0;
   margin: 0;
   transition: 0.1s;
-  border-radius: 3px;
+  border-radius: 4px;
 
   &:active {
     color: #000;
@@ -401,7 +401,7 @@ onMounted(() => {
   outline: 0;
   margin: 0;
   transition: 0.1s;
-  border-radius: 3px;
+  border-radius: 4px;
 
   &:active {
     color: #000;
@@ -454,7 +454,7 @@ onMounted(() => {
 }
 .filter-icon-span {
   float: left;
-  border: 1px solid #dcdfe6;
+  border: 1px solid #dee0e3;
   width: 32px;
   height: 32px;
   border-radius: 4px;

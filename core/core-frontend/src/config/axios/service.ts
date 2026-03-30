@@ -191,7 +191,7 @@ service.interceptors.response.use(
     }
     response.config.loading && tryHideLoading(permissionStore.getCurrentPath)
 
-    const responseData = response.data as any
+    const responseData = response.data as Record<string, unknown>
     if (response.config.responseType === 'blob') {
       // 如果是文件流，直接过
       return response
@@ -225,7 +225,7 @@ service.interceptors.response.use(
       ) {
         ElMessage({
           type: 'error',
-          message: responseData.msg,
+          message: responseData.msg as string,
           showClose: true
         })
         if (responseData.code === 80001) {
@@ -242,7 +242,7 @@ service.interceptors.response.use(
         )
       }
 
-      return Promise.reject(responseData.msg)
+      return Promise.reject(responseData.msg as string)
     }
   },
   (error: AxiosErrorWidthLoading<AxiosError>) => {
@@ -274,10 +274,10 @@ service.interceptors.response.use(
       !header.has('DE-GATEWAY-FLAG') &&
       !error.config.silentError
     ) {
-      const errorResponseData = error.response?.data as any
+      const errorResponseData = error.response?.data as Record<string, unknown>
       ElMessage({
         type: 'error',
-        message: errorResponseData?.msg ? errorResponseData.msg : error.message,
+        message: errorResponseData?.msg ? (errorResponseData.msg as string) : error.message,
         showClose: true
       })
     } else if (error?.config?.url.startsWith('/xpackComponent/content')) {

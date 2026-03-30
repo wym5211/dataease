@@ -242,6 +242,6 @@ init()
   height: 300px;
   overflow-y: auto;
   padding: 4px 12px;
-  border: 1px solid #e6e6e6;
+  border: 1px solid #dee0e3;
 }
 </style>

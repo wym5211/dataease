@@ -510,7 +510,7 @@ const setTreeDefault = () => {
   }
 }
 
-const setTreeDefaultBatch = (condition: any) => {
+const setTreeDefaultBatch = (condition: Record<string, unknown>) => {
   if (!!condition.checkedFields.length) {
     let tableId = ''
     fields.value.forEach(fieldItem => {
@@ -599,7 +599,7 @@ const setParametersNumType = componentId => {
       .map(ele => Object.values(ele?.fields || {}).flat())
       .flat()
       .filter(
-        (ele: any) =>
+        (ele: Record<string, unknown>) =>
           [
             curComponent.value.checkedFieldsMapEndNum[componentId],
             curComponent.value.checkedFieldsMapStartNum[componentId]
@@ -617,7 +617,7 @@ const setParametersTimeType = componentId => {
       .map(ele => Object.values(ele?.fields || {}).flat())
       .flat()
       .filter(
-        (ele: any) =>
+        (ele: Record<string, unknown>) =>
           [
             curComponent.value.checkedFieldsMapEnd[componentId],
             curComponent.value.checkedFieldsMapStart[componentId]
@@ -676,9 +676,9 @@ const duplicateRemoval = arr => {
 const setParameters = field => {
   const fieldArr = Object.values(curComponent.value.checkedFieldsMap).filter(ele => !!ele)
   curComponent.value.parameters = duplicateRemoval(
-    (Object.values(field?.fields || {}) as any[])
+    (Object.values(field?.fields || {}) as Record<string, unknown>[])
       .flat()
-      .filter((ele: any) => fieldArr.includes(ele.id) && !!ele.variableName)
+      .filter((ele: Record<string, unknown>) => fieldArr.includes(ele.id) && !!ele.variableName)
       .concat(curComponent.value.parameters.filter(ele => fieldArr.includes(ele.id)))
   )
   fields.value.forEach(ele => {
@@ -1713,20 +1713,18 @@ const init = (queryId: string) => {
   if (!params.length) return
   Promise.all([getDsDetailsWithPerm(params), getSqlParams(params)])
     .then(([dq, p]) => {
-      ;(dq as any[])
-        .filter(ele => !!ele)
-        .forEach((ele: any) => {
-          ele.activelist = 'dimensionList'
-          ele.fields.parameterList = (p as any[]).filter(
-            itx => itx.datasetGroupId === ele.id && !itx.params?.length
-          )
-          ele.hasParameter = !!ele.fields.parameterList.length
-          ele.fields.dimensionList = (ele.fields.dimensionList || []).filter(
-            itx => !itx.params?.length
-          )
-          ele.fields.quotaList = (ele.fields.quotaList || []).filter(itx => !itx.params?.length)
-          datasetMap[ele.id] = ele
-        })
+      dq.filter(ele => !!ele).forEach(ele => {
+        ele.activelist = 'dimensionList'
+        ele.fields.parameterList = p.filter(
+          itx => itx.datasetGroupId === ele.id && !itx.params?.length
+        )
+        ele.hasParameter = !!ele.fields.parameterList.length
+        ele.fields.dimensionList = (ele.fields.dimensionList || []).filter(
+          itx => !itx.params?.length
+        )
+        ele.fields.quotaList = (ele.fields.quotaList || []).filter(itx => !itx.params?.length)
+        datasetMap[ele.id] = ele
+      })
       fields.value = datasetFieldList.value
         .map(ele => {
           if (!datasetMap[ele.tableId]) return null

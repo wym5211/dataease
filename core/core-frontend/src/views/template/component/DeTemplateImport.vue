@@ -322,14 +322,14 @@ if (props.templateId) {
 }
 .preview {
   margin-top: -8px;
-  border: 1px solid #e6e6e6;
+  border: 1px solid #dee0e3;
   height: 300px !important;
   overflow: auto;
   background-size: 100% 100% !important;
   border-radius: 4px;
 }
 .preview-show {
-  border-left: 1px solid #e6e6e6;
+  border-left: 1px solid #dee0e3;
   height: 300px;
   background-size: 100% 100% !important;
 }

@@ -271,7 +271,7 @@ onBeforeMount(() => {
   font-size: 12px;
   line-height: 24px;
   height: 24px;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .select-filed {
@@ -280,7 +280,7 @@ onBeforeMount(() => {
   text-overflow: ellipsis; /*超出部分文字以...显示*/
   color: #3d4d66;
   font-size: 12px;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .custom-position {
@@ -418,7 +418,7 @@ span {
 }
 
 .set-name-area {
-  font-weight: 600;
+  font-weight: 500;
   margin-right: 20px;
 }
 
@@ -519,7 +519,7 @@ span {
   color: var(--deTextDisable);
 }
 .outer-content-mirror {
-  border: 1px solid #bbbfc4;
+  border: 1px solid #dee0e3;
   border-radius: 4px;
   height: 100%;
   overflow: hidden;

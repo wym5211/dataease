@@ -837,7 +837,7 @@ defineExpose({
       align-items: center;
       justify-content: center;
       background: #ffffff;
-      border: 1px solid #bbbfc4;
+      border: 1px solid #dee0e3;
       border-radius: 4px;
 
       .is-active {

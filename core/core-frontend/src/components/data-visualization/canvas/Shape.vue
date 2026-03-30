@@ -1303,7 +1303,7 @@ onMounted(() => {
   cursor: grab;
   color: #59c7f9;
   font-size: 20px;
-  font-weight: 600;
+  font-weight: 500;
 
   &:active {
     cursor: grabbing;

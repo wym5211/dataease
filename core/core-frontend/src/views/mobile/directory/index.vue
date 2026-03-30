@@ -274,7 +274,7 @@ onMounted(async () => {
         v-for="ele in activeTableData"
         :key="ele.id"
         @click="dataClick(ele)"
-        :style="{ color: ele.extraFlag1 === 0 ? '#bbbfc4' : '#1f2329' }"
+        :style="{ color: ele.extraFlag1 === 0 ? '#dee0e3' : '#1f2329' }"
         :label="ele.name"
         :nextlevel="!ele.leaf"
         :prefix-icon="ele.leaf ? icon_dashboard : dvFolder"
@@ -301,7 +301,7 @@ onMounted(async () => {
       width: calc(100% - 40px);
     }
     .filter-icon-span {
-      border: 1px solid #bbbfc4;
+      border: 1px solid #dee0e3;
       width: 32px;
       height: 32px;
       border-radius: 4px;

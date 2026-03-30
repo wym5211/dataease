@@ -205,7 +205,7 @@ defineExpose({
       .tab-toolbar {
         margin-bottom: 16px;
         padding-bottom: 16px;
-        border-bottom: 1px solid #e4e7ed;
+        border-bottom: 1px solid #dee0e3;
       }
     }
 

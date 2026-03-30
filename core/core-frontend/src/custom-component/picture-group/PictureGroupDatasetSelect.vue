@@ -41,7 +41,7 @@ const onDatasetUpdate = () => {
   nextTick(() => {
     if (view.value.tableId && view.value.id) {
       getFieldByDQ(view.value.tableId, view.value.id, { type: 'table-info' })
-        .then((res: any) => {
+        .then((res: Record<string, unknown>) => {
           view.value.xAxis = []
           res.quotaList.pop()
           view.value.xAxis.push(...res.dimensionList, ...res.quotaList)
@@ -71,7 +71,7 @@ const addDsWindow = () => {
   initOpenHandler(newWindow)
 }
 
-const openHandler = ref<any>(null)
+const openHandler = ref<Record<string, unknown> | null>(null)
 const initOpenHandler = (newWindow: Window | null) => {
   if (openHandler?.value) {
     const pm = {
@@ -227,7 +227,7 @@ const initOpenHandler = (newWindow: Window | null) => {
     background: #fff;
     height: 32px;
     border-radius: 4px;
-    border: 1px solid #dcdfe6;
+    border: 1px solid #dee0e3;
     display: flex;
     color: #cccccc;
     align-items: center;

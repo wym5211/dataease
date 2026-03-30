@@ -296,7 +296,7 @@ const handleMouseLeave = () => {
 }
 const state = reactive({
   activeTabName: '',
-  curItem: {} as Record<string, any>,
+  curItem: {} as Record<string, unknown>,
   textarea: '',
   dialogVisible: false,
   tabShow: true,

@@ -5,16 +5,16 @@ import { toPercent } from '@/utils/translate'
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import UserViewEnlarge from '@/components/visualization/UserViewEnlarge.vue'
 const dvMainStore = dvMainStoreWithOut()
-const userViewEnlargeRef = ref<any>(null)
-const AnyComponentWrapper = ComponentWrapper as any
+const userViewEnlargeRef = ref<InstanceType<typeof UserViewEnlarge> | null>(null)
+const AnyComponentWrapper = ComponentWrapper as typeof ComponentWrapper
 
 const props = defineProps({
   propValue: {
-    type: Array as PropType<any[]>,
+    type: Array as PropType<unknown[]>,
     default: () => []
   },
   element: {
-    type: Object as PropType<Record<string, any>>,
+    type: Object as PropType<Record<string, unknown>>,
     default() {
       return {
         propValue: null
@@ -27,7 +27,7 @@ const props = defineProps({
     default: 'canvas'
   },
   dvInfo: {
-    type: Object as PropType<Record<string, any>>,
+    type: Object as PropType<Record<string, unknown>>,
     required: true
   },
   // 仪表板刷新计时器
@@ -42,7 +42,7 @@ const props = defineProps({
     default: 1
   },
   canvasViewInfo: {
-    type: Object as PropType<Record<string, any>>,
+    type: Object as PropType<Record<string, unknown>>,
     required: true
   },
   // 字体
@@ -54,7 +54,7 @@ const props = defineProps({
 })
 
 const { propValue, dvInfo, searchCount, scale, canvasViewInfo } = toRefs(props)
-const customGroupStyle = (item: any) => {
+const customGroupStyle = (item: Record<string, unknown>) => {
   return {
     width: toPercent(item.groupStyle.width),
     height: toPercent(item.groupStyle.height),
@@ -63,7 +63,7 @@ const customGroupStyle = (item: any) => {
   }
 }
 
-const userViewEnlargeOpen = (opt: any, item: any) => {
+const userViewEnlargeOpen = (opt: unknown, item: Record<string, unknown>) => {
   userViewEnlargeRef.value.dialogInit(
     dvMainStore.canvasStyleData,
     canvasViewInfo.value[item.id],

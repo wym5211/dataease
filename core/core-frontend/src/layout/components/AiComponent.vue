@@ -88,7 +88,7 @@ onMounted(() => {
 }
 .ai-main-active {
   border: 1px solid rgba(239, 240, 241, 1);
-  box-shadow: 0px 6px 24px 0px #1f232914;
+  box-shadow: 0px 6px 24px 0px rgba(31, 35, 41, 0.08);
 }
 .ai-main-active-min {
   min-width: 350px;

@@ -49,7 +49,7 @@ const getDynamicRangeTime = (
   ]
 }
 
-type SelectValue = any
+type SelectValue = string | number | (string | number)[] | null | undefined | Date
 
 const forMatterValue = (
   type: number,
@@ -172,7 +172,7 @@ const getValueByDefaultValueCheckOrFirstLoad = (
 export const useFilter = (curComponentId: string, firstLoad = false) => {
   // 弹窗区域过滤组件是否生效
   const popupAvailable = canvasStyleData.value.popupAvailable
-  const filter: any[] = []
+  const filter: Record<string, unknown>[] = []
   const queryComponentList = componentData.value.filter(
     ele =>
       ele.component === 'VQuery' &&
@@ -326,8 +326,8 @@ const duplicateRemoval = <T extends { id: string }>(arr: T[]): T[] => {
 }
 
 export const searchQuery = (
-  queryComponentList: any[],
-  filter: any[],
+  queryComponentList: Record<string, unknown>[],
+  filter: Record<string, unknown>[],
   curComponentId: string,
   firstLoad: boolean
 ): void => {

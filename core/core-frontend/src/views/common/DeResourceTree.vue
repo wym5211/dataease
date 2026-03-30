@@ -1041,7 +1041,7 @@ defineExpose({
 </template>
 <style lang="less" scoped>
 .filter-icon-span {
-  border: 1px solid #bbbfc4;
+  border: 1px solid #dee0e3;
   width: 32px;
   height: 32px;
   border-radius: 4px;
@@ -1225,6 +1225,6 @@ defineExpose({
 }
 
 .color-dataV-disabled {
-  background: #bbbfc4 !important;
+  background: #dee0e3 !important;
 }
 </style>

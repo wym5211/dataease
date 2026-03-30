@@ -357,37 +357,46 @@ export function refreshOtherComponent(dvId, busiFlag) {
   )
   if (refreshComponentList && refreshComponentList.length > 0) {
     const refreshIdList = refreshComponentList.map(ele => ele.id)
-    findById(dvId, busiFlag, { source: 'main', taskId: null }).then((rsp: any) => {
-      const canvasInfo = rsp.data as any
-      const canvasDataResult = JSON.parse(canvasInfo.componentData) as any[]
-      const canvasDataResultMap = canvasDataResult.reduce((acc: any, comp: any) => {
-        acc[comp.id] = comp
-        return acc
-      }, {})
-      // 遍历数组并替换
-      for (let i = 0; i < componentData.value.length; i++) {
-        const component = componentData.value[i]
-        if (refreshIdList.includes(component.id) && canvasDataResultMap[component.id]) {
-          if (inMobile.value) {
-            componentData.value[i].propValue = canvasDataResultMap[component.id].propValue
-          } else {
-            const { top, left, height, width, fontSize } = componentData.value[i].style
-            const { linkageFilters, outerParamsFilters, webParamsFilters } = componentData.value[i]
-            canvasDataResultMap[component.id].style.top = top
-            canvasDataResultMap[component.id].style.left = left
-            canvasDataResultMap[component.id].style.height = height
-            canvasDataResultMap[component.id].style.width = width
-            canvasDataResultMap[component.id]['linkageFilters'] = linkageFilters
-            canvasDataResultMap[component.id]['outerParamsFilters'] = outerParamsFilters
-            canvasDataResultMap[component.id]['webParamsFilters'] = webParamsFilters
-            if (fontSize) {
-              canvasDataResultMap[component.id].style.fontSize = fontSize
+    findById(dvId, busiFlag, { source: 'main', taskId: null }).then(
+      (rsp: { data: Record<string, unknown> }) => {
+        const canvasInfo = rsp.data
+        const canvasDataResult = JSON.parse(canvasInfo.componentData as string) as Record<
+          string,
+          unknown
+        >[]
+        const canvasDataResultMap = canvasDataResult.reduce(
+          (acc: Record<string, Record<string, unknown>>, comp: Record<string, unknown>) => {
+            acc[comp.id] = comp
+            return acc
+          },
+          {}
+        )
+        // 遍历数组并替换
+        for (let i = 0; i < componentData.value.length; i++) {
+          const component = componentData.value[i]
+          if (refreshIdList.includes(component.id) && canvasDataResultMap[component.id]) {
+            if (inMobile.value) {
+              componentData.value[i].propValue = canvasDataResultMap[component.id].propValue
+            } else {
+              const { top, left, height, width, fontSize } = componentData.value[i].style
+              const { linkageFilters, outerParamsFilters, webParamsFilters } =
+                componentData.value[i]
+              canvasDataResultMap[component.id].style.top = top
+              canvasDataResultMap[component.id].style.left = left
+              canvasDataResultMap[component.id].style.height = height
+              canvasDataResultMap[component.id].style.width = width
+              canvasDataResultMap[component.id]['linkageFilters'] = linkageFilters
+              canvasDataResultMap[component.id]['outerParamsFilters'] = outerParamsFilters
+              canvasDataResultMap[component.id]['webParamsFilters'] = webParamsFilters
+              if (fontSize) {
+                canvasDataResultMap[component.id].style.fontSize = fontSize
+              }
+              componentData.value[i] = canvasDataResultMap[component.id]
             }
-            componentData.value[i] = canvasDataResultMap[component.id]
           }
         }
       }
-    })
+    )
   }
 }
 
@@ -396,8 +405,8 @@ export function initCanvasDataPrepare(dvId, params, callBack) {
   const copyFlag = busiFlag != null && busiFlag.includes('-copy')
   const busiFlagCustom = copyFlag ? busiFlag.split('-')[0] : busiFlag
   const method = copyFlag ? findCopyResource : findById
-  const canvasAttachInfo = dvMainStore.canvasAttachInfo as any
-  let attachInfo: any = { source: params.source ? params.source : 'main' }
+  const canvasAttachInfo = dvMainStore.canvasAttachInfo as Record<string, unknown>
+  let attachInfo: Record<string, unknown> = { source: params.source ? params.source : 'main' }
   if (canvasAttachInfo && !!canvasAttachInfo.taskId) {
     attachInfo = { source: 'report', taskId: canvasAttachInfo.taskId }
     const showWatermarkExist =
@@ -410,8 +419,8 @@ export function initCanvasDataPrepare(dvId, params, callBack) {
     }
   }
   attachInfo['resourceTable'] = params.resourceTable ? params.resourceTable : 'core'
-  method(dvId, busiFlagCustom, attachInfo).then((res: any) => {
-    const canvasInfo = res.data as any
+  method(dvId, busiFlagCustom, attachInfo).then((res: { data: Record<string, unknown> }) => {
+    const canvasInfo = res.data
     const watermarkInfo = {
       ...canvasInfo.watermarkInfo,
       settingContent: canvasInfo.watermarkInfo?.settingContent
@@ -438,8 +447,12 @@ export function initCanvasDataPrepare(dvId, params, callBack) {
     }
     const canvasVersion = canvasInfo.version
 
-    const canvasDataResult: any = JSON.parse(canvasInfo.componentData)
-    const canvasStyleResult: any = JSON.parse(canvasInfo.canvasStyleData)
+    const canvasDataResult: Record<string, unknown>[] = JSON.parse(
+      canvasInfo.componentData as string
+    )
+    const canvasStyleResult: Record<string, unknown> = JSON.parse(
+      canvasInfo.canvasStyleData as string
+    )
     const canvasViewInfoPreview = canvasInfo.canvasViewInfo
     historyAdaptor(canvasStyleResult, canvasDataResult, canvasInfo, attachInfo, canvasVersion)
     const curPreviewGap =
@@ -660,8 +673,8 @@ export async function canvasSaveWithParams(params, callBack) {
   let dsNameCheck = 'success'
   if (appData.value) {
     await appCanvasNameCheck({
-      datasetFolderPid: (canvasInfo as any).datasetFolderPid,
-      datasetFolderName: (canvasInfo as any).datasetFolderName
+      datasetFolderPid: (canvasInfo as Record<string, unknown>).datasetFolderPid,
+      datasetFolderName: (canvasInfo as Record<string, unknown>).datasetFolderName
     }).then(rsp => {
       dsNameCheck = rsp.data
     })
@@ -946,13 +959,17 @@ export function findParentIdByChildIdRecursive(tree, targetChildId) {
 }
 
 export async function decompressionPre(params, callBack) {
-  let deTemplateData: any
+  let deTemplateData: Record<string, unknown>
   await decompression(params)
-    .then((response: any) => {
-      const deTemplateDataTemp = response.data as any
-      const sourceComponentData = JSON.parse(deTemplateDataTemp['componentData']) as any[]
+    .then((response: { data: Record<string, unknown> }) => {
+      const deTemplateDataTemp = response.data
+      const sourceComponentData = JSON.parse(
+        deTemplateDataTemp['componentData'] as string
+      ) as Record<string, unknown>[]
       const appData = deTemplateDataTemp['appData']
-      const sourceCanvasStyle: any = JSON.parse(deTemplateDataTemp['canvasStyleData'])
+      const sourceCanvasStyle: Record<string, unknown> = JSON.parse(
+        deTemplateDataTemp['canvasStyleData'] as string
+      )
       sourceComponentData.forEach(componentItem => {
         // 2 为基础版本 此处需要增加仪表板矩阵密度
         if (

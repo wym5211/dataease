@@ -92,12 +92,12 @@ const setBoard = () => {
   width: 110px;
   margin: 0 auto;
   box-sizing: border-box;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .template-img:hover {
   border: solid 1px #4b8fdf;
-  border-radius: 3px;
+  border-radius: 4px;
   color: deepskyblue;
   cursor: pointer;
 }
@@ -123,7 +123,7 @@ const setBoard = () => {
 
 .template-img-active {
   border: solid 1px red;
-  border-radius: 3px;
+  border-radius: 4px;
   color: deepskyblue;
 }
 

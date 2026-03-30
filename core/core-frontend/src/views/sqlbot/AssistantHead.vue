@@ -30,7 +30,7 @@ const { t } = useI18n()
     align-items: center;
     background: #1cba901a;
     line-height: 56px;
-    font-weight: bold;
+    font-weight: 500;
     padding: 0 16px;
   }
 }

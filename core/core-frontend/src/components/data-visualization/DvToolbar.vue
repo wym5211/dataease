@@ -696,7 +696,7 @@ const fullScreenPreview = () => {
 }
 
 .divider {
-  background: #ffffff4d;
+  background: rgba(255, 255, 255, 0.15);
   width: 1px;
   height: 18px;
   margin-right: 20px;

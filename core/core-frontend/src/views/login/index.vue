@@ -265,7 +265,7 @@ onMounted(async () => {
     class="preheat-container"
     v-loading="true"
     :element-loading-text="loadingText"
-    element-loading-background="#F5F6F7"
+    element-loading-background="#f5f6f7"
   />
   <div v-show="contentShow" class="login-background" v-loading="duringLogin">
     <div class="login-container" ref="loginContainer">
@@ -378,14 +378,37 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #000;
+  background: linear-gradient(160deg, #050e21 0%, #0a1a3a 100%);
   position: absolute;
   z-index: 100;
 }
 .login-background {
-  background-color: #f5f7fa;
+  background-color: #f5f6f7;
   height: 100vh;
   width: 100vw;
+  animation: loginFadeIn 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes loginFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes loginSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .login-container {
@@ -398,6 +421,20 @@ onMounted(async () => {
     height: 100%;
     width: 40%;
     min-width: 400px;
+    position: relative;
+  }
+
+  .login-image-content::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      160deg,
+      rgba(5, 14, 33, 0.45) 0%,
+      rgba(51, 112, 255, 0.1) 50%,
+      transparent 80%
+    );
+    pointer-events: none;
   }
 
   .login-form-content {
@@ -406,9 +443,11 @@ onMounted(async () => {
     display: flex;
     align-items: center;
     justify-content: center;
+    background: linear-gradient(135deg, rgba(51, 112, 255, 0.02) 0%, transparent 50%);
 
     .login-form-center {
       width: 480px;
+      animation: loginSlideIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
     }
   }
   .login-logo {
@@ -436,11 +475,12 @@ onMounted(async () => {
   }
 
   .login-border {
-    height: 2px;
+    height: 3px;
     margin: 20px auto 20px;
     position: relative;
     width: 80px;
     background: var(--ed-color-primary);
+    border-radius: 2px;
     @media only screen and (max-width: 1280px) {
       margin: 20px auto 20px;
     }
@@ -461,7 +501,7 @@ onMounted(async () => {
   .demo-tips {
     position: absolute;
     font-size: 18px;
-    color: #f56c6c;
+    color: #f54a45;
     letter-spacing: 0;
     line-height: 18px;
     text-align: center;
@@ -474,16 +514,28 @@ onMounted(async () => {
   .login-form {
     margin-top: 40px;
     padding: 40px;
-    padding-top: 20px;
-    box-shadow: 0px 6px 24px rgba(31, 35, 41, 0.08);
-    border: 1px solid #dee0e3;
-    border-radius: 4px;
+    padding-top: 24px;
+    box-shadow: 0px 12px 48px rgba(31, 35, 41, 0.12);
+    border: 1px solid rgba(31, 35, 41, 0.06);
+    border-radius: 12px;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+
+    &:hover {
+      box-shadow: 0px 16px 56px rgba(31, 35, 41, 0.16);
+      transform: translateY(-2px);
+    }
 
     .login-input-module {
       width: 100%;
       :deep(.ed-input) {
-        height: 40px;
-        line-height: 40px;
+        height: 44px;
+        line-height: 44px;
+        border-radius: 8px;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+        &:focus {
+          box-shadow: 0 0 0 3px rgba(51, 112, 255, 0.1);
+        }
       }
     }
 
@@ -498,9 +550,9 @@ onMounted(async () => {
       margin-top: 20px;
       color: #1f2329;
       font-family: var(--de-custom_font, 'PingFang');
-      font-size: 20px;
+      font-size: 22px;
       font-weight: 500;
-      line-height: 28px;
+      line-height: 30px;
       text-align: left;
     }
   }
@@ -518,17 +570,22 @@ onMounted(async () => {
   .login-btn {
     position: relative;
     margin-bottom: 120px;
+    margin-top: 32px;
     .submit {
       width: 100%;
-      height: 40px;
-      line-height: 40px;
+      height: 44px;
+      line-height: 44px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 500;
+      transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
     }
   }
 
   .login-msg {
     margin-top: 10px;
     padding: 0 40px;
-    color: #f56c6c;
+    color: #f54a45;
     text-align: center;
   }
 

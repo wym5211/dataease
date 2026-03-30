@@ -630,9 +630,9 @@ defineExpose({ getFormData })
     }
 
     &.active {
-      background-color: #f5f7fa;
+      background-color: #f5f6f7;
       &:hover {
-        background-color: #f5f7fa;
+        background-color: #f5f6f7;
       }
     }
     &.dark {

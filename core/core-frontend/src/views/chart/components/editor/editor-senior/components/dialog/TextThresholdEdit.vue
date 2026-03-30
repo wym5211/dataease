@@ -214,7 +214,7 @@ init()
 .line-item {
   width: 100%;
   border-radius: 4px;
-  border: 1px solid #dcdfe6;
+  border: 1px solid #dee0e3;
   padding: 4px 14px;
   margin-bottom: 10px;
   display: flex;

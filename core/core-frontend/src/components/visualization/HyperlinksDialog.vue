@@ -62,7 +62,7 @@ const onClose = () => {
 
 <style lang="less" scoped>
 .tips-area {
-  color: #909399;
+  color: #8f959e;
   font-size: 8px;
   margin-left: 3px;
 }
@@ -85,7 +85,7 @@ const onClose = () => {
   font-size: 12px;
   line-height: 24px;
   height: 24px;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .select-filed {
@@ -98,7 +98,7 @@ const onClose = () => {
   font-size: 12px;
   line-height: 35px;
   height: 35px;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 :deep(.el-popover) {
   height: 200px;

@@ -281,6 +281,6 @@ const emits = defineEmits(['headersChange'])
 
 .api-body-code {
   border-radius: 4px;
-  border: 1px solid #bbbfc4;
+  border: 1px solid #dee0e3;
 }
 </style>

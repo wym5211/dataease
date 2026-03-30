@@ -51,7 +51,7 @@ const preview = () => {
 const isDataEaseBi = computed(() => appStore.getIsDataEaseBi)
 const isIframe = computed(() => appStore.getIsIframe)
 const shareDisable = computed(() => shareStore.getShareDisable || isDesktop())
-const creatorName = computed(() => (dvInfo.value as any)?.creatorName || '-')
+const creatorName = computed(() => (dvInfo.value as Record<string, unknown>)?.creatorName || '-')
 const exportPermissions = computed(() =>
   exportPermission(dvInfo.value['weight'], dvInfo.value['ext'])
 )

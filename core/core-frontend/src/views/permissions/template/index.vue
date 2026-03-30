@@ -192,7 +192,7 @@
               v-if="row.category !== 'system'"
               type="text"
               size="small"
-              style="color: #f56c6c"
+              style="color: #f54a45"
               @click="deleteTemplate(row)"
             >
               <el-icon><Delete /></el-icon>
@@ -633,7 +633,7 @@ permissionStore.loadTemplates()
 .header-bar {
   margin-bottom: 16px;
   padding: 16px;
-  background: #f5f7fa;
+  background: #f5f6f7;
   border-radius: 4px;
 }
 
@@ -656,7 +656,7 @@ permissionStore.loadTemplates()
 }
 
 .template-card {
-  border: 1px solid #e4e7ed;
+  border: 1px solid #dee0e3;
   border-radius: 8px;
   padding: 16px;
   background: #fff;
@@ -720,7 +720,7 @@ permissionStore.loadTemplates()
 
 .template-time {
   font-size: 12px;
-  color: #909399;
+  color: #8f959e;
 }
 
 .template-stats {
@@ -737,7 +737,7 @@ permissionStore.loadTemplates()
   color: #606266;
 
   .el-icon {
-    color: #909399;
+    color: #8f959e;
   }
 }
 
@@ -781,7 +781,7 @@ permissionStore.loadTemplates()
   max-height: 200px;
   overflow-y: auto;
   padding: 8px;
-  background: #f5f7fa;
+  background: #f5f6f7;
   border-radius: 4px;
 }
 
@@ -789,7 +789,7 @@ permissionStore.loadTemplates()
   .apply-preview {
     margin-top: 16px;
     padding: 16px;
-    background: #f5f7fa;
+    background: #f5f6f7;
     border-radius: 4px;
 
     h4 {

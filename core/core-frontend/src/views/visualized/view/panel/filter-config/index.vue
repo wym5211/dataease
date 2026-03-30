@@ -341,7 +341,7 @@ const handleTabClick = () => {
       width: 100%;
       height: 32px;
       border: 1px solid #ccc;
-      border-radius: 3px;
+      border-radius: 4px;
       display: flex;
       align-items: center;
       padding: 0 10px;

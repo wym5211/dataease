@@ -180,8 +180,8 @@ export const dvMainStore = defineStore('dataVisualization', {
       componentViewsData: {},
       // properties changed
       changeProperties: {
-        customStyle: {} as any,
-        customAttr: {} as any
+        customStyle: {} as Record<string, unknown>,
+        customAttr: {} as Record<string, unknown>
       },
       allViewRender: [],
       tabCollisionActiveId: null, // 当前在碰撞的Tab组件ID

@@ -830,7 +830,7 @@ onBeforeMount(() => {
   .add-icon-span {
     color: var(--ed-color-primary);
     padding: 3px;
-    border-radius: 3px;
+    border-radius: 4px;
     line-height: 1;
     &:hover {
       background: #1f232926;
@@ -854,7 +854,7 @@ onBeforeMount(() => {
   .opt-icon {
     color: var(--ed-color-primary);
     padding: 3px;
-    border-radius: 3px;
+    border-radius: 4px;
     line-height: 1;
     &:hover {
       background: #1f232926;
@@ -883,7 +883,7 @@ onBeforeMount(() => {
       .label {
         :first-child {
           font-size: 18px;
-          font-weight: bold;
+          font-weight: 500;
           margin-right: 10px;
         }
         :last-child {

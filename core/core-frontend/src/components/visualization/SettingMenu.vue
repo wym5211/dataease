@@ -358,7 +358,7 @@ onMounted(() => {
   z-index: 1000;
 
   ul {
-    border: 1px solid #e4e7ed;
+    border: 1px solid #dee0e3;
     border-radius: 4px;
     background-color: #fff;
     box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
@@ -380,7 +380,7 @@ onMounted(() => {
       cursor: pointer;
 
       &:hover {
-        background-color: var(--background-color-base, #f5f7fa);
+        background-color: var(--background-color-base, #f5f6f7);
       }
     }
   }

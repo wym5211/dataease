@@ -66,7 +66,7 @@ const addTable = tab => {
 
 watch(
   isAdmin,
-  newVal => {
+  () => {
     // backup tab 已移除，作为独立菜单存在
   },
   { immediate: true }

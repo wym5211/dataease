@@ -108,7 +108,7 @@ const resultName = computed(() => {
 })
 
 const result = computed(() => {
-  const list = resultObject.value?.data as any[] | undefined
+  const list = resultObject.value?.data as unknown[] | undefined
   let _result = undefined
   if (list && list.length > 0) {
     _result = list[0]
@@ -390,7 +390,7 @@ const calcData = (view, callback) => {
           errMsg.value = res.msg
         } else {
           chartData.value = res?.data as Partial<Chart['data']>
-          emit('onDrillFilters', (res as any)?.drillFilters)
+          emit('onDrillFilters', (res as Record<string, unknown>)?.drillFilters)
 
           dvMainStore.setViewDataDetails(view.id, res)
           renderChart(res)

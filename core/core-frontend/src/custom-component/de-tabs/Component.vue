@@ -300,7 +300,7 @@ const handleMouseLeave = () => {
 }
 const state = reactive({
   activeTabName: '',
-  curItem: {} as Record<string, any>,
+  curItem: {} as Record<string, unknown>,
   textarea: '',
   dialogVisible: false,
   tabShow: true,
@@ -739,7 +739,7 @@ onMounted(() => {
   }, 1000)
   useEmitt({
     name: 'showEnlargeDialog',
-    callback: (show: any) => {
+    callback: (show: unknown) => {
       if (show === true) {
         carouselTimer && clearInterval(carouselTimer)
       } else {

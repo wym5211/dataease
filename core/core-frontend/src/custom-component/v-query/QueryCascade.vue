@@ -342,7 +342,7 @@ defineExpose({
 
   .cascade-content {
     box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.12);
-    border: 1px solid #e4e7ed;
+    border: 1px solid #dee0e3;
     padding: 24px;
     padding-top: 8px;
     margin-top: 8px;

@@ -231,7 +231,7 @@ const exportPDF = () => {
   height: 24px;
   cursor: pointer;
   transition: 0.1s;
-  border-radius: 3px;
+  border-radius: 4px;
   padding-top: 2px;
   padding-left: 2px;
   padding-right: 2px;

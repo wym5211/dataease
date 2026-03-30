@@ -138,7 +138,7 @@ watch(
   font-size: 12px;
   line-height: 24px;
   height: 24px;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .select-filed {
@@ -151,11 +151,11 @@ watch(
   font-size: 12px;
   line-height: 35px;
   height: 35px;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .tips-class {
-  color: #909399;
+  color: #8f959e;
   font-size: 8px;
   margin-left: 3px;
 }

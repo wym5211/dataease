@@ -99,7 +99,7 @@ onBeforeMount(async () => {
       dvInfo,
       canvasViewInfoPreview,
       curPreviewGap
-    }: any) {
+    }: Record<string, unknown>) {
       if (!isPc.value) {
         if (dvInfo.mobileLayout) {
           dvMainStore.setMobileInPc(true)

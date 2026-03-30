@@ -205,7 +205,7 @@ const loadFail = () => {
     class="platform-login-mask"
     v-loading="true"
     :element-loading-text="t('auth.loading')"
-    element-loading-background="#F5F6F7"
+    element-loading-background="#f5f6f7"
   />
   <div class="de-mobile-login" v-loading="duringLogin">
     <img class="mobile-login_bg" :src="mobileLoginBg ? mobileLoginBg : mobileWholeBg" alt="" />
@@ -219,7 +219,7 @@ const loadFail = () => {
           <van-field
             v-model="username"
             name="用户名"
-            :style="{ borderColor: !!usernameError ? '#F54A45' : '#bbbfc4' }"
+            :style="{ borderColor: !!usernameError ? '#f54a45' : '#dee0e3' }"
             :placeholder="t('login.input_account')"
             @blur="handleBlur"
             :class="inputFocus === 'username' && 'input-focus-primary'"
@@ -235,7 +235,7 @@ const loadFail = () => {
             :type="visible ? 'password' : 'text'"
             :class="inputFocus === 'password' && 'input-focus-primary'"
             @click-right-icon="clickRightIcon"
-            :style="{ borderColor: !!passwordError ? '#F54A45' : '#bbbfc4' }"
+            :style="{ borderColor: !!passwordError ? '#f54a45' : '#dee0e3' }"
             @focus="handleFocus('password')"
             @blur="handleBlur"
             name="密码"
@@ -352,7 +352,7 @@ const loadFail = () => {
     }
 
     .van-field {
-      border: 1px solid #bbbfc4;
+      border: 1px solid #dee0e3;
       border-radius: 4px;
       margin: 16px 0;
     }

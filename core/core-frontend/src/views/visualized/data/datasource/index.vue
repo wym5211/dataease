@@ -2155,7 +2155,7 @@ const getMenuList = (val: boolean) => {
 @import '@/style/mixin.less';
 
 .filter-icon-span {
-  border: 1px solid #bbbfc4;
+  border: 1px solid #dee0e3;
   width: 32px;
   height: 32px;
   border-radius: 4px;
@@ -2220,6 +2220,20 @@ const getMenuList = (val: boolean) => {
           font-style: normal;
           font-weight: 500;
           line-height: 24px;
+          position: relative;
+          padding-left: 10px;
+
+          &::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 16px;
+            background: var(--ed-color-primary);
+            border-radius: 2px;
+          }
         }
 
         .custom-icon {

@@ -48,7 +48,7 @@
       border
       stripe
       style="width: 100%"
-      :header-cell-style="{ background: '#f5f7fa' }"
+      :header-cell-style="{ background: '#f5f6f7' }"
     >
       <el-table-column prop="name" label="角色名称" min-width="150" />
       <el-table-column prop="code" label="角色编码" min-width="150" />

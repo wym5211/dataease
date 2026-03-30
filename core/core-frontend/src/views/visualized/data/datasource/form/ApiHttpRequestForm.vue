@@ -208,7 +208,7 @@ const emits = defineEmits(['changeId'])
 
 <style lang="less" scoped>
 .request-content {
-  border: 1px #dcdfe6 solid;
+  border: 1px #dee0e3 solid;
   height: 100%;
   border-radius: 4px;
   width: 100%;
