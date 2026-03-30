@@ -1,5 +1,5 @@
 import { BusiTreeNode } from '@/models/tree/TreeNode'
-import _ from 'lodash'
+import * as _ from 'lodash-es'
 
 export function treeParentWeight(tree: BusiTreeNode[], pWeight) {
   const pWeightResult = {}

@@ -19,7 +19,6 @@
   </el-row>
 </template>
 <script lang="ts" setup>
-import flvjs from 'flv.js'
 import '@/style/custom-theme.css'
 import { onMounted, reactive, toRefs, getCurrentInstance, nextTick, onBeforeUnmount } from 'vue'
 import { useEmitt } from '@/hooks/web/useEmitt'
@@ -75,10 +74,11 @@ onMounted(() => {
   initOption()
 })
 
-const initOption = () => {
+const initOption = async () => {
   state.pOption = element.value.streamMediaLinks[element.value.streamMediaLinks.videoType]
   delete state.pOption.segments
-  nextTick(() => {
+  nextTick(async () => {
+    const flvjs = (await import('flv.js')).default
     if (flvjs.isSupported() && state.pOption.url) {
       destroyPlayer()
       const video = currentInstance.proxy.$refs['player-' + element.value.id]

@@ -47,7 +47,7 @@ const shareStore = useShareStoreWithOut()
 const interactiveStore = interactiveStoreWithOut()
 const userStore = useUserStoreWithOut()
 import { useI18n } from '@/hooks/web/useI18n'
-import _ from 'lodash'
+import * as _ from 'lodash-es'
 import DeResourceCreateOptV2 from '@/views/common/DeResourceCreateOptV2.vue'
 import { useCache } from '@/hooks/web/useCache'
 import { findParentIdByChildIdRecursive, onInitReady } from '@/utils/canvasUtils'
@@ -92,7 +92,7 @@ const anyManage = ref(false)
 const { curCanvasType, showPosition } = toRefs(props)
 const resourceLabel =
   curCanvasType.value === 'dataV' ? t('work_branch.big_data_screen') : t('work_branch.dashboard')
-const _newResourceLabel =
+const _newResourceLabel = // eslint-disable-line @typescript-eslint/no-unused-vars
   curCanvasType.value === 'dataV' ? t('visualization.new_screen') : t('visualization.new_dashboard')
 const selectedNodeKey = ref(null)
 const filterText = ref(null)
@@ -110,12 +110,14 @@ const state = reactive({
     {
       label: t('visualization.move_to'), //'移动到'
       command: 'move',
-      svgName: dvMove
+      svgName: dvMove,
+      divided: false
     },
     {
       label: t('visualization.rename'), //'重命名'
       command: 'rename',
-      svgName: dvRename
+      svgName: dvRename,
+      divided: false
     },
     {
       label: t('visualization.delete'), // 删除
@@ -475,7 +477,7 @@ const afterTreeInit = (notOpen = false) => {
     resourceListTree.value.filter(filterText.value)
     if (notOpen) return
     nextTick(() => {
-      document.querySelector('.is-current')?.firstChild?.click()
+      ;(document.querySelector('.is-current')?.firstChild as HTMLElement)?.click()
     })
   })
 }

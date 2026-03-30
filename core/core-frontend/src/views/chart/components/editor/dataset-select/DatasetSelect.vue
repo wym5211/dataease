@@ -2,12 +2,12 @@
 import dvFolder from '@/assets/svg/dv-folder.svg'
 import icon_dataset from '@/assets/svg/icon_dataset.svg'
 import icon_done_outlined from '@/assets/svg/icon_done_outlined.svg'
-import { Tree } from '../../../../visualized/data/dataset/form/CreatDsGroup.vue'
+import type { BusiTreeNode } from '@/models/tree/TreeNode'
 import { computed, ref, watch, onMounted } from 'vue'
 import { Plus, Search } from '@element-plus/icons-vue'
 import { useI18n } from '@/hooks/web/useI18n'
 import { useAppStoreWithOut } from '@/store/modules/app'
-import _ from 'lodash'
+import * as _ from 'lodash-es'
 import { getDatasetTree, getDatasourceList } from '@/api/dataset'
 import { ElFormItem, FormInstance } from 'element-plus-secondary'
 import { useEmitt } from '@/hooks/web/useEmitt'
@@ -22,7 +22,7 @@ const userStore = useUserStoreWithOut()
 const { t } = useI18n()
 
 interface StateObj {
-  datasetTree?: Tree[]
+  datasetTree?: BusiTreeNode[]
   [key: string]: unknown
 }
 
@@ -49,7 +49,7 @@ const loadingDatasetTree = ref(false)
 
 const orgCheck = ref(true)
 
-const datasetTree = ref<Tree[]>([])
+const datasetTree = ref<BusiTreeNode[]>([])
 
 const selectSource =
   props.sourceType === 'datasource'
@@ -76,7 +76,7 @@ const initDataset = () => {
   const params = props.sourceType === 'datasource' ? null : {}
   method(params)
     .then(res => {
-      sortTypeChange((res as unknown as Tree[]) || [])
+      sortTypeChange((res as unknown as BusiTreeNode[]) || [])
     })
     .finally(() => {
       loadingDatasetTree.value = false
@@ -178,7 +178,7 @@ const rules = ref([
   }
 ])
 
-function flatTree(tree: Tree[]) {
+function flatTree(tree: BusiTreeNode[]) {
   let result = _.cloneDeep(tree)
   _.forEach(tree, node => {
     if (node.children && node.children.length > 0) {
@@ -190,7 +190,7 @@ function flatTree(tree: Tree[]) {
 const onDatasetChange = val => {
   emits('onDatasetChange', val)
 }
-const filterNode = (value: string, data: Tree) => {
+const filterNode = (value: string, data: BusiTreeNode) => {
   if (!value) return true
   return data.name?.includes(value)
 }
@@ -204,7 +204,7 @@ const addDataset = () => {
 
 const datasetSelectorPopover = ref()
 
-const dsClick = (data: Tree) => {
+const dsClick = (data: BusiTreeNode) => {
   if (data.leaf) {
     if (_modelValue.value !== data.id) {
       onDatasetChange(data.id)
@@ -237,7 +237,7 @@ const clearShow = computed(
 const handleClear = e => {
   e.preventDefault()
   e.stopPropagation()
-  dsClick({ leaf: true, id: null } as Tree)
+  dsClick({ leaf: true, id: null } as BusiTreeNode)
   useEmitt().emitter.emit('clear-remove', ['xAxis', 'yAxis', 'drillFields'])
 }
 

@@ -24,6 +24,7 @@ import LinkOptBar from '@/components/data-visualization/canvas/LinkOptBar.vue'
 import { isDesktop } from '@/utils/ModelUtil'
 import { isMobile } from '@/utils/utils'
 import { useI18n } from '@/hooks/web/useI18n'
+import { debounce } from 'lodash-es'
 const dvMainStore = dvMainStoreWithOut()
 const { pcMatrixCount, curComponent, mobileInPc, canvasState, inMobile } = storeToRefs(dvMainStore)
 const openHandler = ref(null)
@@ -426,10 +427,11 @@ const winMsgOuterParamsHandle = msgInfo => {
   state.initState = true
 }
 
+const debouncedRestore = debounce(restore, 200)
 onMounted(() => {
   initRefreshTimer()
   resetLayout()
-  window.addEventListener('resize', restore)
+  window.addEventListener('resize', debouncedRestore)
   const erd = elementResizeDetectorMaker()
   erd.listenTo(document.getElementById(domId), () => {
     restore()
@@ -442,6 +444,7 @@ onBeforeUnmount(() => {
   //初始化隐藏弹框区
   dvMainStore.canvasStateChange({ key: 'curPointArea', value: 'base' })
   clearInterval(refreshTimer.value)
+  window.removeEventListener('resize', debouncedRestore)
   window.removeEventListener('message', winMsgHandle)
 })
 

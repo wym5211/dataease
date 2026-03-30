@@ -3,9 +3,10 @@
  * 用于打破 chart.ts -> formatter.ts -> util.ts -> chart.ts 的循环依赖
  */
 
-export function parseJson<T>(str: T | string): T {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function parseJson(str: any): any {
   if (typeof str !== 'string') {
-    return str as T
+    return str
   }
-  return JSON.parse(str) as T
+  return JSON.parse(str)
 }

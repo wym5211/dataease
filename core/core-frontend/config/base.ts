@@ -19,10 +19,26 @@ export default {
         chunkFileNames: `assets/chunk/[name]-${pkg.version}-${pkg.name}.js`,
         assetFileNames: `assets/[ext]/[name]-${pkg.version}-${pkg.name}.[ext]`,
         entryFileNames: `js/[name]-${pkg.version}-${pkg.name}.js`,
-        manualChunks(id: string) {
-          if (id.includes('node_modules')) {
-            return id.toString().split('node_modules/')[1].split('/')[0].toString()
-          }
+        manualChunks: {
+          vue: ['vue', 'vue-router', 'pinia', 'vue-i18n', 'mitt'],
+          echarts: ['echarts'],
+          lodash: ['lodash-es'],
+          antv: ['@antv/g2', '@antv/g2plot', '@antv/l7', '@antv/l7plot', '@antv/s2'],
+          editor: ['tinymce', '@tinymce/tinymce-vue', '@npkg/tinymce-plugins'],
+          table: ['vxe-table'],
+          utils: [
+            'axios',
+            'dayjs',
+            'decimal.js',
+            'crypto-js',
+            'file-saver',
+            'js-base64',
+            'jsencrypt',
+            'qs',
+            'xss',
+            'nprogress'
+          ],
+          ui: ['element-plus-secondary', 'vant']
         }
       }
     },

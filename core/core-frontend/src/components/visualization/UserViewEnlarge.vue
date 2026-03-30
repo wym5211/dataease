@@ -110,6 +110,8 @@
           :view-info="viewInfo"
           :config="config"
           :dv-info="dvInfo"
+          :canvas-style-data="canvasStyleData"
+          :canvas-view-info="canvasViewInfo"
           :font-family="canvasStyleData?.fontFamily"
           show-position="viewDialog"
         />
@@ -173,21 +175,24 @@ import { exportPermission } from '@/utils/utils'
 import EmptyBackground from '../empty-background/src/EmptyBackground.vue'
 import { supportExtremumChartType } from '@/views/chart/components/js/extremumUitl'
 import ChartCarouselTooltip from '@/views/chart/components/js/g2plot_tooltip_carousel'
-import html2canvas from 'html2canvas'
 const AnyComponentWrapper = ComponentWrapper as typeof ComponentWrapper
 const downLoading = ref(false)
 const dvMainStore = dvMainStoreWithOut()
 const dialogShow = ref(false)
 const requestStore = useRequestStoreWithOut()
 const permissionStore = usePermissionStoreWithOut()
-const viewInfo = ref<Record<string, unknown> | null>(null)
-const config = ref<Record<string, unknown> | null>(null)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const viewInfo = ref<any>(null)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const config = ref<any>(null)
 const viewContainer = ref<HTMLElement | null>(null)
 const { t } = useI18n()
 const optType = ref<string | null>(null)
-const chartComponentDetails = ref<Record<string, unknown> | null>(null)
-const chartComponentDetails2 = ref<Record<string, unknown> | null>(null)
-const { dvInfo, isIframe, canvasStyleData } = storeToRefs(dvMainStore)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const chartComponentDetails = ref<any>(null)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const chartComponentDetails2 = ref<any>(null)
+const { dvInfo, isIframe, canvasStyleData, canvasViewInfo } = storeToRefs(dvMainStore)
 const exportLoading = ref(false)
 const sourceViewType = ref<string>('')
 const activeName = ref('left')
@@ -300,10 +305,11 @@ const pixelOptions = [
     ]
   }
 ]
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const dialogInit = (
-  canvasStyle: Record<string, unknown>,
-  view: Record<string, unknown>,
-  item: Record<string, unknown>,
+  canvasStyle: any,
+  view: any,
+  item: any,
   opt: string,
   params = { scale: 0.5 }
 ) => {
@@ -354,6 +360,7 @@ const dataDetailsOpt = () => {
     }
   })
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 const handleClick = (tab: string) => {
   nextTick(() => {
@@ -438,8 +445,9 @@ const htmlToImage = () => {
     supportExtremumChartType({ type: viewInfo.value.type })
       ? 2000
       : 500
-  setTimeout(() => {
+  setTimeout(async () => {
     initWatermark()
+    const html2canvas = (await import('html2canvas')).default
     html2canvas(viewContainer.value)
       .then(canvas => {
         const dom = document.body.appendChild(canvas)

@@ -201,18 +201,18 @@ defineExpose({
 
 <style lang="scss" scoped>
 .tree-container {
+  padding: 12px;
   border: 1px solid var(--el-border-color);
   border-radius: 4px;
-  padding: 12px;
 }
 
 .selection-status {
-  margin-top: 12px;
   padding: 8px 12px;
-  background: var(--el-fill-color-light);
-  border-radius: 4px;
+  margin-top: 12px;
   font-size: 14px;
   color: var(--el-text-color-secondary);
+  background: var(--el-fill-color-light);
+  border-radius: 4px;
 }
 
 .custom-tree-node {

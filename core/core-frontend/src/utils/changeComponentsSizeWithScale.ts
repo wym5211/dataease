@@ -1,5 +1,4 @@
 import { deepCopy } from './utils'
-import { divide, multiply } from 'mathjs'
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { storeToRefs } from 'pinia'
 import { groupItemStyleAdaptor, groupSizeStyleAdaptor } from '@/utils/style'
@@ -189,12 +188,12 @@ export function changeComponentSizeWithScale(component, scale = canvasStyleData.
 }
 
 function format(value, scale) {
-  return multiply(value, divide(parseFloat(scale), 100))
+  return value * (parseFloat(scale) / 100)
 }
 
 function getOriginStyle(value = 0, scale) {
   if (!value) {
     value = 0
   }
-  return divide(value, divide(parseFloat(scale), 100))
+  return value / (parseFloat(scale) / 100)
 }

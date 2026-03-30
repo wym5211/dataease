@@ -463,7 +463,7 @@ export const dvMainStore = defineStore('dataVisualization', {
       }
     },
 
-    addComponent({ component, index, isFromGroup = false, componentData }) {
+    addComponent({ component, index, isFromGroup = false, componentData = undefined }) {
       if (!componentData) {
         componentData = this.componentData
       }

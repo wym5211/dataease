@@ -91,7 +91,12 @@ export default {
       'element-plus-secondary/es/locale/lang/zh-cn',
       'element-plus-secondary/es/locale/lang/en',
       '@vueuse/core',
-      'axios'
+      'axios',
+      'lodash-es',
+      'dayjs',
+      'pinia',
+      'mitt',
+      'echarts'
     ]
   }
 }

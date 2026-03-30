@@ -1,7 +1,9 @@
+import { debounce } from 'lodash-es'
+
 const domSymbol = Symbol('watermark-dom')
 
 export function useWatermark(appendEl: HTMLElement | null = document.body) {
-  let func: Fn = () => ({})
+  let func: (() => void) | null = null
   const id = domSymbol.toString()
   const clear = () => {
     const domId = document.getElementById(id)
@@ -9,7 +11,7 @@ export function useWatermark(appendEl: HTMLElement | null = document.body) {
       const el = appendEl
       el && el.removeChild(domId)
     }
-    window.removeEventListener('resize', func)
+    func && window.removeEventListener('resize', func)
   }
   const createWatermark = (str: string) => {
     clear()
@@ -44,10 +46,10 @@ export function useWatermark(appendEl: HTMLElement | null = document.body) {
   }
 
   function setWatermark(str: string) {
-    createWatermark(str)
-    func = () => {
+    clear()
+    func = debounce(() => {
       createWatermark(str)
-    }
+    }, 300)
     window.addEventListener('resize', func)
   }
 

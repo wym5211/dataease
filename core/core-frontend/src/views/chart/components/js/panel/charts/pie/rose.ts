@@ -20,7 +20,7 @@ import { parseJson, flow, setUpSingleDimensionSeriesColor } from '@/views/chart/
 import { Label } from '@antv/g2plot/lib/types/label'
 import { valueFormatter } from '@/views/chart/components/js/formatter'
 import { Datum } from '@antv/g2plot/esm/types/common'
-import { add } from 'mathjs'
+
 import isEmpty from 'lodash-es/isEmpty'
 import { useI18n } from '@/hooks/web/useI18n'
 const { t } = useI18n()
@@ -118,11 +118,12 @@ export class Rose extends G2PlotChartView<RoseOptions, G2Rose> {
         label: false
       }
     }
-    const total = options.data?.reduce((pre, next) => add(pre, next.value ?? 0), 0)
+    const total = options.data?.reduce((pre, next) => pre + (next.value ?? 0), 0)
     const layout = []
     if (!labelAttr.fullDisplay) {
       const tmpOptions = super.configLabel(chart, options)
-      layout.push(...tmpOptions.label.layout)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      layout.push(...(tmpOptions.label as any).layout)
     }
     const labelOptions: Label = {
       autoRotate: true,
@@ -175,7 +176,7 @@ export class Rose extends G2PlotChartView<RoseOptions, G2Rose> {
     const reserveDecimalCount = label.reserveDecimalCount
     const seriesTotalMap = getTooltipSeriesTotalMap(options.data)
     // trick, cal total, maybe use scale of chart in plot instance
-    const total = options.data?.reduce((pre, next) => add(pre, next.value ?? 0), 0)
+    const total = options.data?.reduce((pre, next) => pre + (next.value ?? 0), 0)
     const formatterMap = tooltipAttr.seriesTooltipFormatter
       ?.filter(i => i.show)
       .reduce((pre, next) => {

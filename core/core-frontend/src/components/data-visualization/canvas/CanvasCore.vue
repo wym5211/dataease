@@ -30,7 +30,7 @@ import { composeStoreWithOut } from '@/store/modules/data-visualization/compose'
 import { contextmenuStoreWithOut } from '@/store/modules/data-visualization/contextmenu'
 import { storeToRefs } from 'pinia'
 import findComponent from '@/utils/components'
-import _ from 'lodash'
+import * as _ from 'lodash-es'
 import DragShadow from '@/components/data-visualization/canvas/DragShadow.vue'
 import {
   canvasSave,

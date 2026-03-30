@@ -8,8 +8,8 @@ export interface ResourceOrFolder {
   pid?: number | string
   nodeType: 'folder' | 'leaf'
   type: string
-  mobileLayout: boolean
-  status: boolean
+  mobileLayout?: boolean
+  status?: boolean
 }
 
 export interface Panel {

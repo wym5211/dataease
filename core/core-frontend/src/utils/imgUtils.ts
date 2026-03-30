@@ -1,12 +1,9 @@
-import html2canvas from 'html2canvas'
-import JsPDF from 'jspdf'
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { useEmbedded } from '@/store/modules/embedded'
 import { storeToRefs } from 'pinia'
 import { findResourceAsBase64 } from '@/api/staticResource'
 import FileSaver from 'file-saver'
 import { deepCopy } from '@/utils/utils'
-import { domToPng } from 'modern-screenshot'
 const embeddedStore = useEmbedded()
 const dvMainStore = dvMainStoreWithOut()
 const { canvasStyleData, componentData, canvasViewInfo, canvasViewDataInfo, dvInfo } =
@@ -35,8 +32,9 @@ export function imgUrlTrans(url) {
   }
 }
 
-export function download2AppTemplate(downloadType, canvasDom, name, attachParams, callBack?) {
+export async function download2AppTemplate(downloadType, canvasDom, name, attachParams, callBack?) {
   try {
+    const html2canvas = (await import('html2canvas')).default
     findStaticSource(function (staticResource) {
       html2canvas(canvasDom).then(canvas => {
         const canvasViewDataTemplate = deepCopy(canvasViewInfo.value)
@@ -79,11 +77,12 @@ export function download2AppTemplate(downloadType, canvasDom, name, attachParams
   }
 }
 
-export function downloadCanvas(type, canvasDom, name, callBack?) {
+export async function downloadCanvas(type, canvasDom, name, callBack?) {
   // const canvasDom = document.getElementById(canvasId)
   if (canvasDom) {
+    const html2canvas = (await import('html2canvas')).default
     html2canvas(canvasDom)
-      .then(canvas => {
+      .then(async canvas => {
         const dom = document.body.appendChild(canvas)
         dom.style.display = 'none'
         document.body.removeChild(dom)
@@ -99,6 +98,7 @@ export function downloadCanvas(type, canvasDom, name, callBack?) {
           const contentWidth = canvasDom.offsetWidth
           const contentHeight = canvasDom.offsetHeight
           const lp = contentWidth > contentHeight ? 'l' : 'p'
+          const JsPDF = (await import('jspdf')).default
           const PDF = new JsPDF(lp, 'pt', [contentWidth, contentHeight])
           PDF.addImage(dataUrl, 'PNG', 0, 0, contentWidth, contentHeight)
           PDF.save(name + '.pdf')
@@ -116,9 +116,10 @@ export function downloadCanvas(type, canvasDom, name, callBack?) {
   }
 }
 
-export function downloadCanvas2(type, canvasDom, name, callBack?) {
+export async function downloadCanvas2(type, canvasDom, name, callBack?) {
+  const { domToPng } = await import('modern-screenshot')
   domToPng(canvasDom, { scale: 3 })
-    .then(dataUrl => {
+    .then(async dataUrl => {
       if (type === 'img') {
         const a = document.createElement('a')
         a.setAttribute('download', name + '.png')
@@ -130,6 +131,7 @@ export function downloadCanvas2(type, canvasDom, name, callBack?) {
         const contentWidth = canvasDom.offsetWidth
         const contentHeight = canvasDom.offsetHeight
         const lp = contentWidth > contentHeight ? 'l' : 'p'
+        const JsPDF = (await import('jspdf')).default
         const PDF = new JsPDF(lp, 'pt', [contentWidth, contentHeight])
         PDF.addImage(dataUrl, 'PNG', 0, 0, contentWidth, contentHeight)
         PDF.save(name + '.pdf')

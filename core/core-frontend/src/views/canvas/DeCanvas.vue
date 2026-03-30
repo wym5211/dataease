@@ -11,6 +11,7 @@ import { getCanvasStyle, syncShapeItemStyle } from '@/utils/style'
 import { adaptCurThemeCommonStyle } from '@/utils/canvasStyle'
 import CanvasCore from '@/components/data-visualization/canvas/CanvasCore.vue'
 import { isMainCanvas, isDashboard } from '@/utils/canvasUtils'
+import { throttle } from 'lodash-es'
 
 // change-begin
 const props = defineProps({
@@ -240,11 +241,12 @@ const moveOutFromTab = component => {
 }
 
 // 全局监听按键事件
+const throttledCanvasSizeInit = throttle(canvasSizeInit, 300)
 onMounted(() => {
-  window.addEventListener('resize', canvasSizeInit)
+  window.addEventListener('resize', throttledCanvasSizeInit)
   const erd = elementResizeDetectorMaker()
   erd.listenTo(document.getElementById(domId.value), () => {
-    canvasSizeInit()
+    throttledCanvasSizeInit()
   })
   canvasInit()
   if (isMainCanvas(canvasId.value)) {
@@ -252,16 +254,19 @@ onMounted(() => {
     eventBus.on('event-canvas-size-init', canvasSizeInit)
   }
   eventBus.on('moveOutFromTab-' + canvasId.value, moveOutFromTab)
-  eventBus.on('matrix-canvasInit', canvasInit)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  eventBus.on('matrix-canvasInit', canvasInit as any)
 })
 
 onBeforeUnmount(() => {
+  window.removeEventListener('resize', throttledCanvasSizeInit)
   if (isMainCanvas(canvasId.value)) {
     eventBus.off('handleNew', handleNewFromCanvasMain)
     eventBus.off('event-canvas-size-init', canvasSizeInit)
   }
   eventBus.off('moveOutFromTab-' + canvasId.value, moveOutFromTab)
-  eventBus.off('matrix-canvasInit', canvasInit)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  eventBus.off('matrix-canvasInit', canvasInit as any)
 })
 
 const getBaseMatrixSize = () => {

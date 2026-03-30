@@ -24,7 +24,7 @@ import {
   PIE_EDITOR_PROPERTY_INNER
 } from '@/views/chart/components/js/panel/charts/pie/common'
 import type { Datum } from '@antv/g2plot/esm/types/common'
-import { add } from 'mathjs'
+
 import isEmpty from 'lodash-es/isEmpty'
 import { cloneDeep } from 'lodash-es'
 import { useI18n } from '@/hooks/web/useI18n'
@@ -216,7 +216,7 @@ export class Pie extends G2PlotChartView<PieOptions, G2Pie> {
     const reserveDecimalCount = label.reserveDecimalCount
     const seriesTotalMap = getTooltipSeriesTotalMap(options.data)
     // trick, cal total, maybe use scale of chart in plot instance
-    const total = options.data?.reduce((pre, next) => add(pre, next.value ?? 0), 0)
+    const total = options.data?.reduce((pre, next) => pre + (next.value ?? 0), 0)
     const formatterMap = tooltipAttr.seriesTooltipFormatter
       ?.filter(i => i.show)
       .reduce((pre, next) => {

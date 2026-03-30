@@ -10,7 +10,10 @@
 </template>
 
 <script setup lang="ts">
-import { VideoPlayer } from '@videojs-player/vue'
+import { defineAsyncComponent } from 'vue'
+const VideoPlayer = defineAsyncComponent(() =>
+  import('@videojs-player/vue').then(m => ({ default: m.VideoPlayer }))
+)
 import 'video.js/dist/video-js.css'
 import { computed, nextTick, reactive, toRefs, watch, onMounted } from 'vue'
 import { useEmitt } from '@/hooks/web/useEmitt'

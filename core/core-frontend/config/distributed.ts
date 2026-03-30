@@ -24,8 +24,8 @@ export default {
         manualChunks: {
           echarts: ['echarts'],
           vue: ['vue', 'vue-router', 'pinia', 'vue-i18n', 'mitt'],
-          lodash: ['lodash-es', 'lodash'],
-          library: ['jspdf', '@tinymce/tinymce-vue', 'screenfull'],
+          lodash: ['lodash-es'],
+          library: ['@tinymce/tinymce-vue'],
           antv: ['@antv/g2', '@antv/g2plot', '@antv/l7', '@antv/l7plot', '@antv/s2'],
           tinymce: ['tinymce'],
           axios: ['axios'],

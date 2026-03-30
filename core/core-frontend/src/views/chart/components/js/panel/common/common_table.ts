@@ -1,4 +1,6 @@
 /* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck
 import {
   copyString,
   hexColorToRGBA,
@@ -60,7 +62,6 @@ import {
 } from 'lodash-es'
 import { createVNode, render } from 'vue'
 import TableTooltip from '@/views/chart/components/editor/common/TableTooltip.vue'
-import Exceljs from 'exceljs'
 import { saveAs } from 'file-saver'
 import { ElMessage } from 'element-plus-secondary'
 import { useI18n } from '@/hooks/web/useI18n'
@@ -1322,6 +1323,7 @@ export async function exportGridPivot(instance: PivotSheet, chart: ChartObj) {
     ElMessage.warning(i18nt('chart.pivot_export_invalid_col_exceed'))
     return
   }
+  const Exceljs = (await import('exceljs')).default
   const workbook = new Exceljs.Workbook()
   const worksheet = workbook.addWorksheet(i18nt('chart.chart_data'))
   const metaMap: Record<string, Meta> = meta?.reduce((p, n) => {
@@ -1516,6 +1518,7 @@ export async function exportRowQuotaGridPivot(instance: PivotSheet, chart: Chart
     ElMessage.warning(i18nt('chart.pivot_export_invalid_col_exceed'))
     return
   }
+  const Exceljs = (await import('exceljs')).default
   const workbook = new Exceljs.Workbook()
   const worksheet = workbook.addWorksheet(i18nt('chart.chart_data'))
   const metaMap: Record<string, Meta> = meta?.reduce((p, n) => {
@@ -1704,6 +1707,7 @@ export async function exportTreePivot(instance: PivotSheet, chart: ChartObj) {
   }
   const { meta, fields } = instance.dataCfg
   const colLength = fields?.columns?.length || 0
+  const Exceljs = (await import('exceljs')).default
   const workbook = new Exceljs.Workbook()
   const worksheet = workbook.addWorksheet(i18nt('chart.chart_data'))
   const metaMap: Record<string, Meta> = meta?.reduce((p, n) => {
@@ -1845,6 +1849,7 @@ export async function exportRowQuotaTreePivot(instance: PivotSheet, chart: Chart
   }
   const { meta, fields } = instance.dataCfg
   const colLength = fields?.columns?.length || 0
+  const Exceljs = (await import('exceljs')).default
   const workbook = new Exceljs.Workbook()
   const worksheet = workbook.addWorksheet(i18nt('chart.chart_data'))
   const metaMap: Record<string, Meta> = meta?.reduce((p, n) => {

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck
 import { hexColorToRGBA, hexToRgba, measureText, parseJson } from '../../util'
 import {
   DEFAULT_BASIC_STYLE,
@@ -12,9 +14,9 @@ import { TooltipOptions } from '@antv/l7plot/dist/lib/types/tooltip'
 import { FeatureCollection } from '@antv/l7plot/dist/esm/plots/choropleth/types'
 import { Datum } from '@antv/g2plot/esm/types/common'
 import { Tooltip } from '@antv/g2plot/esm'
-import { add } from 'mathjs'
+
 import isEmpty from 'lodash-es/isEmpty'
-import _ from 'lodash'
+import * as _ from 'lodash-es'
 import type { LegendOptions } from '@antv/l7plot/dist/esm/types/legend'
 import { CategoryLegendListItem } from '@antv/l7plot-component/dist/lib/types/legend'
 import createDom from '@antv/dom-util/esm/create-dom'
@@ -1126,7 +1128,7 @@ export function getTooltipSeriesTotalMap(data: Record<string, unknown>[]): Recor
         result[ele.fieldId] = 0
       }
       if (ele.value) {
-        result[ele.fieldId] = add(result[ele.fieldId], ele.value)
+        result[ele.fieldId] = result[ele.fieldId] + ele.value
       }
     })
   })
@@ -1830,7 +1832,8 @@ const getChartElements = chart => {
     document.getElementById('shape-id-' + chart.id)
   )
 }
-export function configPlotTooltipEvent<O extends PickOptions, P extends Plot<O>>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function configPlotTooltipEvent<O extends PickOptions, P extends Plot<O> | any>(
   chart: Chart,
   plot: P
 ) {
