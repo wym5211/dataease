@@ -10,10 +10,16 @@ import org.apache.commons.lang3.StringUtils;
 public class TokenUtils {
 
 
-    private static final String SECRET = "DataEase_Secret_Key_2024";
+    private static String SECRET = "DataEase_Secret_Key_2024";
 
     public static String getSecret() {
         return SECRET;
+    }
+
+    public static void setSecret(String secret) {
+        if (StringUtils.isNotBlank(secret)) {
+            SECRET = secret;
+        }
     }
 
     public static TokenUserBO userBOByToken(String token) {
@@ -53,6 +59,10 @@ public class TokenUtils {
             DEException.throwException("token is invalid");
         }
         DecodedJWT jwt = JWT.decode(linkToken);
+        // 过期检查
+        if (jwt.getExpiresAt() != null && jwt.getExpiresAt().before(new java.util.Date())) {
+            DEException.throwException("link token 已过期");
+        }
         Long userId = jwt.getClaim("uid").asLong();
         Long oid = jwt.getClaim("oid").asLong();
         if (ObjectUtils.isEmpty(userId)) {

@@ -49,6 +49,8 @@ dataease:
   login_timeout: 2880
   xpack-front-distributed: true
   origin-list: http://localhost:8080
+  jwt:
+    secret: DataEase_Secret_Key_2024
   apisix-api:
     domain: http://127.0.0.1:9180
     key: edd1c9f034335f136f87ad84b625c8f1

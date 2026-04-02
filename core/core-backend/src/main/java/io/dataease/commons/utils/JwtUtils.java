@@ -10,8 +10,14 @@ import java.util.Map;
 
 public class JwtUtils {
 
-    private static final String SECRET = "DataEase_Secret_Key_2024";
+    private static String SECRET = "DataEase_Secret_Key_2024";
     private static final long EXPIRATION = 3600 * 1000 * 24; // 24小时
+
+    public static void setSecret(String secret) {
+        if (secret != null && !secret.isEmpty()) {
+            SECRET = secret;
+        }
+    }
 
     public static String createToken(String username, Map<String, Object> claims) {
         return JWT.create()
