@@ -60,6 +60,13 @@ public class TokenFilter implements Filter {
             boolean isDesktop = ModelUtils.isDesktop();
             LogUtil.info("TokenFilter: isDesktop = " + isDesktop);
             if (isDesktop) {
+                String remoteAddr = request.getRemoteAddr();
+                if (!isLocalAddress(remoteAddr)) {
+                    LogUtil.error("Desktop mode rejected non-local request from: " + remoteAddr);
+                    HttpServletResponse res = (HttpServletResponse) servletResponse;
+                    res.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    return;
+                }
                 UserUtils.setDesktopUser();
                 filterChain.doFilter(servletRequest, servletResponse);
                 return;
@@ -96,6 +103,11 @@ public class TokenFilter implements Filter {
             headers.forEach((key, value) -> httpResponse.addHeader(key, value.toString()));
         }
         httpResponse.getWriter().write(Objects.requireNonNull(JsonUtil.toJSONString(responseEntity.getBody()).toString()));
+    }
+
+    private boolean isLocalAddress(String addr) {
+        if (addr == null) return false;
+        return "127.0.0.1".equals(addr) || "0:0:0:0:0:0:0:1".equals(addr) || "localhost".equalsIgnoreCase(addr);
     }
 
 }
