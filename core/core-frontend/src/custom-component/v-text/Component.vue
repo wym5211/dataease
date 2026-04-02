@@ -133,10 +133,7 @@ onBeforeUnmount(() => {
     ></div>
   </div>
   <div v-else class="v-text preview">
-    <div
-      :style="{ verticalAlign: element['style'].verticalAlign }"
-      v-html="safePropValue"
-    ></div>
+    <div :style="{ verticalAlign: element['style'].verticalAlign }" v-html="safePropValue"></div>
   </div>
 </template>
 
