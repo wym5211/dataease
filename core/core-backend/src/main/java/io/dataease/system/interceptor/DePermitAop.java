@@ -33,11 +33,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Aspect
 @Component
 public class DePermitAop {
+
+    private static final Pattern SAFE_EXPR = Pattern.compile(
+        "^#[pa]\\d+(\\.\\w+)*\\s*\\+\\s*'[^']*'(\\s*,\\s*#[pa]\\d+(\\.\\w+)*\\s*\\+\\s*'[^']*')*$"
+    );
+
+    private static final Pattern SAFE_SIMPLE_REF = Pattern.compile(
+        "^#[pa]\\d+(\\.\\w+)*$"
+    );
 
     private final ExpressionParser expressionParser = new SpelExpressionParser();
 
@@ -187,6 +196,10 @@ public class DePermitAop {
         }
         if (!StringUtils.contains(expr, "#")) {
             return expr;
+        }
+        // Whitelist validation
+        if (!SAFE_EXPR.matcher(expr).matches() && !SAFE_SIMPLE_REF.matcher(expr).matches()) {
+            DEException.throwException("Invalid permission expression");
         }
         StandardEvaluationContext ctx = new StandardEvaluationContext();
         for (int i = 0; i < args.length; i++) {
