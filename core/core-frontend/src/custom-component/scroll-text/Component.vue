@@ -2,6 +2,7 @@
 import { keycodes } from '@/utils/DeShortcutKey.js'
 import eventBus from '@/utils/eventBus'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { sanitizeHtml } from '@/utils/sanitize'
 import { toRefs } from 'vue'
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { storeToRefs } from 'pinia'
@@ -43,6 +44,8 @@ const props = defineProps({
 const { element, showPosition } = toRefs(props)
 const dvMainStore = dvMainStoreWithOut()
 const { editMode, curComponent } = storeToRefs(dvMainStore)
+
+const safePropValue = computed(() => sanitizeHtml(element.value.propValue))
 
 const onComponentClick = () => {
   if (curComponent.value.id !== element.value.id) {
@@ -184,11 +187,11 @@ onMounted(() => {
       @mousedown="handleMousedown"
       @blur="handleBlur"
       @input="handleInput"
-      v-html="element['propValue']"
+      v-html="safePropValue"
     ></div>
   </div>
   <div v-else class="v-text preview" ref="textOut" :style="varStyle">
-    <div class="marquee-txt" ref="text" v-html="element['propValue']"></div>
+    <div class="marquee-txt" ref="text" v-html="safePropValue"></div>
   </div>
 </template>
 
