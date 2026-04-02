@@ -36,6 +36,7 @@ import DrillPath from '@/views/chart/components/views/components/DrillPath.vue'
 import { ElIcon, ElInput, ElMessage } from 'element-plus-secondary'
 import { useFilter } from '@/hooks/web/useFilter'
 import { useCache } from '@/hooks/web/useCache'
+import { sanitizeHtml } from '@/utils/sanitize'
 
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { cloneDeep, debounce } from 'lodash-es'
@@ -197,6 +198,7 @@ const state = reactive({
 })
 
 const drillClickLength = computed(() => state.drillClickDimensionList.length)
+const safeRemark = computed(() => sanitizeHtml(state.title_remark.remark))
 
 const titleAlign = computed<string>(() => {
   if (!titleShow.value) {
@@ -1166,7 +1168,7 @@ const clearG2Tooltip = () => {
                   wordWrap: 'break-word',
                   whiteSpace: 'pre-wrap'
                 }"
-                v-html="state.title_remark.remark"
+                v-html="safeRemark"
               ></div>
             </template>
             <el-icon :size="iconSize" class="inner-icon">
