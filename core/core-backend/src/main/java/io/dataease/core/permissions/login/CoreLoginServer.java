@@ -22,6 +22,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.algorithms.Algorithm;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service("loginServer")
 @Primary
@@ -33,6 +35,34 @@ public class CoreLoginServer implements LoginApi {
     private SysUserMapper sysUserMapper;
 
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private static final ConcurrentHashMap<String, AtomicInteger> loginFailCount = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, Long> lockTime = new ConcurrentHashMap<>();
+    private static final int MAX_FAIL_COUNT = 5;
+    private static final long LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+
+    private void checkLoginRate(String name) {
+        Long lockedAt = lockTime.get(name);
+        if (lockedAt != null) {
+            if (System.currentTimeMillis() - lockedAt < LOCK_DURATION_MS) {
+                DEException.throwException("Account temporarily locked, please try again later");
+            } else {
+                lockTime.remove(name);
+                loginFailCount.remove(name);
+            }
+        }
+    }
+
+    private void recordLoginFail(String name) {
+        AtomicInteger count = loginFailCount.computeIfAbsent(name, k -> new AtomicInteger(0));
+        if (count.incrementAndGet() >= MAX_FAIL_COUNT) {
+            lockTime.put(name, System.currentTimeMillis());
+        }
+    }
+
+    private void clearLoginFail(String name) {
+        loginFailCount.remove(name);
+        lockTime.remove(name);
+    }
 
     @Override
     public TokenVO localLogin(PwdLoginDTO dto) {
@@ -48,12 +78,15 @@ public class CoreLoginServer implements LoginApi {
              if (pwd != null && pwd.length() > 20) pwd = RsaUtils.decryptStr(pwd);
         } catch(Exception e) {
         }
-        
+
+        checkLoginRate(name);
+
         QueryWrapper<SysUser> query = new QueryWrapper<>();
         query.eq("username", name);
         SysUser user = sysUserMapper.selectOne(query);
-        
+
         if (user == null) {
+            recordLoginFail(name);
             DEException.throwException("User not found or password incorrect");
         }
         
@@ -61,16 +94,15 @@ public class CoreLoginServer implements LoginApi {
         if (user.getPassword() != null && (user.getPassword().startsWith("$2a$") || user.getPassword().startsWith("$2b$"))) {
              matches = passwordEncoder.matches(pwd, user.getPassword());
         } else {
-             if (pwd.equals(user.getPassword())) {
-                 matches = true;
-                 user.setPassword(passwordEncoder.encode(pwd));
-                 sysUserMapper.updateById(user);
-             }
-        }
-        
-        if (!matches) {
              DEException.throwException("User not found or password incorrect");
         }
+
+        if (!matches) {
+            recordLoginFail(name);
+            DEException.throwException("User not found or password incorrect");
+        }
+
+        clearLoginFail(name);
         
         if (user.getStatus() != null && user.getStatus() == 0) {
              DEException.throwException("User is disabled");
