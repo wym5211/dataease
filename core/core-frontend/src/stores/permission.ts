@@ -51,23 +51,6 @@ export type PermissionChange = {
   description: string
 }
 
-export interface PermissionTemplate {
-  id: string
-  name: string
-  description: string
-  category: string
-  tags: string[]
-  permissions:
-    | Record<string, string[]>
-    | { menus?: { id: string; name: string }[]; resources?: { id: string; name: string }[] }
-  usageCount: number
-  createdAt: string
-  updatedAt: string
-  creator: string
-  menuCount?: number
-  resourceCount?: number
-}
-
 export interface AuditLog {
   id: string
   operationType: string
@@ -237,7 +220,7 @@ export interface PermissionState {
   selectedRoleId: string
   menuTreeData: MenuNode[]
   resourceTreeData: Record<string, ResourceNode[]>
-  templates: PermissionTemplate[]
+  templates: never[]
   auditLogs: AuditLog[]
   // 变更记录
   menuChanges: {
@@ -885,66 +868,6 @@ export const usePermissionStore = defineStore('permissionManager', () => {
     // 这里可以实现具体的联动逻辑
   }
 
-  // 加载权限模板
-  const loadPermissionTemplates = async () => {
-    try {
-      // TODO: 调用API获取权限模板
-      // const response = await getPermissionTemplates()
-      // state.value.templates = response.data
-
-      // 模拟数据
-      state.value.templates = [
-        {
-          id: 'template_001',
-          name: '管理员权限模板',
-          description: '包含系统管理和数据分析的完整权限',
-          category: 'system',
-          tags: ['管理员', '完整权限'],
-          permissions: {
-            menus: [
-              { id: 'm1', name: '系统管理' },
-              { id: 'm2', name: '用户管理' }
-            ],
-            resources: [
-              { id: 'r1', name: '销售仪表板' },
-              { id: 'r2', name: '数据集' }
-            ]
-          },
-          usageCount: 15,
-          createdAt: '2024-01-01 10:00:00',
-          updatedAt: '2024-01-15 14:30:00',
-          creator: '系统管理员',
-          menuCount: 2,
-          resourceCount: 2
-        }
-      ]
-    } catch (error) {
-      console.error('加载权限模板失败:', error)
-      throw error
-    }
-  }
-
-  // 应用权限模板
-  const applyPermissionTemplate = async (
-    _templateId: string,
-    _targetRoleId: string,
-    _options: {
-      mode: 'replace' | 'merge' | 'append'
-      scope: string[]
-    }
-  ) => {
-    try {
-      // TODO: 调用API应用权限模板
-      // await applyTemplate({ templateId, targetRoleId, options })
-
-      // 模拟API调用
-      await new Promise(resolve => setTimeout(resolve, 1000))
-    } catch (error) {
-      console.error('应用权限模板失败:', error)
-      throw error
-    }
-  }
-
   // 加载审计日志
   const loadAuditLogs = async (_params?: {
     startDate?: string
@@ -1012,71 +935,6 @@ export const usePermissionStore = defineStore('permissionManager', () => {
     })
     return changes
   })
-
-  // 模板相关计算属性和方法
-  const templateList = computed(() => state.value.templates)
-
-  const loadTemplates = async () => {
-    await loadPermissionTemplates()
-  }
-
-  const copyTemplate = async (templateId: string, newName: string) => {
-    const template = state.value.templates.find(t => t.id === templateId)
-    if (template) {
-      const newTemplate = {
-        ...template,
-        id: `template_${Date.now()}`,
-        name: newName,
-        category: 'user' as const,
-        createdAt: new Date().toLocaleString('zh-CN'),
-        updatedAt: new Date().toLocaleString('zh-CN'),
-        creator: '当前用户'
-      }
-      state.value.templates.push(newTemplate)
-    }
-  }
-
-  const deleteTemplate = async (templateId: string) => {
-    const index = state.value.templates.findIndex(t => t.id === templateId)
-    if (index > -1) {
-      state.value.templates.splice(index, 1)
-    }
-  }
-
-  const createTemplate = async (data: { name: string; description: string; category: string }) => {
-    const newTemplate = {
-      id: `template_${Date.now()}`,
-      name: data.name,
-      description: data.description,
-      category: data.category,
-      tags: [],
-      permissions: {
-        menu: ['view', 'create', 'update'],
-        dashboard: ['view', 'create'],
-        dataset: ['view'],
-        datasource: ['view']
-      },
-      usageCount: 0,
-      createdAt: new Date().toLocaleString('zh-CN'),
-      updatedAt: new Date().toLocaleString('zh-CN'),
-      creator: '当前用户',
-      menuCount: 3,
-      resourceCount: 4
-    }
-    state.value.templates.push(newTemplate as PermissionTemplate)
-  }
-
-  const applyTemplate = async (data: {
-    templateId: string
-    roleId: string
-    scope: string
-    permissionTypes?: string[]
-  }) => {
-    await applyPermissionTemplate(data.templateId, data.roleId, {
-      mode: data.scope === 'replace' ? 'replace' : data.scope === 'merge' ? 'merge' : 'append',
-      scope: data.permissionTypes || ['menu', 'resource']
-    })
-  }
 
   const loadRoleList = async () => {
     await loadRoles()
@@ -1243,14 +1101,6 @@ export const usePermissionStore = defineStore('permissionManager', () => {
     resourceTree,
     hasChanges,
     changeSummary,
-    templateList,
-
-    // 模板相关方法
-    loadTemplates,
-    copyTemplate,
-    deleteTemplate,
-    createTemplate,
-    applyTemplate,
 
     // 原始方法
     loadRoles,
@@ -1266,8 +1116,6 @@ export const usePermissionStore = defineStore('permissionManager', () => {
     resetPermissionChanges,
     syncMenuResourcePermissions,
     syncResourceMenuPermissions,
-    loadPermissionTemplates,
-    applyPermissionTemplate,
     loadAuditLogs,
     rollbackPermissionChange,
 

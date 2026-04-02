@@ -214,13 +214,6 @@ export const routes: AppRouteRecordRaw[] = [
         meta: { title: '资源授权' }
       },
       {
-        path: 'templates',
-        name: 'permissions-templates',
-        hidden: true,
-        component: () => import('@/views/permissions/template/index.vue'),
-        meta: { title: '权限模板' }
-      },
-      {
         path: 'audit',
         name: 'permissions-audit',
         hidden: true,

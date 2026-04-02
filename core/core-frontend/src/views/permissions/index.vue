@@ -8,9 +8,6 @@
       <el-tab-pane :label="t('permissions.resource_authorization')" name="resource">
         <resource-authorization />
       </el-tab-pane>
-      <el-tab-pane :label="t('permissions.permission_templates')" name="templates">
-        <permission-templates />
-      </el-tab-pane>
       <el-tab-pane :label="t('permissions.permission_audit')" name="audit">
         <permission-audit />
       </el-tab-pane>
@@ -26,7 +23,6 @@ import { ref } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
 import MenuAuthorization from './menu/index.vue'
 import ResourceAuthorization from './resource/index.vue'
-import PermissionTemplates from './template/index.vue'
 import PermissionAudit from './audit/index.vue'
 import UserManagement from './user/index.vue'
 
