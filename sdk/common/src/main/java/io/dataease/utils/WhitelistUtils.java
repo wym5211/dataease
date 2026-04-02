@@ -30,8 +30,6 @@ public class WhitelistUtils {
             "/index.html",
             "/model",
             "/xpackModel",
-            "/swagger-resources",
-            "/doc.html",
             "/panel.html",
             "/mobile.html",
             "/lark/qrinfo",
@@ -100,7 +98,22 @@ public class WhitelistUtils {
                 || StringUtils.startsWithAny(requestURI, "/i18n/")
                 || StringUtils.startsWithAny(requestURI, "/communicate/image/")
                 || StringUtils.startsWithAny(requestURI, "/saml/")
-                || StringUtils.startsWithAny(requestURI, "/communicate/down/");
+                || StringUtils.startsWithAny(requestURI, "/communicate/down/")
+                || (isDevMode() && StringUtils.equalsAny(requestURI, "/swagger-resources", "/doc.html"));
+    }
+
+    public static boolean isDevMode() {
+        try {
+            Environment env = CommonBeanFactory.getBean(Environment.class);
+            if (env == null) return false;
+            String[] profiles = env.getActiveProfiles();
+            for (String p : profiles) {
+                if ("dev".equals(p) || "desktop".equals(p)) return true;
+            }
+        } catch (Exception e) {
+            return false;
+        }
+        return false;
     }
 
     public static String getBaseApiUrl(String redirect_uri) {
