@@ -424,9 +424,9 @@ loadShareBase()
           </div>
           <el-row v-show="state.networkStatus && !state.hasResult" class="template-empty">
             <div style="text-align: center">
-              <Icon name="no_result" class="no-result"
-                ><no_result class="svg-icon no-result"
-              /></Icon>
+              <span class="no-result">
+                <Icon name="no_result"><no_result class="svg-icon" /></Icon>
+              </span>
               <br />
               <span class="no-result-tips">{{ t('work_branch.relevant_templates_found') }}</span>
             </div>

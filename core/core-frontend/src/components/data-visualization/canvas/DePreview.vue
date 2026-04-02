@@ -428,15 +428,17 @@ const winMsgOuterParamsHandle = msgInfo => {
 }
 
 const debouncedRestore = debounce(restore, 200)
+const erd = elementResizeDetectorMaker()
+const debouncedElementRestore = debounce(() => {
+  restore()
+  initWatermark()
+}, 200)
+
 onMounted(() => {
   initRefreshTimer()
   resetLayout()
   window.addEventListener('resize', debouncedRestore)
-  const erd = elementResizeDetectorMaker()
-  erd.listenTo(document.getElementById(domId), () => {
-    restore()
-    initWatermark()
-  })
+  erd.listenTo(document.getElementById(domId), debouncedElementRestore)
   window.addEventListener('message', winMsgHandle)
 })
 
@@ -446,6 +448,7 @@ onBeforeUnmount(() => {
   clearInterval(refreshTimer.value)
   window.removeEventListener('resize', debouncedRestore)
   window.removeEventListener('message', winMsgHandle)
+  erd.uninstall()
 })
 
 const userViewEnlargeOpen = (opt, item) => {

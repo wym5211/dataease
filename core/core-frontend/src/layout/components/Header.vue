@@ -34,8 +34,8 @@ const route = useRoute()
 const { wsCache } = useCache('localStorage')
 const aiBaseUrl = ref('https://maxkb.fit2cloud.com/ui/chat/2ddd8b594ce09dbb?mode=embed')
 const handleIconClick = () => {
-  if (route.path === '/workbranch/index') return
-  push('/workbranch/index')
+  if (route.path === '/workbranch') return
+  push('/workbranch')
 }
 
 const handleAiClick = () => {

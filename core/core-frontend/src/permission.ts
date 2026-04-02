@@ -82,7 +82,7 @@ async function handleAuthenticatedRoute(to, from, next, isDesktop: boolean) {
   // 登录页重定向到工作台
   if (to.path === '/login') {
     await initializeRouters(isDesktop)
-    next({ path: '/workbranch/index' })
+    next({ path: '/workbranch' })
     return
   }
 
@@ -123,7 +123,7 @@ async function handleAuthenticatedRoute(to, from, next, isDesktop: boolean) {
   // 从登录页跳转时，跳转到第一个有权限的页面
   if (from.path === '/login') {
     const firstPath = getFirstAuthMenu()
-    next({ path: firstPath || '/workbranch/index' })
+    next({ path: firstPath || '/workbranch' })
     return
   }
 

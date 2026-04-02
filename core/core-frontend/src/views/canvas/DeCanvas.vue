@@ -242,9 +242,10 @@ const moveOutFromTab = component => {
 
 // 全局监听按键事件
 const throttledCanvasSizeInit = throttle(canvasSizeInit, 300)
+const erd = elementResizeDetectorMaker()
+
 onMounted(() => {
   window.addEventListener('resize', throttledCanvasSizeInit)
-  const erd = elementResizeDetectorMaker()
   erd.listenTo(document.getElementById(domId.value), () => {
     throttledCanvasSizeInit()
   })
@@ -260,6 +261,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', throttledCanvasSizeInit)
+  erd.uninstall()
   if (isMainCanvas(canvasId.value)) {
     eventBus.off('handleNew', handleNewFromCanvasMain)
     eventBus.off('event-canvas-size-init', canvasSizeInit)

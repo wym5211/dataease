@@ -341,6 +341,7 @@ defineExpose({
 
 <template>
   <el-drawer
+    v-if="drawer"
     v-loading="drawerLoading"
     modal-class="de-export-excel"
     :title="$t('data_export.export_center')"
