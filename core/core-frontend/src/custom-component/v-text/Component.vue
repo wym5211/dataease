@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import { keycodes } from '@/utils/DeShortcutKey.js'
 import eventBus from '@/utils/eventBus'
-import { nextTick, onBeforeUnmount, ref } from 'vue'
+import { nextTick, onBeforeUnmount, ref, computed } from 'vue'
 import { toRefs } from 'vue'
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
+import { sanitizeHtml } from '@/utils/sanitize'
 import { storeToRefs } from 'pinia'
 
 const canEdit = ref(false)
@@ -33,6 +34,7 @@ const props = defineProps({
 const { element } = toRefs(props)
 const dvMainStore = dvMainStoreWithOut()
 const { editMode, curComponent } = storeToRefs(dvMainStore)
+const safePropValue = computed(() => sanitizeHtml(element.value.propValue))
 
 const onComponentClick = () => {
   if (curComponent.value.id !== element.value.id) {
@@ -127,13 +129,13 @@ onBeforeUnmount(() => {
       @mousedown="handleMousedown"
       @blur="handleBlur"
       @input="handleInput"
-      v-html="element['propValue']"
+      v-html="safePropValue"
     ></div>
   </div>
   <div v-else class="v-text preview">
     <div
       :style="{ verticalAlign: element['style'].verticalAlign }"
-      v-html="element['propValue']"
+      v-html="safePropValue"
     ></div>
   </div>
 </template>
