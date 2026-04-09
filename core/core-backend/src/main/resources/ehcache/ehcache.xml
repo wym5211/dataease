@@ -16,7 +16,7 @@
         </expiry>
         <resources>
             <heap unit="entries">1000</heap>
-            <offheap unit="MB">10</offheap>
+            <offheap unit="MB">3</offheap>
         </resources>
     </cache-template>
 
@@ -24,6 +24,10 @@
     <cache alias="de_v2_rsa" uses-template="common-cache">
         <key-type>java.lang.String</key-type>
         <value-type>io.dataease.rsa.dao.entity.CoreRsa</value-type>
+        <resources>
+            <heap unit="entries">100</heap>
+            <offheap unit="MB">1</offheap>
+        </resources>
     </cache>
 
     <!--以下属于权限系统缓存-->
@@ -31,17 +35,29 @@
     <cache alias="de_v2_user_roles" uses-template="common-cache">
         <key-type>java.lang.String</key-type>
         <value-type>java.util.List</value-type>
+        <resources>
+            <heap unit="entries">1000</heap>
+            <offheap unit="MB">5</offheap>
+        </resources>
     </cache>
 
     <!--用户资源权限缓存-->
     <cache alias="de_v2_user_busi_pers" uses-template="common-cache">
         <key-type>java.lang.String</key-type>
         <value-type>java.util.List</value-type>
+        <resources>
+            <heap unit="entries">1000</heap>
+            <offheap unit="MB">5</offheap>
+        </resources>
     </cache>
     <!--角色资源权限缓存-->
     <cache alias="de_v2_role_busi_pers" uses-template="common-cache">
         <key-type>java.lang.String</key-type>
         <value-type>java.util.List</value-type>
+        <resources>
+            <heap unit="entries">1000</heap>
+            <offheap unit="MB">5</offheap>
+        </resources>
     </cache>
     <!--角色菜单权限缓存-->
     <cache alias="de_v2_role_menu_pers" uses-template="common-cache">
@@ -61,6 +77,10 @@
     <cache alias="de_v2_user_count" uses-template="common-cache">
         <key-type>java.lang.String</key-type>
         <value-type>java.lang.Integer</value-type>
+        <resources>
+            <heap unit="entries">100</heap>
+            <offheap unit="MB">1</offheap>
+        </resources>
     </cache>
 
     <cache alias="de_v2_user_echelon" uses-template="common-cache">
@@ -85,6 +105,10 @@
     <cache alias="de_v2_world_map" uses-template="common-cache">
         <key-type>java.lang.String</key-type>
         <value-type>io.dataease.api.map.vo.AreaNode</value-type>
+        <resources>
+            <heap unit="entries">100</heap>
+            <offheap unit="MB">10</offheap>
+        </resources>
     </cache>
     <cache alias="de_v2_login_user_cache" uses-template="common-cache">
         <key-type>java.lang.String</key-type>
@@ -123,7 +147,7 @@
         <resources>
             <heap unit="entries">100</heap>
             <offheap unit="MB">10</offheap>
-            <disk unit="MB" persistent="true">200</disk>
+            <disk unit="MB" persistent="true">50</disk>
         </resources>
     </cache>
 

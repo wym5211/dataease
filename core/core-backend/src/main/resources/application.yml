@@ -8,10 +8,18 @@ spring:
     active: '@profiles.active@'
   application:
     name: core-backend
+  threads:
+    virtual:
+      enabled: true
   messages:
     encoding: UTF-8
   main:
     allow-circular-references: true
+  datasource:
+    dbcp2:
+      max-wait-millis: 5000
+      test-while-idle: true
+      validation-query: SELECT 1
   cache:
     type: jcache
     jcache:

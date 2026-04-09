@@ -14,6 +14,6 @@ java -version
 echo ====================================
 echo.
 
-"%MAVEN_HOME%\bin\mvn.cmd" spring-boot:run -Dspring-boot.run.profiles=dev -DskipTests
+"%MAVEN_HOME%\bin\mvn.cmd" spring-boot:run -Dspring-boot.run.profiles=dev -Dspring-boot.run.jvmArguments="-XX:+UseZGC -XX:+ZGenerational -XX:MaxRAMPercentage=75.0 -XX:InitialRAMPercentage=75.0 -XX:+UseStringDeduplication" -DskipTests
 
 pause
