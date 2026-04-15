@@ -31,19 +31,25 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, reactive } from 'vue'
+import { onMounted, reactive, type PropType } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
 import { batchUpdate, findCategoriesByTemplateIds } from '@/api/template'
 import { ElMessage } from 'element-plus-secondary'
 const emits = defineEmits(['closeBatchEditTemplateDialog', 'refresh'])
 const { t } = useI18n()
+
+interface TemplateCategoryOption {
+  id: string
+  name: string
+}
+
 const props = defineProps({
   templateCategories: {
-    type: Array,
+    type: Array as PropType<TemplateCategoryOption[]>,
     required: true
   },
   templateIds: {
-    type: Array,
+    type: Array as PropType<string[]>,
     required: true
   }
 })

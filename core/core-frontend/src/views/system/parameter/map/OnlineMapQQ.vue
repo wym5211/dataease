@@ -4,6 +4,9 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 const domId = ref('de-map-container')
 const mapInstance = ref(null)
 const mapReloading = ref(false)
+const qqWindow = window as Window & {
+  TMap?: any
+}
 
 const props = defineProps<{
   mapKey: string
@@ -44,16 +47,16 @@ const loadMap = () => {
     })
 }
 const createMapInstance = () => {
-  if (window.TMap) {
-    const center = new window.TMap.LatLng(39.90923, 116.397428)
-    mapInstance.value = new window.TMap.Map(document.getElementById(domId.value), {
+  if (qqWindow.TMap) {
+    const center = new qqWindow.TMap.LatLng(39.90923, 116.397428)
+    mapInstance.value = new qqWindow.TMap.Map(document.getElementById(domId.value), {
       viewMode: '2D',
       zoom: 11,
       center: center
     })
-    mapInstance.value?.removeControl(window.TMap.constants.DEFAULT_CONTROL_ID.ZOOM)
-    mapInstance.value?.removeControl(window.TMap.constants.DEFAULT_CONTROL_ID.ROTATION)
-    mapInstance.value?.removeControl(window.TMap.constants.DEFAULT_CONTROL_ID.SCALE)
+    mapInstance.value?.removeControl(qqWindow.TMap.constants.DEFAULT_CONTROL_ID.ZOOM)
+    mapInstance.value?.removeControl(qqWindow.TMap.constants.DEFAULT_CONTROL_ID.ROTATION)
+    mapInstance.value?.removeControl(qqWindow.TMap.constants.DEFAULT_CONTROL_ID.SCALE)
   }
 }
 const loadScript = (url: string) => {
@@ -63,7 +66,7 @@ const loadScript = (url: string) => {
     if (dom) {
       dom.parentElement?.removeChild(dom)
       dom = null
-      window.TMap = null
+      qqWindow.TMap = null
     }
     const script = document.createElement('script')
 
@@ -89,7 +92,7 @@ onBeforeUnmount(() => {
   if (dom) {
     dom.parentElement?.removeChild(dom)
     dom = null
-    window.TMap = null
+    qqWindow.TMap = null
   }
 })
 </script>

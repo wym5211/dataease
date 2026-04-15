@@ -30,9 +30,14 @@ export interface EnumValue {
 }
 
 interface Fields {
-  fields: Array<{}>
-  data: Array<{}>
+  fields: Array<Field>
+  data: Array<Record<string, unknown>>
 }
+export type DatasetPreviewResponse = IResponse<Fields> & {
+  allFields?: Array<{}>
+  total?: number
+}
+export type SqlPreviewResponse = IResponse<Fields>
 export interface ParamsDetail {
   datasetGroupId: string
   type: Array<string | number>
@@ -208,7 +213,7 @@ export const getTableField = async (data): Promise<IResponse> => {
   })
 }
 
-export const getPreviewData = async (data): Promise<IResponse> => {
+export const getPreviewData = async (data): Promise<DatasetPreviewResponse> => {
   const copyData = cloneDeep(data)
   originNameHandle(copyData.allFields)
   return request.post({ url: '/datasetData/previewData', data: copyData }).then(res => {
@@ -250,7 +255,7 @@ export const tableUpdate = async (data): Promise<IResponse> => {
   })
 }
 
-export const getPreviewSql = async (data): Promise<IResponse> => {
+export const getPreviewSql = async (data): Promise<SqlPreviewResponse> => {
   return request.post({ url: '/datasetData/previewSql', data }).then(res => {
     return res?.data
   })

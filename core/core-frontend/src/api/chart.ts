@@ -27,6 +27,11 @@ export interface ComponentInfo {
   datasetId: string
 }
 
+export type ChartCalcResponse = IResponse<Chart['data']> &
+  Partial<Chart> & {
+    calParams?: unknown[]
+  }
+
 export const getFieldByDQ = async (id, chartId, data): Promise<IResponse> => {
   return request.post({ url: `/chart/listByDQ/${id}/${chartId}`, data: data }).then(res => {
     originNameHandleBackWithArr(res?.data, ['dimensionList', 'quotaList'])
@@ -53,7 +58,7 @@ export const deleteChartFieldByChartId = async (chartId): Promise<IResponse> => 
 }
 
 // 通过图表对象获取数据
-export const getData = async (data): Promise<IResponse> => {
+export const getData = async (data): Promise<ChartCalcResponse> => {
   delete data.data
   const copyData = cloneDeep(data)
   const fields = [

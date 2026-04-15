@@ -108,7 +108,7 @@ const formRules: FormRules = {
   nickName: [{ required: true, message: t('user.nick_name_required'), trigger: 'blur' }],
   email: [
     {
-      validator: (rule, value, callback) => {
+      validator: (_rule, value, callback) => {
         if (!value) {
           callback()
           return
@@ -124,7 +124,7 @@ const formRules: FormRules = {
   ],
   phone: [
     {
-      validator: (rule, value, callback) => {
+      validator: (_rule, value, callback) => {
         if (!value) {
           callback()
           return

@@ -1042,7 +1042,10 @@ const equalMin = [
 ]
 
 const validatePass = (_: unknown, value: unknown, callback: (error?: Error) => void) => {
-  if (!value || !value.length) {
+  const isEmpty =
+    value == null ||
+    ((typeof value === 'string' || Array.isArray(value)) && value.length === 0)
+  if (isEmpty) {
     callback(new Error(t('chart.value_can_not_empty')))
   } else {
     callback()
@@ -1281,18 +1284,19 @@ const verify = () => {
 }
 
 const isDragging = ref(false)
+const getDatasetDbDom = () => document.querySelector<HTMLElement>('.dataset-db')
 
 const mousedownDrag = () => {
   isDragging.value = true
-  document.querySelector('body').style.userSelect = 'none'
-  document.querySelector('.dataset-db').addEventListener('mousemove', calculateWidth)
+  document.body.style.userSelect = 'none'
+  getDatasetDbDom()?.addEventListener('mousemove', calculateWidth)
 }
 const mouseupDrag = () => {
   isDragging.value = false
-  document.querySelector('body').style.userSelect = 'auto'
-  const dom = document.querySelector('.dataset-db')
-  dom.removeEventListener('mousemove', calculateWidth)
-  dom.removeEventListener('mousemove', calculateHeight)
+  document.body.style.userSelect = 'auto'
+  const dom = getDatasetDbDom()
+  dom?.removeEventListener('mousemove', calculateWidth)
+  dom?.removeEventListener('mousemove', calculateHeight)
 }
 
 const crossDatasources = computed(() => {
@@ -1311,7 +1315,7 @@ const calculateWidth = (e: MouseEvent) => {
 }
 
 const mousedownDragH = () => {
-  document.querySelector('.dataset-db').addEventListener('mousemove', calculateHeight)
+  getDatasetDbDom()?.addEventListener('mousemove', calculateHeight)
 }
 const calculateHeight = (e: MouseEvent) => {
   const clientHeight = document.documentElement.clientHeight

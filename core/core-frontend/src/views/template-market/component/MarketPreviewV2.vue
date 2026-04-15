@@ -154,6 +154,26 @@ import TemplateMarketPreviewItem from '@/views/template-market/component/Templat
 import { deepCopy, getActiveCategories } from '@/utils/utils'
 import { imgUrlTrans } from '@/utils/imgUtils'
 
+interface MarketCategory {
+  label: string
+  source?: string
+}
+
+interface MarketTemplateItem {
+  id: string
+  title: string
+  templateType: string
+  source?: string
+  showFlag?: boolean
+  [key: string]: unknown
+}
+
+interface MarketCategoryTemplates {
+  category: MarketCategory
+  contents: MarketTemplateItem[]
+  showFlag?: boolean
+}
+
 const { t } = useI18n()
 
 const props = defineProps({
@@ -192,10 +212,10 @@ const state = reactive({
   curApplyTemplate: null,
   folderSelectShow: false,
   baseUrl: 'https://dataease.io/templates',
-  marketTemplatePreviewShowList: [],
-  categories: [],
+  marketTemplatePreviewShowList: [] as MarketCategoryTemplates[],
+  categories: [] as MarketCategory[],
   networkStatus: true,
-  curTemplate: null,
+  curTemplate: null as MarketTemplateItem | null,
   templateSourceType: 'all',
   templateSourceOptions: [
     {
@@ -270,7 +290,7 @@ const initMarketTemplate = () => {
       state.hasResult = true
       state.categories = rsp.data.categories
       initTemplateShow()
-      const activeCategoriesShow = getActiveCategories(state.currentMarketTemplateShowList)
+      const activeCategoriesShow = getActiveCategories(state.marketTemplatePreviewShowList)
       state.categories = rsp.data.categories.filter(category =>
         activeCategoriesShow.has(category.label)
       )

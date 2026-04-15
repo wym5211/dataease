@@ -129,6 +129,7 @@ interface UnionField {
 }
 interface Node {
   tableName: string
+  noteName?: string
   type: NodeType
   datasourceId: string
   id: string
@@ -150,7 +151,7 @@ interface Field {
   name: string
   type: string
   originName: string
-  id: string
+  id: string | number
 }
 
 interface DataSource {

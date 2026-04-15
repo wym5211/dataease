@@ -242,7 +242,33 @@ import DeTemplateImport from '@/views/template/component/DeTemplateImport.vue'
 import DeTemplateItem from '@/views/template/component/DeTemplateItem.vue'
 import DeCategoryChange from '@/views/template/component/DeCategoryChange.vue'
 
-const roleValidator = (rule, value, callback) => {
+interface TemplateCategoryItem {
+  id: string
+  name: string
+  label?: string
+  nodeType?: string
+  [key: string]: unknown
+}
+
+interface TemplateListItem {
+  id: string
+  name: string
+  label?: string
+  checked?: boolean
+  nodeType?: string
+  [key: string]: unknown
+}
+
+interface TemplateEditForm {
+  name: string
+  nodeType: string
+  label?: string
+  templateType?: string
+  level?: number | string
+  [key: string]: unknown
+}
+
+const roleValidator = (_rule, value, callback) => {
   if (nameRepeat(value)) {
     const { nodeType } = state.templateEditForm || {}
     callback(
@@ -264,7 +290,7 @@ const state = reactive({
   batchOptList: [],
   templateFilterText: '',
   showShare: false,
-  currentTemplateShowList: [],
+  currentTemplateShowList: [] as TemplateListItem[],
   noneImg: '@/assets/None.png',
   currentPid: '',
   currentTemplateType: 'self',
@@ -283,13 +309,13 @@ const state = reactive({
       }
     ]
   },
-  templateEditForm: {},
+  templateEditForm: {} as TemplateEditForm,
   editTemplate: false,
   dialogTitle: '',
   dialogTitleLabel: '',
   currentTemplateLabel: '',
   currentTemplateId: '',
-  templateCategories: [],
+  templateCategories: [] as TemplateCategoryItem[],
   templateMiniWidth: 256,
   templateCurWidth: 256,
   formType: '',
@@ -462,10 +488,10 @@ const templateDeleteInfo = id => {
 }
 
 const showTemplateEditDialog = (type, templateInfo) => {
-  state.templateEditForm = null
+  state.templateEditForm = {} as TemplateEditForm
   state.formType = type
   if (type === 'edit') {
-    state.templateEditForm = JSON.parse(JSON.stringify(templateInfo))
+    state.templateEditForm = JSON.parse(JSON.stringify(templateInfo)) as TemplateEditForm
     state.dialogTitle =
       state.templateEditForm['nodeType'] === 'folder'
         ? t('template_manage.rename')
@@ -550,7 +576,7 @@ const showFirst = () => {
     })
     if (showFirst) {
       nextTick().then(() => {
-        const [obj = {}] = state.templateCategories
+        const [obj] = state.templateCategories
         templateListRef.value.nodeClick(obj)
       })
     } else {

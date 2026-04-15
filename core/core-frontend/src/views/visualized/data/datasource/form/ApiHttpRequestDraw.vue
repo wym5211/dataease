@@ -62,6 +62,9 @@ export interface JsonField {
   originName: string
   deExtractType: number
 }
+interface PluginApiItemBasicInfoRef {
+  invokeMethod: (payload: { methodName: string; args: unknown[] }) => void
+}
 const { t } = useI18n()
 
 const originFieldItem = reactive({
@@ -126,7 +129,7 @@ const columns = shallowRef([])
 const valueList = shallowRef([])
 const tableData = shallowRef([])
 const apiItemBasicInfo = ref<FormInstance>()
-const xpackApiItemBasicInfo = ref<Record<string, unknown>>
+const xpackApiItemBasicInfo = ref<PluginApiItemBasicInfoRef>()
 const isSupportSetKey = ref(false)
 const isNumber = (_rule, value, callback) => {
   if (!value) {

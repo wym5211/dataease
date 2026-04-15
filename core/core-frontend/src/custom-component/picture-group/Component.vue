@@ -243,16 +243,16 @@ const calcData = (viewCalc: Chart, callback) => {
     v.render = 'antv'
     v.resultCount = 1
     getData(v)
-      .then((res: Record<string, unknown>) => {
+      .then(res => {
         if (res.code && res.code !== 0) {
           isError.value = true
           errMsg.value = res.msg
         } else {
           res.type = 'picture-group'
           res.render = 'custom'
-          state.data = res?.data
+          state.data = res.data
           state.viewDataInfo = res
-          state.totalItems = res?.totalItems
+          state.totalItems = res.totalItems
           const curViewInfo = (canvasViewInfo.value as Record<string, Record<string, unknown>>)[
             element.value.id
           ]

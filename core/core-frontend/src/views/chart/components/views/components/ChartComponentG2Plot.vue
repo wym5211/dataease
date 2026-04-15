@@ -276,13 +276,13 @@ const calcData = async (view, callback) => {
           errMsg.value = res.msg
           callback?.()
         } else {
-          chartData.value = res?.data as Partial<Chart['data']>
-          emit('onDrillFilters', res?.drillFilters)
-          if (!res?.drillFilters?.length) {
+          chartData.value = res.data as Partial<Chart['data']>
+          emit('onDrillFilters', res.drillFilters)
+          if (!res.drillFilters?.length) {
             dynamicAreaId.value = ''
             scope = null
           } else {
-            const extra = view.chartExtRequest?.drill?.[res?.drillFilters?.length - 1].extra
+            const extra = view.chartExtRequest?.drill?.[res.drillFilters.length - 1].extra
             dynamicAreaId.value = extra?.adcode + ''
             scope = extra?.scope
             // 地图
@@ -337,21 +337,21 @@ const renderChart = async (view, callback?) => {
     case ChartLibraryType.L7_PLOT:
       await renderL7Plot(
         chart,
-        chartView as L7PlotChartView<ChartLibraryType.L7_PLOT, unknown, unknown>,
+        chartView as L7PlotChartView<any, any>,
         callback
       )
       break
     case ChartLibraryType.L7:
       await renderL7(
         chart,
-        chartView as L7ChartView<ChartLibraryType.L7, unknown, unknown>,
+        chartView as L7ChartView<any, any>,
         callback
       )
       break
     case ChartLibraryType.G2_PLOT:
       await renderG2Plot(
         chart,
-        chartView as G2PlotChartView<ChartLibraryType.G2_PLOT, unknown, unknown>
+        chartView as G2PlotChartView
       )
       callback?.()
       break
@@ -360,10 +360,10 @@ const renderChart = async (view, callback?) => {
   }
 }
 let myChart = null
-let g2Timer: number
+let g2Timer: ReturnType<typeof setTimeout> | undefined
 const renderG2Plot = async (
   chart,
-  chartView: G2PlotChartView<ChartLibraryType.G2_PLOT, unknown, unknown>
+  chartView: G2PlotChartView
 ) => {
   g2Timer && clearTimeout(g2Timer)
   g2Timer = setTimeout(async () => {
@@ -393,10 +393,10 @@ const dynamicAreaId = ref('')
 const country = ref('')
 const chartContainer = ref<HTMLElement>(null)
 let scope
-let mapTimer: number
+let mapTimer: ReturnType<typeof setTimeout> | undefined
 const renderL7Plot = async (
   chart: ChartObj,
-  chartView: L7PlotChartView<ChartLibraryType.L7_PLOT, unknown, unknown>,
+  chartView: L7PlotChartView<any, any>,
   callback
 ) => {
   const map = parseJson(chart.customAttr).map
@@ -430,10 +430,10 @@ const renderL7Plot = async (
   }, 500)
 }
 
-let mapL7Timer: number
+let mapL7Timer: ReturnType<typeof setTimeout> | undefined
 const renderL7 = async (
   chart: ChartObj,
-  chartView: L7ChartView<ChartLibraryType.L7, unknown, unknown>,
+  chartView: L7ChartView<any, any>,
   callback
 ) => {
   mapL7Timer && clearTimeout(mapL7Timer)
@@ -474,7 +474,13 @@ const action = param => {
     return
   }
   if (view.value.type === 'map') {
-    if (!(param?.data?.data?.quotaList && param?.data?.data?.quotaList.length > 0)) {
+    const hasQuota = param?.data?.data?.quotaList?.length > 0
+    if (!hasQuota) {
+      const hasDimension = param?.data?.data?.dimensionList?.length > 0
+      if (curView.drill && hasDimension) {
+        state.pointParam = param.data
+        trackClick('drill')
+      }
       return
     }
   }
@@ -841,22 +847,9 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="canvas-area">
-    <view-track-bar
-      ref="viewTrack"
-      :track-menu="trackMenu"
-      :font-family="fontFamily"
-      :is-data-v-mobile="dataVMobile"
-      class="track-bar"
-      :style="state.trackBarStyle"
-      @trackClick="trackClick"
-    />
-    <div
-      @wheel.capture="onWheel"
-      v-if="!isError"
-      ref="chartContainer"
-      class="canvas-content"
-      :id="containerId"
-    ></div>
+    <view-track-bar ref="viewTrack" :track-menu="trackMenu" :font-family="fontFamily" :is-data-v-mobile="dataVMobile"
+      class="track-bar" :style="state.trackBarStyle" @trackClick="trackClick" />
+    <div @wheel.capture="onWheel" v-if="!isError" ref="chartContainer" class="canvas-content" :id="containerId"></div>
     <chart-error v-else :err-msg="errMsg" />
   </div>
 </template>
@@ -867,9 +860,11 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   z-index: 0;
+
   .canvas-content {
     width: 100% !important;
     height: 100% !important;
+
     :deep(.g2-tooltip) {
       position: fixed !important;
     }

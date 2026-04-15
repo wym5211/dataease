@@ -2,7 +2,7 @@
 import icon_searchOutline_outlined from '@/assets/svg/icon_search-outline_outlined.svg'
 import icon_close_outlined from '@/assets/svg/icon_close_outlined.svg'
 import icon_deleteTrash_outlined from '@/assets/svg/icon_delete-trash_outlined.svg'
-import { ref, inject, computed, watch, onBeforeMount, toRefs } from 'vue'
+import { ref, inject, computed, watch, onBeforeMount, toRefs, type Ref } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
 import { multFieldValuesForPermissions } from '@/api/dataset'
 import {
@@ -22,8 +22,18 @@ export interface Item {
   deType: number
   enumValue: string
   name: string
-  value: number
+  value: number | string | null
   timeType?: string
+}
+
+interface FieldOption {
+  id: string
+  name: string
+  deType: number
+}
+
+interface AuthTargetContext {
+  authTargetType?: string
 }
 
 type Props = {
@@ -46,23 +56,22 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const { t } = useI18n()
-const enumInput = ref()
-const deElDropdownMenuFixed = ref()
+const enumInput = ref<{ $el: { click: () => void } }>()
 const showDel = ref(false)
 const keywords = ref('')
 const activeName = ref('')
 const filterFiled = ref('')
-const enumList = ref([])
+const enumList = ref<string[]>([])
 const showTextArea = ref()
 const keydownCanceled = ref(false)
-const checklist = ref([])
-const filterList = ref([])
+const checklist = ref<string[]>([])
+const filterList = ref<{ value: string; label: string }[]>([])
 const textareaValue = ref('')
 
 const { item } = toRefs(props)
 
-const getAuthTargetType = inject('getAuthTargetType')
-const filedList = inject('filedList')
+const getAuthTargetType = inject<Ref<AuthTargetContext | undefined>>('getAuthTargetType')
+const filedList = inject<Ref<Record<string, FieldOption>>>('filedList')
 
 const checkListWithFilter = computed(() => {
   if (!filterFiled.value) return enumList.value
@@ -108,14 +117,14 @@ const dimensions = computed(() => {
   if (!keywords.value) return computedFiledList.value
   return computedFiledList.value.filter(ele => ele.name.includes(keywords.value))
 })
-const computedFiledList = computed(() => {
-  return Object.values(filedList.value || {})
+const computedFiledList = computed<FieldOption[]>(() => {
+  return Object.values(filedList?.value || {})
 })
 
 const authTargetType = ref('')
 
 watch(
-  () => getAuthTargetType?.authTargetType,
+  () => getAuthTargetType?.value?.authTargetType,
   value => {
     if (authTargetType.value === value || !value) return
     authTargetType.value = value
@@ -198,9 +207,9 @@ const initEnumOptions = () => {
   }
 }
 
-const optionData = data => {
-  if (!data) return null
-  return data.filter(item => !!item)
+const optionData = (data: unknown): string[] => {
+  if (!Array.isArray(data)) return []
+  return data.filter((option): option is string => typeof option === 'string' && !!option)
 }
 const cancel = () => {
   item.value.name = activeName.value || ''
@@ -208,13 +217,13 @@ const cancel = () => {
 const cancelfixValue = () => {
   item.value.enumValue = checkResult.value || ''
 }
-const delChecks = (idx, i) => {
+const delChecks = (idx: number, i: string) => {
   checklist.value.splice(idx, 1)
   checkboxlist.value = checkboxlist.value.filter(ele => ele !== i)
   selectedChange()
 }
 
-const selectItem = ({ name, id, deType }) => {
+const selectItem = ({ name, id, deType }: FieldOption) => {
   activeName.value = name
   Object.assign(item.value, {
     fieldId: id,
@@ -228,7 +237,7 @@ const selectItem = ({ name, id, deType }) => {
   filterListInit(deType)
   checklist.value = []
 }
-const filterListInit = deType => {
+const filterListInit = (deType: number) => {
   filterList.value = [
     {
       value: 'logic',
@@ -261,8 +270,8 @@ const selectAll = () => {
 
 const isIndeterminate = ref(false)
 const checkAll = ref(false)
-const checkboxlist = ref([])
-let oldList = []
+const checkboxlist = ref<string[]>([])
+let oldList: string[] = []
 watch(
   () => checkListWithFilter.value,
   val => {
@@ -298,7 +307,7 @@ const selectedChange = () => {
     isIndeterminate.value = false
   }
 }
-const checkAllChange = val => {
+const checkAllChange = (val: boolean) => {
   if (val) {
     selectAll()
   } else {
@@ -308,12 +317,12 @@ const checkAllChange = val => {
   isIndeterminate.value = false
 }
 const addFields = () => {
-  const list = textareaValue.value.split('\n').reduce((pre, next) => {
+  const list = textareaValue.value.split('\n').reduce((pre: Set<string>, next: string) => {
     const str = next.trim()
     if (!str) return pre
     pre.add(str)
     return pre
-  }, new Set([]))
+  }, new Set<string>())
   if (list.size) {
     checklist.value = [...new Set([...checklist.value, ...Array.from(list)])]
   }
@@ -330,7 +339,7 @@ const showTimeDialog = (obj: TimeDialogObj) => {
   if (obj.deType !== 1) return
   timeDialog.value.init(obj.timeType, obj.value)
 }
-const saveTime = (type, value) => {
+const saveTime = (type: string, value: number | string) => {
   item.value.timeType = type
   item.value.value = value
 }
@@ -340,55 +349,32 @@ const emits = defineEmits(['update:item', 'del'])
 
 <template>
   <div class="white-nowrap">
-    <div
-      class="filed"
-      :style="computedWidth"
-      @mouseover="showDel = true"
-      @mouseleave="showDel = false"
-    >
+    <div class="filed" :style="computedWidth" @mouseover="showDel = true" @mouseleave="showDel = false">
       <span class="filed-title">{{ t('auth.filter_fields') }}</span>
 
       <el-dropdown trigger="click" :hide-on-click="false">
-        <el-input
-          :placeholder="t('auth.select_filter_fields')"
-          v-model="item.name"
-          size="small"
-          @input="cancel"
-        >
+        <el-input :placeholder="t('auth.select_filter_fields')" v-model="item.name" size="small" @input="cancel">
         </el-input>
         <template #dropdown>
           <el-dropdown-menu class="de-el-dropdown-menu">
-            <el-input
-              @keydown.stop
-              :placeholder="t('auth.enter_keywords')"
-              size="small"
-              v-model="keywords"
-            >
+            <el-input @keydown.stop :placeholder="t('auth.enter_keywords')" size="small" v-model="keywords">
               <template #prefix>
                 <el-icon>
-                  <Icon name="icon_search-outline_outlined"
-                    ><icon_searchOutline_outlined class="svg-icon"
-                  /></Icon>
+                  <Icon name="icon_search-outline_outlined">
+                    <icon_searchOutline_outlined class="svg-icon" />
+                  </Icon>
                 </el-icon>
               </template>
             </el-input>
             <ul class="dimension">
-              <li
-                @click="selectItem(ele)"
-                :style="{
-                  backgroundColor: activeName === ele.name ? '#f0f7ff' : ''
-                }"
-                :key="ele.id"
-                v-for="ele in dimensions"
-              >
+              <li @click="selectItem(ele)" :style="{
+                backgroundColor: activeName === ele.name ? '#f0f7ff' : ''
+              }" :key="ele.id" v-for="ele in dimensions">
                 <el-icon>
-                  <Icon
-                    ><component
-                      class="svg-icon"
-                      :class="`field-icon-${fieldEnums[ele.deType]}`"
-                      :is="iconFieldMap[fieldEnums[ele.deType]]"
-                    ></component
-                  ></Icon>
+                  <Icon>
+                    <component class="svg-icon" :class="`field-icon-${fieldEnums[ele.deType]}`"
+                      :is="iconFieldMap[fieldEnums[ele.deType]]"></component>
+                  </Icon>
                 </el-icon>
                 <span>{{ ele.name }}</span>
               </li>
@@ -398,84 +384,41 @@ const emits = defineEmits(['update:item', 'del'])
       </el-dropdown>
       <div class="white-nowrap flex-align-center" style="position: relative" v-if="item.fieldId">
         <span class="filed-title">{{ t('auth.screen_method') }}</span>
-        <el-select
-          size="small"
-          @change="filterTypeChange"
-          v-model="item.filterType"
-          class="w181"
-          :placeholder="t('auth.select')"
-        >
-          <el-option
-            v-for="ele in filterList"
-            :key="ele.value"
-            :label="ele.label"
-            :value="ele.value"
-          >
+        <el-select size="small" @change="filterTypeChange" v-model="item.filterType" class="w181"
+          :placeholder="t('auth.select')">
+          <el-option v-for="ele in filterList" :key="ele.value" :label="ele.label" :value="ele.value">
           </el-option>
         </el-select>
         <span class="filed-title">{{ t('auth.fixed_value') }}</span>
         <template v-if="item.filterType === 'logic'">
-          <el-select
-            class="w100"
-            size="small"
-            v-model="item.term"
-            :placeholder="t('auth.default_method')"
-          >
-            <el-option
-              v-for="ele in operators"
-              :key="ele.value"
-              :label="t(ele.label)"
-              :value="ele.value"
-            >
+          <el-select class="w100" size="small" v-model="item.term" :placeholder="t('auth.default_method')">
+            <el-option v-for="ele in operators" :key="ele.value" :label="t(ele.label)" :value="ele.value">
             </el-option>
           </el-select>
 
           <template v-if="authTargetType === 'sysParams'">
             <el-select class="w70 mar5" size="small" v-model="item.value">
-              <el-option
-                v-for="itx in sysParamsIln"
-                :key="itx.value"
-                :label="t(itx.label)"
-                :value="itx.value"
-              >
+              <el-option v-for="itx in sysParamsIln" :key="itx.value" :label="t(itx.label)" :value="itx.value">
               </el-option>
             </el-select>
           </template>
-          <template
-            v-else-if="
-              [2, 3].includes(item.deType) &&
-              !['null', 'empty', 'not_null', 'not_empty'].includes(item.term)
-            "
-          >
-            <el-input-number
-              class="w70 mar5"
-              size="small"
-              effect="plain"
-              v-model="item.value"
-              controls-position="right"
-            ></el-input-number>
+          <template v-else-if="
+            [2, 3].includes(item.deType) &&
+            !['null', 'empty', 'not_null', 'not_empty'].includes(item.term)
+          ">
+            <el-input-number class="w70 mar5" size="small" effect="plain" v-model="item.value"
+              controls-position="right"></el-input-number>
             <div class="bottom-line"></div>
           </template>
           <template v-else-if="!['null', 'empty', 'not_null', 'not_empty'].includes(item.term)">
-            <el-input
-              class="w70 mar5"
-              size="small"
-              :readonly="item.deType === 1"
-              v-model="item.value"
-              @click="showTimeDialog(item)"
-            />
+            <el-input class="w70 mar5" size="small" :readonly="item.deType === 1" v-model="item.value"
+              @click="showTimeDialog(item)" />
             <div class="bottom-line"></div>
           </template>
         </template>
 
-        <el-popover
-          popper-class="de-el-dropdown-menu-fixed"
-          v-else
-          width="360px"
-          trigger="click"
-          ref="deElDropdownMenuFixed"
-          :hide-on-click="false"
-        >
+        <el-popover popper-class="de-el-dropdown-menu-fixed" v-else width="360px" trigger="click"
+          :hide-on-click="false">
           <template #reference>
             <el-input v-model="item.enumValue" ref="enumInput" size="small" readonly clearable>
             </el-input>
@@ -485,12 +428,8 @@ const emits = defineEmits(['update:item', 'del'])
               <el-input :placeholder="t('auth.enter_keywords')" v-model="filterFiled"> </el-input>
               <ul class="autochecker-list" style="height: 260px">
                 <div class="select-all">
-                  <el-checkbox
-                    v-model="checkAll"
-                    :indeterminate="isIndeterminate"
-                    :label="t('component.allSelect')"
-                    @change="checkAllChange"
-                  />
+                  <el-checkbox v-model="checkAll" :indeterminate="isIndeterminate" :label="t('component.allSelect')"
+                    @change="checkAllChange" />
                 </div>
                 <el-checkbox-group v-model="checkboxlist" @change="selectedChange">
                   <el-scrollbar height="230px">
@@ -514,11 +453,7 @@ const emits = defineEmits(['update:item', 'del'])
                   <transition name="el-zoom-in-top">
                     <div v-if="showTextArea" class="de-el-dropdown-menu-manu">
                       <div class="text-area">
-                        <textarea
-                          :placeholder="t('auth.please_fill')"
-                          class="input"
-                          v-model="textareaValue"
-                        ></textarea>
+                        <textarea :placeholder="t('auth.please_fill')" class="input" v-model="textareaValue"></textarea>
                         <div class="text-area-btn">
                           <button type="button" @click="showTextArea = false" class="btn">
                             <span>{{ t('auth.close') }}</span>
@@ -534,14 +469,17 @@ const emits = defineEmits(['update:item', 'del'])
               </div>
               <ul class="autochecker-list">
                 <div class="clear-checkbox__label">
-                  <span>{{ t('auth.added') + ' ' + checklist.length }}</span
-                  ><span @click="clearAll">{{ t('user.clear_button') }}</span>
+                  <span>{{ t('auth.added') + ' ' + checklist.length }}</span><span @click="clearAll">{{
+                    t('user.clear_button')
+                  }}</span>
                 </div>
                 <el-scrollbar height="230px">
                   <li :key="i" v-for="(i, idx) in checklist">
                     <div :title="i" class="right-checkbox__label">{{ i }}</div>
                     <el-icon @click="delChecks(idx, i)" class="remove-hover-icon">
-                      <Icon><icon_close_outlined class="svg-icon" /></Icon>
+                      <Icon>
+                        <icon_close_outlined class="svg-icon" />
+                      </Icon>
                     </el-icon>
                   </li>
                 </el-scrollbar>
@@ -559,9 +497,9 @@ const emits = defineEmits(['update:item', 'del'])
         </el-popover>
       </div>
       <el-icon v-if="showDel" class="font12" @click="emits('del')">
-        <Icon name="icon_delete-trash_outlined"
-          ><icon_deleteTrash_outlined class="svg-icon"
-        /></Icon>
+        <Icon name="icon_delete-trash_outlined">
+          <icon_deleteTrash_outlined class="svg-icon" />
+        </Icon>
       </el-icon>
     </div>
   </div>
@@ -572,6 +510,7 @@ const emits = defineEmits(['update:item', 'del'])
 .white-nowrap {
   white-space: nowrap;
 }
+
 .filed {
   height: 41.4px;
   padding: 1px 3px 1px 10px;
@@ -583,6 +522,7 @@ const emits = defineEmits(['update:item', 'del'])
   justify-content: left;
   position: relative;
   white-space: nowrap;
+
   :deep(.ed-input-number.is-controls-right .ed-input__wrapper) {
     padding-left: 1px !important;
     padding-right: 1px !important;
@@ -631,14 +571,17 @@ const emits = defineEmits(['update:item', 'del'])
   :deep(.ed-input-number__increase:not(.is-disabled)) {
     &:hover {
       z-index: 10;
+
       &::after {
         display: block;
       }
-      & ~ .ed-input:not(.is-disabled) .ed-input__wrapper {
+
+      &~.ed-input:not(.is-disabled) .ed-input__wrapper {
         box-shadow: 0 0 0 0 #000 inset !important;
       }
     }
   }
+
   :deep(.ed-input-number__decrease),
   :deep(.ed-input-number__increase) {
     width: 20px;
@@ -652,13 +595,16 @@ const emits = defineEmits(['update:item', 'del'])
 
   :deep(.ed-input-number__decrease:hover) {
     height: 16px;
-    & + .ed-input-number__increase {
+
+    &+.ed-input-number__increase {
       height: 8px;
     }
   }
+
   :deep(.ed-input-number__increase:hover) {
     height: 16px;
-    & + .ed-input-number__decrease {
+
+    &+.ed-input-number__decrease {
       height: 8px;
     }
   }
@@ -729,6 +675,7 @@ const emits = defineEmits(['update:item', 'del'])
     text-overflow: ellipsis;
     opacity: 1;
   }
+
   :deep(.ed-select .ed-input.is-focus .ed-input__wrapper),
   :deep(.ed-select:hover:not(.ed-select--disabled) .ed-input__wrapper),
   :deep(.ed-select .ed-input__wrapper.is-focus) {
@@ -740,8 +687,10 @@ const emits = defineEmits(['update:item', 'del'])
     color: #7e7e7e;
   }
 }
+
 .filed:hover {
   background-color: #e9eaef;
+
   :deep(.ed-input-number__decrease),
   :deep(.ed-input-number__increase) {
     display: flex;
@@ -755,6 +704,7 @@ const emits = defineEmits(['update:item', 'del'])
     max-height: 200px;
     padding: 0;
     overflow-y: auto;
+
     li {
       list-style: none;
       box-sizing: border-box;
@@ -776,10 +726,12 @@ const emits = defineEmits(['update:item', 'del'])
       margin: 0;
       padding-left: 16px;
       color: rgba(0, 0, 0, 0.65);
+
       .ed-icon {
         margin-right: 5px;
       }
     }
+
     li:hover {
       color: #2e74ff;
       background-color: #f0f7ff;
@@ -816,6 +768,7 @@ const emits = defineEmits(['update:item', 'del'])
     .ed-input__wrapper {
       box-shadow: none;
       border-bottom: 1px solid #e5e5e5;
+
       &:focus {
         box-shadow: 0 0 0 2px rgb(46 116 255 / 20%);
         border-right-width: 1px !important;
@@ -846,6 +799,7 @@ const emits = defineEmits(['update:item', 'del'])
 .de-el-dropdown-menu-fixed {
   padding: 0 !important;
   border: none !important;
+
   .de-panel {
     color: rgba(0, 0, 0, 0.65);
     font-size: 14px;
@@ -858,18 +812,21 @@ const emits = defineEmits(['update:item', 'del'])
     background-color: #fff;
     box-shadow: none;
     border: 1px solid rgba(0, 0, 0, 0.05);
+
     .right-menu-foot {
       text-align: right;
       padding: 5px;
       float: right;
       width: 100%;
       border-top: 1px solid hsla(0, 0%, 59%, 0.1);
+
       .ed-button {
         line-height: 28px;
         height: 28px;
         min-width: 70px;
       }
     }
+
     .mod-left {
       font-family: var(--de-custom_font, 'PingFang');
       color: rgba(0, 0, 0, 0.65);
@@ -880,6 +837,7 @@ const emits = defineEmits(['update:item', 'del'])
       height: 300px;
       float: left;
       box-sizing: border-box;
+
       .ed-input__wrapper {
         font-family: inherit;
         overflow: visible;
@@ -895,6 +853,7 @@ const emits = defineEmits(['update:item', 'del'])
         border-radius: 2px;
         transition: all 0.3s;
         -webkit-appearance: none;
+        appearance: none;
         touch-action: manipulation;
         text-overflow: ellipsis;
         width: 100%;
@@ -916,12 +875,14 @@ const emits = defineEmits(['update:item', 'del'])
     .right-de {
       border-left: 1px solid hsla(0, 0%, 59%, 0.1);
     }
+
     .autochecker-list {
       width: 100%;
       position: relative;
 
       .select-all {
         padding: 0 5px;
+
         .ed-checkbox__label {
           font-weight: 400;
         }
@@ -936,12 +897,14 @@ const emits = defineEmits(['update:item', 'del'])
         font-weight: 400;
         width: 100%;
         justify-content: space-between;
+
         :nth-child(2) {
           height: 26px;
           line-height: 26px;
           border-radius: 4px;
           padding: 0 4px;
           color: var(--ed-color-primary, #3370ff);
+
           &:hover {
             background-color: var(--ed-color-primary-1a, #3370ff1a);
           }
@@ -967,6 +930,7 @@ const emits = defineEmits(['update:item', 'del'])
         height: 32px;
         width: 100%;
         position: relative;
+
         .ed-checkbox__label {
           text-overflow: ellipsis;
           overflow: hidden;
@@ -985,6 +949,7 @@ const emits = defineEmits(['update:item', 'del'])
           cursor: pointer;
           color: #8f959e;
           margin: 4px;
+
           &:hover {
             width: 24px;
             margin: 0px;
@@ -1041,10 +1006,12 @@ const emits = defineEmits(['update:item', 'del'])
   width: 150px;
   box-sizing: border-box;
   right: 0;
+
   .text-area {
     box-sizing: border-box;
     height: 220px;
     position: relative;
+
     .input {
       touch-action: manipulation;
       overflow: auto;
@@ -1097,6 +1064,7 @@ const emits = defineEmits(['update:item', 'del'])
         justify-content: center;
         line-height: 1;
         -webkit-appearance: button;
+        appearance: button;
         cursor: pointer;
         border-radius: 0;
         width: 70px;

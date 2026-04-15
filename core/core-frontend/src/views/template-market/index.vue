@@ -485,7 +485,7 @@ const templateApply = template => {
   apply(template)
 }
 
-const apply = () => {
+const apply = (_template?) => {
   if (state.dvCreateForm.newFrom === 'new_market_template' && !state.dvCreateForm.templateUrl) {
     ElMessage.warning(t('template_manage.get_download_link_hint'))
     return false

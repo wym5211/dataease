@@ -15,4 +15,13 @@ type CustomGeoSubArea = CustomGeoArea & {
   geoAreaId: string
   scope: string
   scopeArr?: string[]
+  centroid?: [number, number]
+}
+
+type MapRow = Record<string, any> & {
+  name?: string
+  field?: string
+  value?: number | string | null
+  quotaList?: Array<{ id?: string }>
+  dynamicTooltipValue?: Array<{ fieldId: string; value: string }>
 }

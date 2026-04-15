@@ -29,10 +29,17 @@
 
 <script setup lang="ts">
 import TemplateMarketV2Item from '@/views/template-market/component/TemplateMarketV2Item.vue'
-import { computed } from 'vue'
+import { computed, type PropType } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
 const emits = defineEmits(['templateApply', 'templatePreview'])
 const { t } = useI18n()
+
+interface TemplateMarketCategoryItem {
+  id: string
+  showFlag?: boolean
+  categoryNames?: string[]
+  [key: string]: unknown
+}
 
 const templateApply = params => {
   emits('templateApply', params)
@@ -46,7 +53,7 @@ const searchResult = computed(
   () => props.fullTemplateShowList.filter(item => showFlagCheck(item)).length
 )
 
-const showFlagCheck = template => {
+const showFlagCheck = (template: TemplateMarketCategoryItem) => {
   return template.showFlag && template.categoryNames?.includes(props.label)
 }
 
@@ -70,7 +77,7 @@ const props = defineProps({
     type: String
   },
   fullTemplateShowList: {
-    type: Array,
+    type: Array as PropType<TemplateMarketCategoryItem[]>,
     default: () => []
   },
   createAuth: {

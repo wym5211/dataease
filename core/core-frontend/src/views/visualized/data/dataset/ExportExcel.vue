@@ -6,6 +6,7 @@ import icon_refresh_outlined from '@/assets/svg/icon_refresh_outlined.svg'
 import { ref, h, onUnmounted, computed, reactive } from 'vue'
 import { EmptyBackground } from '@/components/empty-background'
 import { ElButton, ElMessage, ElMessageBox, ElTabPane, ElTabs } from 'element-plus-secondary'
+import type { TabsPaneContext } from 'element-plus-secondary'
 import { RefreshLeft } from '@element-plus/icons-vue'
 import {
   exportTasks,
@@ -23,6 +24,33 @@ import { useCache } from '@/hooks/web/useCache'
 import { useLinkStoreWithOut } from '@/store/modules/link'
 import { useAppStoreWithOut } from '@/store/modules/app'
 
+type ExportStatus = 'IN_PROGRESS' | 'SUCCESS' | 'FAILED' | 'PENDING' | 'ALL'
+
+interface ExportTaskRecord {
+  id: string
+  msg?: string
+  exportStatus?: ExportStatus
+  exportFromName?: string
+}
+
+interface ExportTaskTab {
+  label: string
+  name: ExportStatus
+}
+
+interface ExportTaskSummary {
+  ALL: number
+  IN_PROGRESS: number
+  SUCCESS: number
+  FAILED: number
+  PENDING: number
+}
+
+interface ExportTaskPage {
+  total: number
+  records: ExportTaskRecord[]
+}
+
 const { t } = useI18n()
 const state = reactive({
   paginationConfig: {
@@ -31,15 +59,15 @@ const state = reactive({
     total: 0
   }
 })
-const tableData = ref([])
+const tableData = ref<ExportTaskRecord[]>([])
 const drawerLoading = ref(false)
 const drawer = ref(false)
 const msgDialogVisible = ref(false)
 const msg = ref('')
-const activeName = ref('ALL')
-const multipleSelection = ref([])
+const activeName = ref<ExportStatus>('ALL')
+const multipleSelection = ref<ExportTaskRecord[]>([])
 const description = ref(t('data_set.no_tasks_yet'))
-const tabList = ref([
+const tabList = ref<ExportTaskTab[]>([
   {
     label: t('data_set.exporting') + '(0)',
     name: 'IN_PROGRESS'
@@ -61,20 +89,44 @@ const tabList = ref([
     name: 'ALL'
   }
 ])
-let timer
+const isExportStatus = (value: unknown): value is ExportStatus => {
+  return ['IN_PROGRESS', 'SUCCESS', 'FAILED', 'PENDING', 'ALL'].includes(value as ExportStatus)
+}
+
+const statusLabelMap: Record<ExportStatus, string> = {
+  ALL: t('data_set.all'),
+  IN_PROGRESS: t('data_set.exporting'),
+  SUCCESS: t('data_set.success'),
+  FAILED: t('data_set.fail'),
+  PENDING: t('data_set.waiting')
+}
+
+const updateTabLabels = (summary: ExportTaskSummary) => {
+  tabList.value.forEach(item => {
+    item.label = statusLabelMap[item.name] + '(' + summary[item.name] + ')'
+  })
+}
+
+let timer: ReturnType<typeof setInterval> | null = null
 const handleClose = () => {
   drawer.value = false
-  clearInterval(timer)
+  if (timer !== null) {
+    clearInterval(timer)
+    timer = null
+  }
 }
 const { wsCache } = useCache()
 const openType = wsCache.get('open-backend') === '1' ? '_self' : '_blank'
 const desktop = wsCache.get('app.desktop')
 
 onUnmounted(() => {
-  clearInterval(timer)
+  if (timer !== null) {
+    clearInterval(timer)
+    timer = null
+  }
 })
-const handleClick = tab => {
-  if (tab) {
+const handleClick = (tab?: TabsPaneContext) => {
+  if (tab && isExportStatus(tab.paneName)) {
     activeName.value = tab.paneName
   }
   if (activeName.value === 'ALL') {
@@ -86,35 +138,20 @@ const handleClick = tab => {
   }
   drawerLoading.value = true
   exportTasksRecords().then(res => {
-    tabList.value.forEach(item => {
-      if (item.name === 'ALL') {
-        item.label = t('data_set.all') + '(' + res.data.ALL + ')'
-      }
-      if (item.name === 'IN_PROGRESS') {
-        item.label = t('data_set.exporting') + '(' + res.data.IN_PROGRESS + ')'
-      }
-      if (item.name === 'SUCCESS') {
-        item.label = t('data_set.success') + '(' + res.data.SUCCESS + ')'
-      }
-      if (item.name === 'FAILED') {
-        item.label = t('data_set.fail') + '(' + res.data.FAILED + ')'
-      }
-      if (item.name === 'PENDING') {
-        item.label = t('data_set.waiting') + '(' + res.data.PENDING + ')'
-      }
-    })
+    updateTabLabels(res.data as ExportTaskSummary)
   })
   exportTasks(state.paginationConfig.currentPage, state.paginationConfig.pageSize, activeName.value)
     .then(res => {
-      state.paginationConfig.total = res.data.total
-      tableData.value = res.data.records
+      const pageData = res.data as ExportTaskPage
+      state.paginationConfig.total = pageData.total
+      tableData.value = pageData.records
     })
     .finally(() => {
       drawerLoading.value = false
     })
 }
 
-const init = params => {
+const init = (params?: { activeName?: ExportStatus }) => {
   drawer.value = true
   if (params && params.activeName !== undefined) {
     activeName.value = params.activeName
@@ -123,31 +160,16 @@ const init = params => {
   timer = setInterval(() => {
     if (activeName.value === 'IN_PROGRESS') {
       exportTasksRecords().then(res => {
-        tabList.value.forEach(item => {
-          if (item.name === 'ALL') {
-            item.label = t('data_set.all') + '(' + res.data.ALL + ')'
-          }
-          if (item.name === 'IN_PROGRESS') {
-            item.label = t('data_set.exporting') + '(' + res.data.IN_PROGRESS + ')'
-          }
-          if (item.name === 'SUCCESS') {
-            item.label = t('data_set.success') + '(' + res.data.SUCCESS + ')'
-          }
-          if (item.name === 'FAILED') {
-            item.label = t('data_set.fail') + '(' + res.data.FAILED + ')'
-          }
-          if (item.name === 'PENDING') {
-            item.label = t('data_set.waiting') + '(' + res.data.PENDING + ')'
-          }
-        })
+        updateTabLabels(res.data as ExportTaskSummary)
       })
       exportTasks(
         state.paginationConfig.currentPage,
         state.paginationConfig.pageSize,
         activeName.value
       ).then(res => {
-        state.paginationConfig.total = res.data.total
-        tableData.value = res.data.records
+        const pageData = res.data as ExportTaskPage
+        state.paginationConfig.total = pageData.total
+        tableData.value = pageData.records
       })
     }
   }, 5000)
@@ -156,19 +178,23 @@ const linkStore = useLinkStoreWithOut()
 const appStore = useAppStoreWithOut()
 const isDataEaseBi = computed(() => appStore.getIsDataEaseBi)
 
-const taskExportTopicCall = task => {
+const taskExportTopicCall = (task?: unknown) => {
   if (!linkStore.getLinkToken && !isDataEaseBi.value && !appStore.getIsIframe) {
-    if (JSON.parse(task).exportStatus === 'SUCCESS') {
+    if (typeof task !== 'string') {
+      return
+    }
+    const taskInfo = JSON.parse(task) as ExportTaskRecord
+    if (taskInfo.exportStatus === 'SUCCESS') {
       openMessageLoading(
-        JSON.parse(task).exportFromName + ` ${t('data_set.successful_go_to')}`,
+        `${taskInfo.exportFromName} ${t('data_set.successful_go_to')}`,
         'success',
         callbackExportSuc
       )
       return
     }
-    if (JSON.parse(task).exportStatus === 'FAILED') {
+    if (taskInfo.exportStatus === 'FAILED') {
       openMessageLoading(
-        JSON.parse(task).exportFromName + ` ${t('data_set.failed_go_to')}`,
+        `${taskInfo.exportFromName} ${t('data_set.failed_go_to')}`,
         'error',
         callbackExportError
       )
@@ -176,10 +202,14 @@ const taskExportTopicCall = task => {
   }
 }
 
-const openMessageLoading = (text, type = 'success', cb) => {
+const openMessageLoading = (
+  text: string,
+  type: 'success' | 'error' | 'loading' = 'success',
+  cb: () => void
+) => {
   // success error loading
   const customClass = `de-message-${type || 'success'} de-message-export`
-  ElMessage({
+  const messageOptions = {
     message: h('p', null, [
       h(
         'span',
@@ -202,11 +232,20 @@ const openMessageLoading = (text, type = 'success', cb) => {
         t('data_export.export_center')
       )
     ]),
-    icon: type === 'loading' ? h(RefreshLeft) : '',
     type,
     showClose: true,
     customClass
-  })
+  }
+
+  if (type === 'loading') {
+    ElMessage({
+      ...messageOptions,
+      iconClass: 'el-icon-loading'
+    })
+    return
+  }
+
+  ElMessage(messageOptions)
 }
 
 const callbackExportError = () => {
@@ -226,18 +265,17 @@ const downLoadAll = () => {
     })
     return
   }
-  multipleSelection.value.map(ele => {
+  multipleSelection.value.forEach(ele => {
     generateDownloadUri(ele.id).then(() => {
       window.open(PATH_URL + '/exportCenter/download/' + ele.id)
     })
   })
 }
-const showMsg = item => {
-  msg.value = ''
-  msg.value = item.msg
+const showMsg = (item: ExportTaskRecord) => {
+  msg.value = item.msg || ''
   msgDialogVisible.value = true
 }
-const timestampFormatDate = value => {
+const timestampFormatDate = (value: string | number | Date | undefined) => {
   if (!value) {
     return '-'
   }
@@ -245,19 +283,19 @@ const timestampFormatDate = value => {
 }
 import { PATH_URL } from '@/config/axios/service'
 import GridTable from '../../../../components/grid-table/src/GridTable.vue'
-const downloadClick = item => {
+const downloadClick = (item: ExportTaskRecord) => {
   generateDownloadUri(item.id).then(() => {
     window.open(PATH_URL + '/exportCenter/download/' + item.id, openType)
   })
 }
 
-const retry = item => {
+const retry = (item: ExportTaskRecord) => {
   exportRetry(item.id).then(() => {
     handleClick()
   })
 }
 
-const deleteField = item => {
+const deleteField = (item: ExportTaskRecord) => {
   ElMessageBox.confirm(t('data_export.sure_del'), {
     confirmButtonType: 'danger',
     type: 'warning',
@@ -275,18 +313,15 @@ const deleteField = item => {
     })
 }
 
-const handleSelectionChange = val => {
+const handleSelectionChange = (val: ExportTaskRecord[]) => {
   multipleSelection.value = val
 }
 
-const pageChange = index => {
-  if (typeof index !== 'number') {
-    return
-  }
+const pageChange = (index: number) => {
   state.paginationConfig.currentPage = index
   handleClick()
 }
-const sizeChange = size => {
+const sizeChange = (size: number) => {
   state.paginationConfig.currentPage = 1
   state.paginationConfig.pageSize = size
   handleClick()

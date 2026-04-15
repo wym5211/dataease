@@ -322,7 +322,7 @@ const handleShowFinishPage = ({
     })
 }
 
-emitter.on('showFinishPage', handleShowFinishPage)
+emitter.on('showFinishPage', handleShowFinishPage as (event: unknown) => void)
 
 const prev = () => {
   prevConfirm()

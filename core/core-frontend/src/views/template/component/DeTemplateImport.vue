@@ -73,7 +73,7 @@
 
 <script lang="ts" setup>
 import { save, nameCheck, findOne, categoryTemplateNameCheck } from '@/api/template'
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, type PropType } from 'vue'
 import { imgUrlTrans } from '@/utils/imgUtils'
 import { ElMessage, ElMessageBox } from 'element-plus-secondary'
 import { useI18n } from '@/hooks/web/useI18n'
@@ -81,13 +81,19 @@ const emits = defineEmits(['closeEditTemplateDialog', 'refresh', 'addCategoryInf
 const { t } = useI18n()
 const filesRef = ref(null)
 const maxImageSize = 35000000
+
+interface TemplateCategoryOption {
+  id: string
+  name: string
+}
+
 const props = defineProps({
   pid: {
     type: String,
     required: true
   },
   templateCategories: {
-    type: Array,
+    type: Array as PropType<TemplateCategoryOption[]>,
     required: true
   },
   optType: {

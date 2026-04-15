@@ -42,11 +42,17 @@
 
 <script setup lang="ts">
 import { useI18n } from '@/hooks/web/useI18n'
-import { computed, reactive } from 'vue'
+import { computed, reactive, type PropType } from 'vue'
 import NoneImage from '@/assets/none.png'
 import NothingImage from '@/assets/nothing.png'
 import { ElMessageBox } from 'element-plus-secondary'
 const { t } = useI18n()
+
+interface TemplateListItem {
+  id: string
+  name: string
+  [key: string]: unknown
+}
 
 const emits = defineEmits([
   'showCurrentTemplate',
@@ -62,7 +68,7 @@ const props = defineProps({
     default: ''
   },
   templateList: {
-    type: Array,
+    type: Array as PropType<TemplateListItem[]>,
     default: function () {
       return []
     }
@@ -80,7 +86,7 @@ const templateListComputed = computed(() => {
   return props.templateList.filter(ele => ele['id'] !== '1')
 })
 
-const clickMore = (type, data) => {
+const clickMore = (type, data: TemplateListItem) => {
   switch (type) {
     case 'edit':
       categoryEdit(data)
@@ -93,12 +99,12 @@ const clickMore = (type, data) => {
       break
   }
 }
-const nodeClick = ({ id, name }) => {
+const nodeClick = ({ id, name }: TemplateListItem) => {
   state.activeTemplate = id
   emits('showCurrentTemplate', id, name)
 }
 
-const categoryDelete = template => {
+const categoryDelete = (template: TemplateListItem) => {
   ElMessageBox.confirm(t('template_manage.delete_catalog_hint'), {
     tip: t('template_manage.delete_catalog_tip'),
     confirmButtonType: 'danger',
@@ -110,10 +116,10 @@ const categoryDelete = template => {
     emits('categoryDelete', template.id)
   })
 }
-const categoryEdit = template => {
+const categoryEdit = (template: TemplateListItem) => {
   emits('categoryEdit', template)
 }
-const templateImport = template => {
+const templateImport = (template: TemplateListItem) => {
   emits('templateImport', template.id)
 }
 

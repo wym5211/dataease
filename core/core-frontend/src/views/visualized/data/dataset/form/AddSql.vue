@@ -290,9 +290,10 @@ const getDatasource = () => {
   })
 }
 const dragHeight = ref(260)
+const getSqlEditorDom = () => document.querySelector<HTMLElement>('.sql-eidtor')
 
 const mousedownDragH = () => {
-  document.querySelector('.sql-eidtor').addEventListener('mousemove', calculateHeight)
+  getSqlEditorDom()?.addEventListener('mousemove', calculateHeight)
 }
 
 const calculateHeight = (e: MouseEvent) => {
@@ -490,7 +491,7 @@ const dsChange = debounce((val: string) => {
 
 const handleDsChange = () => {
   setFlag()
-  dsChange()
+  dsChange(sqlNode.value.datasourceId)
 }
 
 const copyInfo = async (value: string) => {
@@ -503,9 +504,9 @@ const copyInfo = async (value: string) => {
 }
 
 const mouseupDrag = () => {
-  const dom = document.querySelector('.sql-eidtor')
-  dom.removeEventListener('mousemove', calculateWidth)
-  dom.removeEventListener('mousemove', calculateHeight)
+  const dom = getSqlEditorDom()
+  dom?.removeEventListener('mousemove', calculateWidth)
+  dom?.removeEventListener('mousemove', calculateHeight)
 }
 
 const parseVariable = () => {
@@ -594,7 +595,7 @@ const saveVariable = () => {
   ElMessage.success(t('data_set.parameters_set_successfully'))
 }
 const mousedownDrag = () => {
-  document.querySelector('.sql-eidtor').addEventListener('mousemove', calculateWidth)
+  getSqlEditorDom()?.addEventListener('mousemove', calculateWidth)
 }
 </script>
 

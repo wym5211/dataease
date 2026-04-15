@@ -155,11 +155,11 @@ const calcData = (viewInfo: Chart, callback, resetPageInfo = true) => {
           isError.value = true
           errMsg.value = res.msg
         } else {
-          chartData.value = res?.data as Partial<Chart['data']>
-          state.totalItems = res?.totalItems
+          chartData.value = res.data as Partial<Chart['data']>
+          state.totalItems = res.totalItems
           dvMainStore.setViewDataDetails(viewInfo.id, res)
-          emit('onDrillFilters', res?.drillFilters)
-          renderChart(res as unknown as Chart, resetPageInfo)
+          emit('onDrillFilters', res.drillFilters)
+          renderChart(res as Chart, resetPageInfo)
         }
         callback?.()
       })

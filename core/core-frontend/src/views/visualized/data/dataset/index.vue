@@ -585,7 +585,7 @@ const openMessageLoading = cb => {
       t('data_set.progress_and_download')
     ]),
     iconClass,
-    icon: RefreshLeft,
+    icon: h(RefreshLeft),
     showClose: true,
     customClass
   })

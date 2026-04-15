@@ -80,3 +80,16 @@ export const qqMapStyleOptions = [
 export declare type MapMouseEvent = MouseEvent & {
   feature: GeoJSON.Feature
 }
+
+export const ensureDrillDimensionList = (chart: Chart, data: Record<string, any>) => {
+  if (Array.isArray(data.dimensionList) && data.dimensionList.length > 0) {
+    return
+  }
+  const drillIndex = chart.drillFilters?.length ?? 0
+  const drillFieldId = chart.drillFields?.[drillIndex]?.id ?? chart.xAxis?.[0]?.id
+  const value = data.name
+  if (!drillFieldId || value == null) {
+    return
+  }
+  data.dimensionList = [{ id: drillFieldId, value }]
+}
