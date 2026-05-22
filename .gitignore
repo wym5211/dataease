@@ -55,3 +55,9 @@ core/core-frontend/src/assets/fsSvg.html
 /classpath:substitule.json
 core/tmp/
 core/logs/
+
+# Playwright MCP snapshots
+.playwright-mcp/
+
+# Ehcache disk store metadata
+core/core-backend/cache/

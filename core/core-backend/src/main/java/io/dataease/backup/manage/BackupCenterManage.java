@@ -527,7 +527,14 @@ public class BackupCenterManage {
                 try (ZipInputStream zipIn = new ZipInputStream(new FileInputStream(file))) {
                     ZipEntry zipEntry = zipIn.getNextEntry();
                     if (zipEntry != null) {
-                        File outputFile = new File(tempDir, zipEntry.getName());
+                        String entryName = zipEntry.getName();
+                        if (entryName.contains("..")) {
+                            throw new IllegalArgumentException("Invalid zip entry: " + entryName);
+                        }
+                        File outputFile = new File(tempDir, entryName);
+                        if (!outputFile.getCanonicalPath().startsWith(tempDir.getCanonicalPath())) {
+                            throw new IllegalArgumentException("Zip entry escapes target directory: " + entryName);
+                        }
                         try (OutputStream os = new FileOutputStream(outputFile)) {
                             zipIn.transferTo(os);
                         }

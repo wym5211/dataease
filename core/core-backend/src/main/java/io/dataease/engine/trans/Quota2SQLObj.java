@@ -17,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @Author Junjun
@@ -155,11 +156,11 @@ public class Quota2SQLObj {
                 } else if (StringUtils.equalsIgnoreCase(f.getTerm(), "not_empty")) {
                     whereValue = "''";
                 } else if (StringUtils.containsIgnoreCase(f.getTerm(), "in")) {
-                    whereValue = "('" + StringUtils.join(f.getValue(), "','") + "')";
+                    whereValue = "('" + Arrays.stream(f.getValue().split(",")).map(v -> Utils.transValue(v.trim())).collect(Collectors.joining("','")) + "')";
                 } else if (StringUtils.containsIgnoreCase(f.getTerm(), "like")) {
-                    whereValue = "'%" + f.getValue() + "%'";
+                    whereValue = "'%" + Utils.transValue(f.getValue()) + "%'";
                 } else {
-                    whereValue = String.format(SQLConstants.WHERE_VALUE_VALUE, f.getValue());
+                    whereValue = String.format(SQLConstants.WHERE_VALUE_VALUE, Utils.transValue(f.getValue()));
                 }
                 list.add(SQLObj.builder()
                         .whereField(fieldAlias)

@@ -48,7 +48,7 @@ public class H2EngineProvider extends EngineProvider {
                         String type = tableFields.get(i).getType() == null ? tableFields.get(i).getFieldType() : tableFields.get(i).getType();
                         strings1[length] = null;
                     } else {
-                        strings1[length] = strings[i].replace("\\", "\\\\").replace("'", "''");
+                        strings1[length] = strings[i].replace("\\", "\\\\").replace("'", "''").replace("\n", "\\n");
                     }
                     length++;
                 }

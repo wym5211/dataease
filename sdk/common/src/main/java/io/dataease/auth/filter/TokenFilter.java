@@ -1,6 +1,7 @@
 package io.dataease.auth.filter;
 
 import io.dataease.auth.bo.TokenUserBO;
+import io.dataease.auth.service.TokenBlacklistService;
 import io.dataease.constant.AuthConstant;
 import io.dataease.exception.DEException;
 import io.dataease.result.ResultMessage;
@@ -20,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 public class TokenFilter implements Filter {
+    private volatile TokenBlacklistService cachedBlacklistService;
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
@@ -58,7 +60,6 @@ public class TokenFilter implements Filter {
         }
         try {
             boolean isDesktop = ModelUtils.isDesktop();
-            LogUtil.info("TokenFilter: isDesktop = " + isDesktop);
             if (isDesktop) {
                 String remoteAddr = request.getRemoteAddr();
                 if (!isLocalAddress(remoteAddr)) {
@@ -83,6 +84,20 @@ public class TokenFilter implements Filter {
                 return;
             }
             String token = ServletUtils.getToken();
+            // 黑名单检查：在验证前拦截已被作废的 token
+            if (StringUtils.isNotBlank(token)) {
+                if (cachedBlacklistService == null) {
+                    cachedBlacklistService = CommonBeanFactory.getBean(TokenBlacklistService.class);
+                }
+                TokenBlacklistService blacklistService = cachedBlacklistService;
+                if (blacklistService != null && blacklistService.isBlacklisted(token)) {
+                    HttpServletResponse res = (HttpServletResponse) servletResponse;
+                    ResultMessage rm = new ResultMessage(HttpStatus.UNAUTHORIZED.value(), "token has been revoked");
+                    ResponseEntity<ResultMessage> entity = new ResponseEntity<>(rm, HttpStatus.UNAUTHORIZED);
+                    sendResponseEntity(res, entity);
+                    return;
+                }
+            }
             TokenUserBO userBO = TokenUtils.validate(token);
             UserUtils.setUserInfo(userBO);
             filterChain.doFilter(servletRequest, servletResponse);

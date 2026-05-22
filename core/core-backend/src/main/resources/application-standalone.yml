@@ -33,6 +33,6 @@ dataease:
   backup:
     path: E:/cursor/dataease/backup-data
   jwt:
-    secret: ${DE_JWT_SECRET:DataEase_Secret_Key_2024}
+    secret: ${DE_JWT_SECRET:}
 
 

@@ -24,6 +24,7 @@ public class WhitelistUtils {
 
     public static List<String> WHITE_PATH = List.of(
             "/login/localLogin",
+            "/login/refreshAccess",
             "/apisix/check",
             "/dekey",
             "/symmetricKey",
@@ -102,17 +103,27 @@ public class WhitelistUtils {
                 || (isDevMode() && StringUtils.equalsAny(requestURI, "/swagger-resources", "/doc.html"));
     }
 
+    private static volatile Boolean devModeCached;
+
     public static boolean isDevMode() {
+        if (devModeCached != null) return devModeCached;
         try {
             Environment env = CommonBeanFactory.getBean(Environment.class);
-            if (env == null) return false;
+            if (env == null) {
+                devModeCached = false;
+                return false;
+            }
             String[] profiles = env.getActiveProfiles();
             for (String p : profiles) {
-                if ("dev".equals(p) || "desktop".equals(p)) return true;
+                if ("dev".equals(p) || "desktop".equals(p)) {
+                    devModeCached = true;
+                    return true;
+                }
             }
         } catch (Exception e) {
-            return false;
+            // ignore
         }
+        devModeCached = false;
         return false;
     }
 

@@ -18,11 +18,16 @@ import io.dataease.system.dao.auto.entity.SysResourcePermission;
 import io.dataease.system.dao.auto.entity.SysRole;
 import io.dataease.system.dao.auto.entity.SysRoleMenu;
 import io.dataease.system.dao.auto.entity.SysUser;
+import io.dataease.system.dao.auto.entity.SysUserRole;
 import io.dataease.system.dao.auto.mapper.SysResourcePermissionMapper;
 import io.dataease.system.dao.auto.mapper.SysRoleMapper;
 import io.dataease.system.dao.auto.mapper.SysRoleMenuMapper;
 import io.dataease.system.dao.auto.mapper.SysUserMapper;
+import io.dataease.system.dao.auto.mapper.SysUserRoleMapper;
+import io.dataease.permissions.notify.PermissionChangeNotifier;
+import io.dataease.constant.CacheConstant;
 import io.dataease.utils.AuthUtils;
+import io.dataease.utils.CacheUtils;
 import io.dataease.visualization.manage.CoreVisualizationManage;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -53,11 +58,15 @@ public class CoreAuthServer implements AuthApi {
     @Autowired
     private SysUserMapper sysUserMapper;
     @Autowired
+    private SysUserRoleMapper sysUserRoleMapper;
+    @Autowired
     private CoreVisualizationManage coreVisualizationManage;
     @Autowired
     private DatasetGroupManage datasetGroupManage;
     @Autowired
     private DataSourceManage dataSourceManage;
+    @Autowired
+    private PermissionChangeNotifier permissionChangeNotifier;
 
     @Override
     public List<ResourceVO> busiResource(String flag) {
@@ -210,6 +219,9 @@ public class CoreAuthServer implements AuthApi {
             p.setPermission(item.getWeight());
             sysResourcePermissionMapper.insert(p);
         }
+        // 资源权限变更后失效缓存并通知相关用户
+        List<Long> userIds = evictBusiPerCaches(editor.getType(), editor.getId());
+        permissionChangeNotifier.notifyUsers(userIds, "RESOURCE");
     }
 
     @Override
@@ -241,6 +253,14 @@ public class CoreAuthServer implements AuthApi {
                 sysResourcePermissionMapper.insert(p);
             }
         }
+        // 根据 owner_type 清除缓存并通知相关用户刷新资源权限
+        if (creator.getType() != null && CollectionUtils.isNotEmpty(creator.getPermissions())) {
+            for (PermissionItem item : creator.getPermissions()) {
+                if (item == null || item.getId() == null) continue;
+                List<Long> ids = evictBusiPerCaches(creator.getType(), item.getId());
+                permissionChangeNotifier.notifyUsers(ids, "RESOURCE");
+            }
+        }
     }
 
     @Override
@@ -264,6 +284,9 @@ public class CoreAuthServer implements AuthApi {
             rm.setMenuId(item.getId());
             sysRoleMenuMapper.insert(rm);
         }
+        // 角色菜单权限变更后，清除该角色下所有用户的权限缓存并通知
+        List<Long> userIds = evictRoleCaches(rid);
+        permissionChangeNotifier.notifyUsers(userIds, "MENU");
     }
 
     @Override
@@ -441,5 +464,46 @@ public class CoreAuthServer implements AuthApi {
         if (!AuthUtils.isSysAdmin()) {
             DEException.throwException(io.dataease.result.ResultCode.INTERFACE_FORBID_VISIT.code(), io.dataease.result.ResultCode.INTERFACE_FORBID_VISIT.message());
         }
+    }
+
+    /**
+     * 根据 owner_type 清除资源权限缓存
+     *
+     * @param ownerType 0=用户 1=角色 2=部门
+     * @param ownerId   owner_id
+     */
+    private List<Long> evictBusiPerCaches(Integer ownerType, Long ownerId) {
+        if (ownerType == null || ownerId == null) {
+            return Collections.emptyList();
+        }
+        if (ownerType == 0) {
+            CacheUtils.evictUserPermissionCaches(ownerId);
+            return List.of(ownerId);
+        } else if (ownerType == 1) {
+            return evictRoleCaches(ownerId);
+        }
+        return Collections.emptyList();
+    }
+
+    private List<Long> evictRoleCaches(Long roleId) {
+        if (roleId == null) {
+            return Collections.emptyList();
+        }
+        CacheUtils.keyRemove(CacheConstant.RoleCacheConstant.ROLE_MENU_PERS_CACHE, String.valueOf(roleId));
+        CacheUtils.keyRemove(CacheConstant.RoleCacheConstant.ROLE_BUSI_PERS_CACHE, String.valueOf(roleId));
+        List<SysUserRole> userRoles = sysUserRoleMapper.selectList(
+            new QueryWrapper<SysUserRole>().eq("role_id", roleId)
+        );
+        List<Long> userIds = new ArrayList<>();
+        if (userRoles != null) {
+            for (SysUserRole ur : userRoles) {
+                if (ur == null || ur.getUserId() == null) {
+                    continue;
+                }
+                CacheUtils.evictUserPermissionCaches(ur.getUserId());
+                userIds.add(ur.getUserId());
+            }
+        }
+        return userIds;
     }
 }

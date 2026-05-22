@@ -571,6 +571,18 @@ public class Utils {
     }
 
     public static String transValue(String value) {
+        if (value == null) {
+            return "";
+        }
         return value.replace("\\", "\\\\").replace("'", "''");
+    }
+
+    private static final Pattern SQL_IDENTIFIER = Pattern.compile("^[a-zA-Z_@#][a-zA-Z0-9_.\\-@#$]*$");
+
+    public static String safeIdentifier(String identifier) {
+        if (StringUtils.isBlank(identifier) || !SQL_IDENTIFIER.matcher(identifier).matches()) {
+            DEException.throwException("Invalid SQL identifier: " + identifier);
+        }
+        return identifier;
     }
 }

@@ -87,14 +87,15 @@ export class BubbleMap extends L7PlotChartView<ChoroplethOptions, Choropleth> {
       customSubArea = (await getCustomGeoArea(areaId)).data || []
       customSubArea.forEach(a => (a.scopeArr = a.scope?.split(',') || []))
       geoJson = cloneDeep(await getGeoJsonFile('156'))
-      geoJsonMap = geoJson.features.reduce<
-        Record<string, FeatureCollection['features'][number]>
-      >((p, n) => {
-        if (n.properties['adcode']) {
-          p['156' + n.properties['adcode']] = n
-        }
-        return p
-      }, {})
+      geoJsonMap = geoJson.features.reduce<Record<string, FeatureCollection['features'][number]>>(
+        (p, n) => {
+          if (n.properties['adcode']) {
+            p['156' + n.properties['adcode']] = n
+          }
+          return p
+        },
+        {}
+      )
       const areaNameMap = geoJson.features.reduce<Record<string, string>>((p, n) => {
         p['156' + n.properties.adcode] = n.properties.name
         return p

@@ -125,14 +125,15 @@ export class Map extends L7PlotChartView<ChoroplethOptions, Choropleth> {
     if (areaId.startsWith('custom_')) {
       customSubArea = (await getCustomGeoArea(areaId)).data || []
       geoJson = cloneDeep(await getGeoJsonFile('156'))
-      geoJsonMap = geoJson.features.reduce<
-        Record<string, FeatureCollection['features'][number]>
-      >((p, n) => {
-        if (n.properties['adcode']) {
-          p['156' + n.properties['adcode']] = n
-        }
-        return p
-      }, {})
+      geoJsonMap = geoJson.features.reduce<Record<string, FeatureCollection['features'][number]>>(
+        (p, n) => {
+          if (n.properties['adcode']) {
+            p['156' + n.properties['adcode']] = n
+          }
+          return p
+        },
+        {}
+      )
       const areaNameMap = geoJson.features.reduce<Record<string, string>>((p, n) => {
         p['156' + n.properties.adcode] = n.properties.name
         return p
@@ -368,19 +369,18 @@ export class Map extends L7PlotChartView<ChoroplethOptions, Choropleth> {
           content.push(name)
         }
         if (label.showQuota) {
-          ; (areaMap[name] || areaMap[name] === 0) &&
+          ;(areaMap[name] || areaMap[name] === 0) &&
             content.push(valueFormatter(areaMap[name], label.quotaLabelFormatter))
         }
         item.properties['_DE_LABEL_'] = content.join('\n\n')
       }
     })
     if (colorScale.length) {
-      colorConfig.value = colorScale.map(item => (typeof item === 'string' ? item : item.color || ''))
+      colorConfig.value = colorScale.map(item =>
+        typeof item === 'string' ? item : item.color || ''
+      )
       if (typeof colorScale[0] !== 'string' && colorScale[0].value && !misc.mapAutoLegend) {
-        colorConfig.scale.domain = [
-          minValue ?? filterEmptyMinValue(sourceData, 'value'),
-          maxValue
-        ]
+        colorConfig.scale.domain = [minValue ?? filterEmptyMinValue(sourceData, 'value'), maxValue]
       }
     }
     return options
@@ -455,17 +455,17 @@ export class Map extends L7PlotChartView<ChoroplethOptions, Choropleth> {
           height: legend.size + 'px',
           ...(legend.icon === 'triangle'
             ? {
-              ...LEGEND_SHAPE_STYLE_MAP[legend.icon]['triangle'],
-              borderLeft: `${legend.size / 2}px solid transparent`,
-              borderRight: `${legend.size / 2}px solid transparent`,
-              borderBottom: `${legend.size}px solid var(--bgColor)`
-            }
+                ...LEGEND_SHAPE_STYLE_MAP[legend.icon]['triangle'],
+                borderLeft: `${legend.size / 2}px solid transparent`,
+                borderRight: `${legend.size / 2}px solid transparent`,
+                borderBottom: `${legend.size}px solid var(--bgColor)`
+              }
             : { border: '0.01px solid #f4f4f4' }),
           ...(legend.icon === 'diamond'
             ? {
-              transform: 'rotate(45deg)',
-              marginBottom: `${legend.size / 4}px`
-            }
+                transform: 'rotate(45deg)',
+                marginBottom: `${legend.size / 4}px`
+              }
             : {})
         }
       }
@@ -509,8 +509,7 @@ export class Map extends L7PlotChartView<ChoroplethOptions, Choropleth> {
         if (showItems?.length) {
           if (showItems.length === 1) {
             showItems[0].value = (colorConfig.scale.domain?.slice(0, 2) as [number, number]) || [
-              0,
-              0
+              0, 0
             ]
           }
           return this.createLegendCustomContent(showItems)
@@ -584,8 +583,8 @@ export class Map extends L7PlotChartView<ChoroplethOptions, Choropleth> {
           }
           if (label.showQuota) {
             const areaData = areaMap[area.name]
-              ; (areaData?.value || areaData?.value === 0) &&
-                content.push(valueFormatter(areaData.value, label.quotaLabelFormatter))
+            ;(areaData?.value || areaData?.value === 0) &&
+              content.push(valueFormatter(areaData.value, label.quotaLabelFormatter))
           }
           labelLocation.push({
             name: content.join('\n\n'),

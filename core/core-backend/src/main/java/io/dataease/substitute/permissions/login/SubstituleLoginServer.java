@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
 import io.dataease.utils.TokenUtils;
+import org.springframework.web.bind.annotation.RequestParam;
 import java.util.Date;
 
 @Component
@@ -54,6 +55,15 @@ public class SubstituleLoginServer {
     @GetMapping("/logout")
     public void logout() {
         LogUtil.info("substitule logout");
+    }
+
+    @PostMapping("/login/refreshAccess")
+    public TokenVO refreshAccess(@RequestParam("refreshToken") String refreshToken) {
+        // 桌面模式：直接重新生成 admin token
+        TokenUserBO tokenUserBO = new TokenUserBO();
+        tokenUserBO.setUserId(1L);
+        tokenUserBO.setDefaultOid(1L);
+        return generate(tokenUserBO, TokenUtils.getSecret());
     }
 
     private TokenVO generate(TokenUserBO bo, String secret) {

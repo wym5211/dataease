@@ -87,7 +87,9 @@ export const configHandler = (config: InternalAxiosRequestConfig) => {
   if (token) {
     config.headers['X-DE-TOKEN'] = token
     const expired = isExpired()
-    if (expired && !config.url.includes(refreshUrl)) {
+    // 如果有 refresh token，跳过旧的 refresh 逻辑，由 401 拦截器处理
+    const hasRefreshToken = !!localStorage.getItem('user.refreshToken')
+    if (expired && !config.url.includes(refreshUrl) && !hasRefreshToken) {
       if (!getRefreshStatus()) {
         setRefreshStatus(true)
         refreshApi(Date.now())

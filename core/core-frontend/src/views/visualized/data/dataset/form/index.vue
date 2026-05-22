@@ -1043,8 +1043,7 @@ const equalMin = [
 
 const validatePass = (_: unknown, value: unknown, callback: (error?: Error) => void) => {
   const isEmpty =
-    value == null ||
-    ((typeof value === 'string' || Array.isArray(value)) && value.length === 0)
+    value == null || ((typeof value === 'string' || Array.isArray(value)) && value.length === 0)
   if (isEmpty) {
     callback(new Error(t('chart.value_can_not_empty')))
   } else {

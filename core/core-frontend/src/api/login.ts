@@ -17,6 +17,13 @@ export const logoutApi = () => request.get({ url: '/logout' })
 export const refreshApi = (time?: number | string) =>
   request.get({ url: '/login/refresh', params: { time } })
 
+export const refreshAccessApi = (refreshToken: string) =>
+  request.post({
+    url: '/login/refreshAccess',
+    data: `refreshToken=${encodeURIComponent(refreshToken)}`,
+    headersType: 'application/x-www-form-urlencoded'
+  })
+
 export const uiLoadApi = () => request.get({ url: '/sysParameter/ui' })
 
 export const loginCategoryApi = () => request.get({ url: '/sysParameter/defaultLogin' })

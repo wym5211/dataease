@@ -2,6 +2,7 @@ package io.dataease.permissions.utils;
 
 import io.dataease.auth.bo.TokenUserBO;
 import io.dataease.constant.AuthConstant;
+import io.dataease.constant.CacheConstant;
 import io.dataease.exception.DEException;
 import io.dataease.menu.dao.auto.entity.CoreMenu;
 import io.dataease.menu.dao.auto.mapper.CoreMenuMapper;
@@ -17,6 +18,7 @@ import io.dataease.system.dao.auto.mapper.SysRoleMapper;
 import io.dataease.system.dao.auto.mapper.SysRoleMenuMapper;
 import io.dataease.system.dao.auto.mapper.SysUserRoleMapper;
 import io.dataease.utils.AuthUtils;
+import io.dataease.utils.CacheUtils;
 import io.dataease.utils.CommonBeanFactory;
 import io.dataease.utils.ModelUtils;
 import io.dataease.utils.WhitelistUtils;
@@ -232,14 +234,25 @@ public class PermissionUtils {
     }
 
     /**
-     * 获取用户权限列表
+     * 获取用户权限列表（带缓存）
      */
+    @SuppressWarnings("unchecked")
     private Set<String> getUserPermissions(Long userId) {
+        if (userId == null) {
+            return new HashSet<>();
+        }
+        String cacheKey = String.valueOf(userId);
+        Object cached = CacheUtils.get(CacheConstant.UserCacheConstant.USER_BUSI_PERS_CACHE, cacheKey);
+        if (cached instanceof Set) {
+            return (Set<String>) cached;
+        }
+
         Set<String> permissions = new HashSet<>();
 
         // 获取用户角色
         Set<Long> roleIds = getUserRoleIds(userId);
         if (roleIds.isEmpty()) {
+            CacheUtils.put(CacheConstant.UserCacheConstant.USER_BUSI_PERS_CACHE, cacheKey, permissions);
             return permissions;
         }
 
@@ -258,16 +271,29 @@ public class PermissionUtils {
             }
         });
 
+        CacheUtils.put(CacheConstant.UserCacheConstant.USER_BUSI_PERS_CACHE, cacheKey, permissions);
         return permissions;
     }
 
     /**
-     * 获取用户角色列表
+     * 获取用户角色列表（带缓存，按用户维度缓存到 de_v2_role_busi_pers）
      */
+    @SuppressWarnings("unchecked")
     private Set<String> getUserRoles(Long userId) {
+        if (userId == null) {
+            return new HashSet<>();
+        }
+        String cacheKey = String.valueOf(userId);
+        Object cached = CacheUtils.get(CacheConstant.RoleCacheConstant.ROLE_BUSI_PERS_CACHE, cacheKey);
+        if (cached instanceof Set) {
+            return (Set<String>) cached;
+        }
+
         Set<Long> roleIds = getUserRoleIds(userId);
         if (roleIds.isEmpty()) {
-            return new HashSet<>();
+            Set<String> empty = new HashSet<>();
+            CacheUtils.put(CacheConstant.RoleCacheConstant.ROLE_BUSI_PERS_CACHE, cacheKey, empty);
+            return empty;
         }
 
         List<SysRole> roles = sysRoleMapper.selectList(
@@ -275,24 +301,38 @@ public class PermissionUtils {
                 .in("id", roleIds)
         );
 
-        return roles.stream()
+        Set<String> result = roles.stream()
                 .map(SysRole::getRoleAlias)
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toSet());
+        CacheUtils.put(CacheConstant.RoleCacheConstant.ROLE_BUSI_PERS_CACHE, cacheKey, result);
+        return result;
     }
 
     /**
-     * 获取用户角色ID列表
+     * 获取用户角色ID列表（带缓存）
      */
+    @SuppressWarnings("unchecked")
     private Set<Long> getUserRoleIds(Long userId) {
+        if (userId == null) {
+            return new HashSet<>();
+        }
+        String cacheKey = String.valueOf(userId);
+        Object cached = CacheUtils.get(CacheConstant.UserCacheConstant.USER_ROLES_CACHE, cacheKey);
+        if (cached instanceof Set) {
+            return (Set<Long>) cached;
+        }
+
         List<SysUserRole> userRoles = sysUserRoleMapper.selectList(
             new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<SysUserRole>()
                 .eq("user_id", userId)
         );
 
-        return userRoles.stream()
+        Set<Long> result = userRoles.stream()
                 .map(SysUserRole::getRoleId)
                 .collect(Collectors.toSet());
+        CacheUtils.put(CacheConstant.UserCacheConstant.USER_ROLES_CACHE, cacheKey, result);
+        return result;
     }
 
     /**

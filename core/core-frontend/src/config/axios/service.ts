@@ -17,22 +17,35 @@ import { configHandler } from './refresh'
 import { isMobile, getLocale } from '@/utils/utils'
 import { useRequestStoreWithOut } from '@/store/modules/request'
 import { clearCache } from '@/utils/cacheUtil'
+import { logger } from '@/utils/logger'
+
+function redirectToLogin() {
+  clearCache()
+  try {
+    localStorage.removeItem('user.refreshToken')
+  } catch (e) {
+    logger.error('clear refresh token failed', e)
+  }
+  const redirect = router.currentRoute.value.fullPath || '/workbranch'
+  router.push(`/login?redirect=${redirect}`)
+}
 
 type AxiosErrorWidthLoading<T> = T & {
   config: {
     loading?: boolean
     silentError?: boolean
+    _retry?: boolean
   }
 }
 
 type InternalAxiosRequestConfigWidthLoading<T> = T & {
   loading?: boolean
   silentError?: boolean
+  _retry?: boolean
 }
 
 import { ElMessage, ElMessageBox } from 'element-plus-secondary'
 import router from '@/router'
-import { logger } from '@/utils/logger'
 
 const { result_code } = config
 import { useCache } from '@/hooks/web/useCache'
@@ -102,6 +115,67 @@ const permissionStore = usePermissionStoreWithOut()
 const linkStore = useLinkStoreWithOut()
 const CancelToken = axios.CancelToken
 const cancelMap: Record<string, (message?: string) => void> = {}
+
+/**
+ * 使用 refresh token 换取新 access token，并重试原请求
+ * 使用原生 axios 避免拦截器递归
+ */
+let refreshingPromise: Promise<string | null> | null = null
+const refreshTokenAndRetry = async (
+  originalConfig: InternalAxiosRequestConfig,
+  refreshToken: string
+): Promise<unknown> => {
+  try {
+    if (!refreshingPromise) {
+      refreshingPromise = axios
+        .post(
+          PATH_URL + '/login/refreshAccess',
+          qs.stringify({ refreshToken }),
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            timeout: 10000
+          }
+        )
+        .then(resp => {
+          const data = resp.data as Record<string, unknown>
+          const inner = data?.data as Record<string, unknown> | undefined
+          const tokenCandidate = inner?.token ?? data?.token
+          const newToken = tokenCandidate ? String(tokenCandidate) : null
+          const rtCandidate = (inner?.refreshToken as string) ?? (data?.refreshToken as string) ?? (resp.headers['x-refresh-token'] as string)
+          if (newToken) {
+            wsCache.set('user.token', newToken)
+            if (rtCandidate) {
+              localStorage.setItem('user.refreshToken', rtCandidate)
+            }
+            return newToken
+          }
+          return null
+        })
+        .catch(err => {
+          logger.error('refresh access token failed', err)
+          return null
+        })
+        .finally(() => {
+          refreshingPromise = null
+        })
+    }
+    const newToken = await refreshingPromise
+    if (!newToken) {
+      redirectToLogin()
+      return Promise.reject(new Error('refresh token failed'))
+    }
+    if (!originalConfig.headers) {
+      originalConfig.headers = new AxiosHeaders()
+    }
+    ;(originalConfig.headers as AxiosRequestHeaders)['X-DE-TOKEN'] = newToken
+    return service(originalConfig)
+  } catch (e) {
+    logger.error('refreshTokenAndRetry exception', e)
+    return Promise.reject(e)
+  }
+}
 
 // request拦截器
 service.interceptors.request.use(
@@ -182,10 +256,16 @@ service.interceptors.response.use(
     }
   ) => {
     executeVersionHandler(response)
-    /* if (response.headers['x-de-refresh-token']) {
-      wsCache.set('user.token', response.headers['x-de-refresh-token'])
-      wsCache.set('user.exp', new Date().getTime() + 90000)
-    } */
+    // 捕获后端下发的 Refresh Token，写入 localStorage
+    const refreshTokenHeader =
+      response.headers['x-refresh-token'] || response.headers['X-Refresh-Token']
+    if (refreshTokenHeader) {
+      try {
+        localStorage.setItem('user.refreshToken', String(refreshTokenHeader))
+      } catch (e) {
+        logger.error('store refresh token failed', e)
+      }
+    }
     if (response.headers['x-de-link-token']) {
       linkStore.setLinkToken(response.headers['x-de-link-token'])
     }
@@ -229,12 +309,7 @@ service.interceptors.response.use(
           showClose: true
         })
         if (responseData.code === 80001) {
-          clearCache()
-          let queryRedirectPath = '/workbranch'
-          if (router.currentRoute.value.fullPath) {
-            queryRedirectPath = router.currentRoute.value.fullPath as string
-          }
-          router.push(`/login?redirect=${queryRedirectPath}`)
+          redirectToLogin()
         }
       } else if (response?.config?.url.startsWith('/xpackComponent/content')) {
         console.error(
@@ -287,6 +362,27 @@ service.interceptors.response.use(
     }
 
     error.config.loading && tryHideLoading(permissionStore.getCurrentPath)
+    // 401 处理：尝试使用 refresh token 换取新 access token 并重试原请求
+    if (error?.response?.status === 401) {
+      const originalConfig = error.config as InternalAxiosRequestConfig & {
+        _retry?: boolean
+        loading?: boolean
+      }
+      const reqUrl = originalConfig?.url || ''
+      const isRefreshCall =
+        reqUrl.includes('/login/refreshAccess') || reqUrl.includes('/login/localLogin')
+      if (!originalConfig?._retry && !isRefreshCall) {
+        const refreshToken = localStorage.getItem('user.refreshToken')
+        if (refreshToken) {
+          originalConfig._retry = true
+          return refreshTokenAndRetry(originalConfig, refreshToken)
+        }
+      }
+      if (isRefreshCall || !localStorage.getItem('user.refreshToken')) {
+        redirectToLogin()
+        return Promise.reject(error)
+      }
+    }
     if (header.has('DE-GATEWAY-FLAG')) {
       const userToken = wsCache.get('user.token')
       const inPlatformClient = !!wsCache.get('de-platform-client')
@@ -295,18 +391,12 @@ service.interceptors.response.use(
         const flag = header.get('DE-GATEWAY-FLAG')
         localStorage.setItem('DE-GATEWAY-FLAG', String(flag || ''))
       }
-      let queryRedirectPath = '/workbranch'
-      if (router.currentRoute.value.fullPath) {
-        queryRedirectPath = router.currentRoute.value.fullPath as string
-      }
-      router.push(`/login?redirect=${queryRedirectPath}`)
+      const redirect = router.currentRoute.value.fullPath || '/workbranch'
+      router.push(`/login?redirect=${redirect}`)
     }
     if (header.has('DE-FORBIDDEN-FLAG')) {
       showMsg('当前用户权限配置已变更，请刷新页面', '-changed-')
     }
-    /* if ([400, 401].includes(error?.response.status)) {
-      return Promise.reject(error)
-    } */
     if (error?.response.status === 400) {
       return Promise.reject(error)
     }
@@ -328,7 +418,6 @@ const showMsg = (msg: string, id: string) => {
     showClose: false
   })
     .then(() => {
-      window['cross-permission-' + id]
       window.location.reload()
     })
     .catch(() => {

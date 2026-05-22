@@ -215,7 +215,10 @@ export const useAppearanceStore = defineStore('appearanceStore', {
       }
       defaultFont().then(res => {
         const [font] = res || []
-        if (!font?.fileTransName) return
+        if (!font?.fileTransName) {
+          console.warn('[appearance] Default font not available, skipping font setup')
+          return
+        }
         setDefaultFont(
           `${
             embeddedStore.baseUrl

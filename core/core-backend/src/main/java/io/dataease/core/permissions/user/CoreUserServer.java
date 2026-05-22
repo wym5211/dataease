@@ -11,6 +11,7 @@ import io.dataease.api.permissions.user.dto.*;
 import io.dataease.api.permissions.user.vo.*;
 import io.dataease.auth.bo.TokenUserBO;
 import io.dataease.i18n.Lang;
+import io.dataease.constant.CacheConstant;
 import io.dataease.utils.CacheUtils;
 import io.dataease.auth.vo.TokenVO;
 import io.dataease.utils.AuthUtils;
@@ -236,6 +237,9 @@ public class CoreUserServer implements UserApi {
         deleteQw.eq("user_id", editor.getId());
         sysUserRoleMapper.delete(deleteQw);
 
+        // 清除该用户的所有权限缓存
+        CacheUtils.evictUserPermissionCaches(editor.getId());
+
         if (CollectionUtils.isNotEmpty(editor.getRoleIds())) {
             for (Long roleId : editor.getRoleIds()) {
                 SysUserRole userRole = new SysUserRole();
@@ -276,6 +280,9 @@ public class CoreUserServer implements UserApi {
 
         // 删除用户
         sysUserMapper.deleteById(id);
+
+        // 清除被删除用户的缓存
+        CacheUtils.evictUserPermissionCaches(id);
     }
 
     @Override
@@ -305,6 +312,11 @@ public class CoreUserServer implements UserApi {
 
         // 删除用户
         sysUserMapper.deleteBatchIds(ids);
+
+        // 清除被批量删除用户的缓存
+        for (Long id : ids) {
+            CacheUtils.evictUserPermissionCaches(id);
+        }
     }
 
     @Override

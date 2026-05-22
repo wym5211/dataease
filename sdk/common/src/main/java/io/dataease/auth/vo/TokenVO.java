@@ -22,6 +22,9 @@ public class TokenVO implements Serializable {
     @Schema(description = "有效期")
     private Long exp;
 
+    @Schema(description = "refresh token")
+    private String refreshToken;
+
     private MfaItem mfa;
 
     private InvalidPwdVO invalidPwd;
@@ -29,5 +32,11 @@ public class TokenVO implements Serializable {
     public TokenVO(String token, Long exp) {
         this.token = token;
         this.exp = exp;
+    }
+
+    public TokenVO(String token, Long exp, String refreshToken) {
+        this.token = token;
+        this.exp = exp;
+        this.refreshToken = refreshToken;
     }
 }

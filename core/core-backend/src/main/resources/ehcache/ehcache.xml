@@ -34,7 +34,7 @@
     <!--用户角色缓存-->
     <cache alias="de_v2_user_roles" uses-template="common-cache">
         <key-type>java.lang.String</key-type>
-        <value-type>java.util.List</value-type>
+        <value-type>java.io.Serializable</value-type>
         <resources>
             <heap unit="entries">1000</heap>
             <offheap unit="MB">5</offheap>
@@ -44,7 +44,7 @@
     <!--用户资源权限缓存-->
     <cache alias="de_v2_user_busi_pers" uses-template="common-cache">
         <key-type>java.lang.String</key-type>
-        <value-type>java.util.List</value-type>
+        <value-type>java.io.Serializable</value-type>
         <resources>
             <heap unit="entries">1000</heap>
             <offheap unit="MB">5</offheap>
@@ -53,7 +53,7 @@
     <!--角色资源权限缓存-->
     <cache alias="de_v2_role_busi_pers" uses-template="common-cache">
         <key-type>java.lang.String</key-type>
-        <value-type>java.util.List</value-type>
+        <value-type>java.io.Serializable</value-type>
         <resources>
             <heap unit="entries">1000</heap>
             <offheap unit="MB">5</offheap>
@@ -62,7 +62,7 @@
     <!--角色菜单权限缓存-->
     <cache alias="de_v2_role_menu_pers" uses-template="common-cache">
         <key-type>java.lang.String</key-type>
-        <value-type>java.util.List</value-type>
+        <value-type>java.io.Serializable</value-type>
     </cache>
     <!--组织内所有资源缓存 包括 用户 角色 数据源 数据集 仪表板 大屏 key由什么组成？组织id+flag 例如orgid + '1'-->
     <cache alias="de_v2_org_global_resource" uses-template="common-cache">
@@ -148,6 +148,34 @@
             <heap unit="entries">100</heap>
             <offheap unit="MB">10</offheap>
             <disk unit="MB" persistent="true">50</disk>
+        </resources>
+    </cache>
+
+    <!--Token 黑名单（24 小时过期，磁盘持久化）-->
+    <cache alias="de_v2_token_blacklist">
+        <key-type>java.lang.String</key-type>
+        <value-type>java.lang.String</value-type>
+        <expiry>
+            <ttl unit="minutes">1440</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">1000</heap>
+            <offheap unit="MB">5</offheap>
+            <disk unit="MB" persistent="true">10</disk>
+        </resources>
+    </cache>
+
+    <!--Refresh Token 存储（7 天过期，磁盘持久化）-->
+    <cache alias="de_v2_refresh_tokens">
+        <key-type>java.lang.String</key-type>
+        <value-type>java.lang.Object</value-type>
+        <expiry>
+            <ttl unit="minutes">10080</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">500</heap>
+            <offheap unit="MB">5</offheap>
+            <disk unit="MB" persistent="true">10</disk>
         </resources>
     </cache>
 

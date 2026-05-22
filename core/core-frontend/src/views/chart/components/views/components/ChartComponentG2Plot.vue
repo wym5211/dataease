@@ -335,24 +335,13 @@ const renderChart = async (view, callback?) => {
   recursionTransObj(customStyleTrans, chart.customStyle, scale.value, terminal.value)
   switch (chartView.library) {
     case ChartLibraryType.L7_PLOT:
-      await renderL7Plot(
-        chart,
-        chartView as L7PlotChartView<any, any>,
-        callback
-      )
+      await renderL7Plot(chart, chartView as L7PlotChartView<any, any>, callback)
       break
     case ChartLibraryType.L7:
-      await renderL7(
-        chart,
-        chartView as L7ChartView<any, any>,
-        callback
-      )
+      await renderL7(chart, chartView as L7ChartView<any, any>, callback)
       break
     case ChartLibraryType.G2_PLOT:
-      await renderG2Plot(
-        chart,
-        chartView as G2PlotChartView
-      )
+      await renderG2Plot(chart, chartView as G2PlotChartView)
       callback?.()
       break
     default:
@@ -361,10 +350,7 @@ const renderChart = async (view, callback?) => {
 }
 let myChart = null
 let g2Timer: ReturnType<typeof setTimeout> | undefined
-const renderG2Plot = async (
-  chart,
-  chartView: G2PlotChartView
-) => {
+const renderG2Plot = async (chart, chartView: G2PlotChartView) => {
   g2Timer && clearTimeout(g2Timer)
   g2Timer = setTimeout(async () => {
     try {
@@ -394,11 +380,7 @@ const country = ref('')
 const chartContainer = ref<HTMLElement>(null)
 let scope
 let mapTimer: ReturnType<typeof setTimeout> | undefined
-const renderL7Plot = async (
-  chart: ChartObj,
-  chartView: L7PlotChartView<any, any>,
-  callback
-) => {
+const renderL7Plot = async (chart: ChartObj, chartView: L7PlotChartView<any, any>, callback) => {
   const map = parseJson(chart.customAttr).map
   let areaId = map.id
   country.value = areaId.slice(0, 3)
@@ -431,11 +413,7 @@ const renderL7Plot = async (
 }
 
 let mapL7Timer: ReturnType<typeof setTimeout> | undefined
-const renderL7 = async (
-  chart: ChartObj,
-  chartView: L7ChartView<any, any>,
-  callback
-) => {
+const renderL7 = async (chart: ChartObj, chartView: L7ChartView<any, any>, callback) => {
   mapL7Timer && clearTimeout(mapL7Timer)
   mapL7Timer = setTimeout(async () => {
     myChart = await chartView.drawChart({
@@ -847,9 +825,22 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="canvas-area">
-    <view-track-bar ref="viewTrack" :track-menu="trackMenu" :font-family="fontFamily" :is-data-v-mobile="dataVMobile"
-      class="track-bar" :style="state.trackBarStyle" @trackClick="trackClick" />
-    <div @wheel.capture="onWheel" v-if="!isError" ref="chartContainer" class="canvas-content" :id="containerId"></div>
+    <view-track-bar
+      ref="viewTrack"
+      :track-menu="trackMenu"
+      :font-family="fontFamily"
+      :is-data-v-mobile="dataVMobile"
+      class="track-bar"
+      :style="state.trackBarStyle"
+      @trackClick="trackClick"
+    />
+    <div
+      @wheel.capture="onWheel"
+      v-if="!isError"
+      ref="chartContainer"
+      class="canvas-content"
+      :id="containerId"
+    ></div>
     <chart-error v-else :err-msg="errMsg" />
   </div>
 </template>

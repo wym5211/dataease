@@ -64,7 +64,7 @@ public class DeLinkAop {
             Long uid = jwt.getClaim("uid").asLong();
             String secret = xpackShareManage.queryPwd(resourceId, uid);
             if (StringUtils.isBlank(secret)) {
-                secret = LinkTokenUtil.defaultPwd;
+                secret = LinkTokenUtil.getDefaultPwd();
             }
             Algorithm algorithm = Algorithm.HMAC256(secret);
             Verification verification = JWT.require(algorithm);

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * 登录其实就是获得token的过程，最后把token返回到前端
@@ -62,4 +63,8 @@ public interface LoginApi {
     @Operation(summary = "修改无效密码", hidden = true)
     @PostMapping("/login/modifyInvalidPwd")
     void modifyInvalidPwd(@RequestBody ModifyPwdRequest request);
+
+    @Operation(summary = "刷新Access Token")
+    @PostMapping("/login/refreshAccess")
+    TokenVO refreshAccess(@RequestParam("refreshToken") String refreshToken);
 }

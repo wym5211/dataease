@@ -654,8 +654,8 @@ export function getConditions(chart: Chart) {
 
     for (let i = 0; i < conditions.length; i++) {
       const fieldItem = conditions[i]
-      if (!fieldItem.conditions) continue;
-      
+      if (!fieldItem.conditions) continue
+
       for (let j = 0; j < fieldItem.conditions.length; j++) {
         const rule = fieldItem.conditions[j]
         let targets = []
@@ -704,7 +704,7 @@ export function getConditions(chart: Chart) {
           if (rowData?.id && rowData?.field === rowData.id) {
             return null
           }
-          
+
           return {
             fill: mappingColor(value, defaultValueColor, rules, 'color', filedValueMap, rowData)
           }
@@ -740,11 +740,11 @@ export function getConditions(chart: Chart) {
 
 export function mappingColor(value, defaultColor, rules, type, filedValueMap?, rowData?) {
   let color = null
-  
+
   // If called from old code (rules is a single field object), adapt it
   if (rules && !Array.isArray(rules) && rules.conditions) {
-      const field = rules;
-      rules = field.conditions.map(c => ({ rule: c, sourceField: field.field }));
+    const field = rules
+    rules = field.conditions.map(c => ({ rule: c, sourceField: field.field }))
   }
 
   for (let i = 0; i < rules.length; i++) {
@@ -752,12 +752,12 @@ export function mappingColor(value, defaultColor, rules, type, filedValueMap?, r
     let flag = false
     const t = rule
     let tv, max, min
-    
-    let checkValue = value;
+
+    let checkValue = value
     if (sourceField.dataeaseName && rowData) {
-        checkValue = rowData[sourceField.dataeaseName];
+      checkValue = rowData[sourceField.dataeaseName]
     }
-    
+
     if (t.type === 'dynamic') {
       if (t.term === 'between') {
         max = parseFloat(getValue(t.dynamicMaxField, filedValueMap, rowData))
@@ -773,8 +773,8 @@ export function mappingColor(value, defaultColor, rules, type, filedValueMap?, r
         tv = t.value
       }
     }
-    
-    const val = checkValue;
+
+    const val = checkValue
 
     if (sourceField.deType === 2 || sourceField.deType === 3 || sourceField.deType === 4) {
       tv = parseFloat(tv)
@@ -889,61 +889,61 @@ export function mappingColor(value, defaultColor, rules, type, filedValueMap?, r
       if (!tv || !val) {
         break
       } else {
-          // 特殊时间格式不转换, 包含时或者包含时、分时(不包含秒), 直接比较字符串，因为new Date转换会有误差
-          const isSpecialTimeFormat = (dateStyle?: string) =>
-            dateStyle === 'H_m_s' || (dateStyle && dateStyle.length > 5 && dateStyle.length < 11)
+        // 特殊时间格式不转换, 包含时或者包含时、分时(不包含秒), 直接比较字符串，因为new Date转换会有误差
+        const isSpecialTimeFormat = (dateStyle?: string) =>
+          dateStyle === 'H_m_s' || (dateStyle && dateStyle.length > 5 && dateStyle.length < 11)
 
-          let v: number | string
-          let compareTv = tv;
-          if (isSpecialTimeFormat(sourceField?.dateStyle)) {
-            v = val
-          } else {
-            v = new Date(val.replace(/-/g, '/') + ' GMT+8').getTime()
-            compareTv = new Date(tv.toString().replace(/-/g, '/') + ' GMT+8').getTime()
-          }
-          if (fc.term === 'eq') {
-            if (v === compareTv) {
-              color = fc[type]
-              flag = true
-            }
-          } else if (fc.term === 'not_eq') {
-            if (v !== compareTv) {
-              color = fc[type]
-              flag = true
-            }
-          } else if (fc.term === 'lt') {
-            if (v < compareTv) {
-              color = fc[type]
-              flag = true
-            }
-          } else if (fc.term === 'gt') {
-            if (v > compareTv) {
-              color = fc[type]
-              flag = true
-            }
-          } else if (fc.term === 'le') {
-            if (v <= compareTv) {
-              color = fc[type]
-              flag = true
-            }
-          } else if (fc.term === 'ge') {
-            if (v >= compareTv) {
-              color = fc[type]
-              flag = true
-            }
-          } else if (fc.term === 'default') {
+        let v: number | string
+        let compareTv = tv
+        if (isSpecialTimeFormat(sourceField?.dateStyle)) {
+          v = val
+        } else {
+          v = new Date(val.replace(/-/g, '/') + ' GMT+8').getTime()
+          compareTv = new Date(tv.toString().replace(/-/g, '/') + ' GMT+8').getTime()
+        }
+        if (fc.term === 'eq') {
+          if (v === compareTv) {
             color = fc[type]
             flag = true
           }
+        } else if (fc.term === 'not_eq') {
+          if (v !== compareTv) {
+            color = fc[type]
+            flag = true
+          }
+        } else if (fc.term === 'lt') {
+          if (v < compareTv) {
+            color = fc[type]
+            flag = true
+          }
+        } else if (fc.term === 'gt') {
+          if (v > compareTv) {
+            color = fc[type]
+            flag = true
+          }
+        } else if (fc.term === 'le') {
+          if (v <= compareTv) {
+            color = fc[type]
+            flag = true
+          }
+        } else if (fc.term === 'ge') {
+          if (v >= compareTv) {
+            color = fc[type]
+            flag = true
+          }
+        } else if (fc.term === 'default') {
+          color = fc[type]
+          flag = true
+        }
       }
       if (flag) {
         break
       }
     }
   }
-  
+
   if (!color) {
-      color = defaultColor;
+    color = defaultColor
   }
   return color
 }
@@ -1481,7 +1481,7 @@ export async function exportGridPivot(instance: PivotSheet, chart: ChartObj) {
       const { fieldValue } = dataCellMeta
       const cell = worksheet.getCell(rowIndex + maxColHeight + 1, rowLength + colIndex + 1)
       cell.alignment = { vertical: 'middle', horizontal: 'center' }
-      if (fieldValue === "-" || fieldValue === null || fieldValue === undefined) {
+      if (fieldValue === '-' || fieldValue === null || fieldValue === undefined) {
         cell.value = '-'
         continue
       }
@@ -1672,7 +1672,7 @@ export async function exportRowQuotaGridPivot(instance: PivotSheet, chart: Chart
       const { fieldValue } = dataCellMeta
       const cell = worksheet.getCell(rowIndex + maxColHeight + 1, rowLength + colIndex + 2)
       cell.alignment = { vertical: 'middle', horizontal: 'center' }
-      if (fieldValue === "-" || fieldValue === null || fieldValue === undefined) {
+      if (fieldValue === '-' || fieldValue === null || fieldValue === undefined) {
         cell.value = '-'
         continue
       }
@@ -1814,7 +1814,7 @@ export async function exportTreePivot(instance: PivotSheet, chart: ChartObj) {
       const { fieldValue } = dataCellMeta
       const cell = worksheet.getCell(rowIndex + maxColHeight + 1, colIndex + 1 + 1)
       cell.alignment = { vertical: 'middle', horizontal: 'center' }
-      if (fieldValue === "-" || fieldValue === null || fieldValue === undefined) {
+      if (fieldValue === '-' || fieldValue === null || fieldValue === undefined) {
         cell.value = '-'
         continue
       }
@@ -1957,7 +1957,7 @@ export async function exportRowQuotaTreePivot(instance: PivotSheet, chart: Chart
       const { fieldValue } = dataCellMeta
       const cell = worksheet.getCell(rowIndex + maxColHeight + 1, colIndex + 2)
       cell.alignment = { vertical: 'middle', horizontal: 'center' }
-      if (fieldValue === "-" || fieldValue === null || fieldValue === undefined) {
+      if (fieldValue === '-' || fieldValue === null || fieldValue === undefined) {
         cell.value = '-'
         continue
       }
@@ -2244,7 +2244,6 @@ class CustomMergedCell extends MergedCell {
     })
   }
 
-
   protected getTextStyle() {
     const textStyle = super.getTextStyle()
     const dataCellAlignConfig = this.theme.dataCellAlignConfig
@@ -2315,7 +2314,7 @@ export class CustomDataCell extends TableDataCell {
    * @protected
    */
   protected drawTextShape() {
-    if(this.meta.isMergedCell) {
+    if (this.meta.isMergedCell) {
       return
     }
     if (this.meta.autoWrap) {
@@ -2327,7 +2326,6 @@ export class CustomDataCell extends TableDataCell {
 }
 
 export class CustomTableColCell extends TableColCell {
-
   protected getTextStyle() {
     const textStyle = super.getTextStyle()
     const colCellAlignConfig = this.theme.colCellAlignConfig
@@ -2913,7 +2911,10 @@ const getLeafKeys = (columns: Record<string, unknown>[]): string[] => {
   return keys
 }
 // 根据 key 查找节点
-const findNodeByKey = (columns: Record<string, unknown>[], key: string): Record<string, unknown> | null => {
+const findNodeByKey = (
+  columns: Record<string, unknown>[],
+  key: string
+): Record<string, unknown> | null => {
   for (const col of columns) {
     if (col.key === key) return col
     if (col.children) {

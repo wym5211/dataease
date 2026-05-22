@@ -2,6 +2,7 @@ package io.dataease.engine.trans;
 
 import io.dataease.api.chart.dto.DeSortField;
 import io.dataease.constant.SQLConstants;
+import io.dataease.engine.utils.Utils;
 import io.dataease.extensions.datasource.dto.DatasetTableFieldDTO;
 import io.dataease.extensions.datasource.model.SQLMeta;
 import io.dataease.extensions.datasource.model.SQLObj;
@@ -26,10 +27,11 @@ public class DatasetOrder2SQLObj {
                 for (int j = 0; j < originFields.size(); j++) {
                     if (deSortField.getId().equals(originFields.get(j).getId())) {
                         String fieldAlias = String.format(SQLConstants.FIELD_ALIAS_X_PREFIX, j);
+                        String orderDir = Utils.joinSort(deSortField.getOrderDirection()) ? deSortField.getOrderDirection() : "ASC";
                         SQLObj order = SQLObj.builder()
                                 .orderField(String.format(SQLConstants.FIELD_DOT, fieldAlias))
                                 .orderAlias(String.format(SQLConstants.FIELD_DOT, fieldAlias))
-                                .orderDirection(deSortField.getOrderDirection()).build();
+                                .orderDirection(orderDir).build();
                         xOrders.add(order);
                     }
                 }

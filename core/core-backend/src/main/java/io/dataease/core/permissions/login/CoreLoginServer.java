@@ -5,23 +5,33 @@ import io.dataease.api.permissions.login.dto.*;
 import io.dataease.api.permissions.login.vo.*;
 import io.dataease.api.permissions.user.dto.ModifyPwdRequest;
 import io.dataease.auth.bo.TokenUserBO;
+import io.dataease.auth.service.TokenBlacklistService;
+import io.dataease.auth.service.TokenRefreshService;
 import io.dataease.auth.vo.TokenVO;
 import io.dataease.exception.DEException;
 import io.dataease.system.dao.auto.entity.SysUser;
 import io.dataease.system.dao.auto.mapper.SysUserMapper;
+import io.dataease.utils.AuthUtils;
 import io.dataease.utils.RsaUtils;
+import io.dataease.utils.ServletUtils;
 import io.dataease.utils.TokenUtils;
+import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.algorithms.Algorithm;
+import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -31,8 +41,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 @RestController
 public class CoreLoginServer implements LoginApi {
 
+    private static final Logger log = LoggerFactory.getLogger(CoreLoginServer.class);
+
     @Autowired
     private SysUserMapper sysUserMapper;
+
+    @Autowired
+    private TokenBlacklistService tokenBlacklistService;
+
+    @Autowired
+    private TokenRefreshService tokenRefreshService;
+
+    @Value("${dataease.login_timeout:2880}")
+    private long loginTimeout;
 
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private static final ConcurrentHashMap<String, AtomicInteger> loginFailCount = new ConcurrentHashMap<>();
@@ -114,13 +135,27 @@ public class CoreLoginServer implements LoginApi {
         
         String secret = TokenUtils.getSecret();
         Algorithm algorithm = Algorithm.HMAC256(secret);
+        Date expiresAt = new Date(System.currentTimeMillis() + loginTimeout * 60 * 1000L);
         JWTCreator.Builder builder = JWT.create();
         builder.withClaim("uid", user.getId());
         builder.withClaim("oid", tokenUserBO.getDefaultOid());
-        
+        builder.withExpiresAt(expiresAt);
+
         String token = builder.sign(algorithm);
-        
-        return new TokenVO(token, 0L);
+
+        String refreshToken = tokenRefreshService.generateRefreshToken(user.getId(), tokenUserBO.getDefaultOid());
+        setRefreshTokenHeader(ServletUtils.response(), refreshToken);
+
+        return new TokenVO(token, expiresAt.getTime(), refreshToken);
+    }
+
+    @Override
+    public TokenVO refreshAccess(@RequestParam("refreshToken") String refreshToken) {
+        TokenVO vo = tokenRefreshService.refreshAccessToken(refreshToken);
+        if (vo != null) {
+            setRefreshTokenHeader(ServletUtils.response(), vo.getRefreshToken());
+        }
+        return vo;
     }
 
     @Override
@@ -135,6 +170,20 @@ public class CoreLoginServer implements LoginApi {
 
     @Override
     public void logout() {
+        // 1. 将当前 access token 加入黑名单
+        String token = ServletUtils.getToken();
+        if (token != null && !token.isBlank()) {
+            tokenBlacklistService.blacklist(token);
+        }
+        // 2. 撤销该用户的所有 refresh token
+        try {
+            TokenUserBO user = AuthUtils.getUser();
+            if (user != null && user.getUserId() != null) {
+                tokenRefreshService.revokeAllByUserId(user.getUserId());
+            }
+        } catch (Exception e) {
+            log.warn("Failed to revoke refresh tokens on logout: {}", e.getMessage());
+        }
     }
 
     @Override
@@ -150,5 +199,12 @@ public class CoreLoginServer implements LoginApi {
     @Override
     public void modifyInvalidPwd(ModifyPwdRequest request) {
 
+    }
+
+    private void setRefreshTokenHeader(HttpServletResponse response, String refreshToken) {
+        if (response != null && refreshToken != null) {
+            response.setHeader("X-Refresh-Token", refreshToken);
+            response.addHeader("Access-Control-Expose-Headers", "X-Refresh-Token");
+        }
     }
 }

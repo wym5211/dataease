@@ -2,6 +2,7 @@ package io.dataease.utils;
 
 
 import io.dataease.cache.DECacheService;
+import io.dataease.constant.CacheConstant;
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.util.Arrays;
@@ -81,5 +82,13 @@ public class CacheUtils {
                 keys.forEach(key -> deCacheService.keyRemove(cacheName, key));
             });
         }, 1L);
+    }
+
+    public static void evictUserPermissionCaches(Long userId) {
+        if (userId == null) return;
+        String key = String.valueOf(userId);
+        deCacheService.keyRemove(CacheConstant.UserCacheConstant.USER_ROLES_CACHE, key);
+        deCacheService.keyRemove(CacheConstant.UserCacheConstant.USER_BUSI_PERS_CACHE, key);
+        deCacheService.keyRemove(CacheConstant.RoleCacheConstant.ROLE_BUSI_PERS_CACHE, key);
     }
 }

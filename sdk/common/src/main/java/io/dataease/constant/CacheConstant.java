@@ -30,6 +30,8 @@ public class CacheConstant {
         public static final String RSA_CACHE = "de_v2_rsa";
         public static final String PER_MENU_ID_CACHE = "de_v2_per_menu_id";
         public static final String GLOBAL_MFA_CACHE = "de_v2_global_mfa";
+        public static final String TOKEN_BLACKLIST_CACHE = "de_v2_token_blacklist";
+        public static final String REFRESH_TOKENS_CACHE = "de_v2_refresh_tokens";
     }
 
     public static class LicenseCacheConstant {

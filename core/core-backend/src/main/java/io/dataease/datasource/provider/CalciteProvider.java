@@ -10,6 +10,7 @@ import io.dataease.datasource.dao.auto.mapper.CoreDatasourceMapper;
 import io.dataease.datasource.manage.EngineManage;
 import io.dataease.datasource.request.EngineRequest;
 import io.dataease.datasource.type.*;
+import io.dataease.engine.utils.Utils;
 import io.dataease.exception.DEException;
 import io.dataease.extensions.datasource.dto.*;
 import io.dataease.extensions.datasource.provider.DriverShim;
@@ -253,7 +254,7 @@ public class CalciteProvider extends Provider {
 
     private Map<String, Integer> getTableTypeMap(DatasourceRequest datasourceRequest, DatasourceConfiguration datasourceConfiguration, String tableName) throws DEException {
         Map<String, Integer> map = new HashMap<>();
-        String schemaTable = (ObjectUtils.isNotEmpty(datasourceConfiguration.getSchema()) ? (datasourceConfiguration.getSchema() + "`.`") : "") + tableName;
+        String schemaTable = (ObjectUtils.isNotEmpty(datasourceConfiguration.getSchema()) ? (Utils.safeIdentifier(datasourceConfiguration.getSchema()) + "`.`") : "") + Utils.safeIdentifier(tableName);
         String sql = "SELECT * FROM `$TABLE_NAME$` LIMIT 0 OFFSET 0".replace("$TABLE_NAME$", schemaTable);
         sql = transSqlDialect(sql, datasourceRequest.getDsList());
         ResultSet resultSet = null;
@@ -331,7 +332,7 @@ public class CalciteProvider extends Provider {
             ResultSet resultSet = null;
             try (Connection con = getConnectionFromPool(datasourceRequest.getDatasource().getId()); Statement statement = getStatement(con, 30)) {
                 if (DatasourceConfiguration.DatasourceType.valueOf(datasourceSchemaDTO.getType()) == DatasourceConfiguration.DatasourceType.oracle) {
-                    statement.executeUpdate("ALTER SESSION SET CURRENT_SCHEMA = " + datasourceConfiguration.getSchema());
+                    statement.executeUpdate("ALTER SESSION SET CURRENT_SCHEMA = " + Utils.safeIdentifier(datasourceConfiguration.getSchema()));
                 }
                 resultSet = statement.executeQuery(datasourceRequest.getQuery());
                 datasetTableFields.addAll(getField(resultSet, datasourceRequest));
@@ -351,11 +352,11 @@ public class CalciteProvider extends Provider {
             try (Connection con = getConnectionFromPool(datasourceRequest.getDatasource().getId()); Statement statement = getStatement(con, 30)) {
                 datasourceRequest.setDsVersion(con.getMetaData().getDatabaseMajorVersion());
                 if (datasourceRequest.getDatasource().getType().equalsIgnoreCase("mongo")) {
-                    resultSet = statement.executeQuery("select * from " + String.format(" `%s`", table) + " limit 0 offset 0 ");
+                    resultSet = statement.executeQuery("select * from " + String.format(" `%s`", Utils.safeIdentifier(table)) + " limit 0 offset 0 ");
                     return fetchResultField(resultSet);
                 }
                 if (isDorisCatalog(datasourceRequest)) {
-                    resultSet = statement.executeQuery("desc " + String.format(" `%s`", table));
+                    resultSet = statement.executeQuery("desc " + String.format(" `%s`", Utils.safeIdentifier(table)));
                 } else {
                     resultSet = statement.executeQuery(getTableFiledSql(datasourceRequest));
                 }
@@ -619,17 +620,17 @@ public class CalciteProvider extends Provider {
      * 针对Oracle特殊处理
      */
     private Statement getStatement(DatasourceSchemaDTO value, Connection con, DatasourceRequest datasourceRequest, DatasourceConfiguration datasourceConfiguration, String autoIncrementPkName) throws Exception {
-        Statement statement;
         if (DatasourceConfiguration.DatasourceType.valueOf(value.getType()) == DatasourceConfiguration.DatasourceType.oracle) {
-            statement = getStatement(con, datasourceConfiguration.getQueryTimeout());
-            statement.executeUpdate("ALTER SESSION SET CURRENT_SCHEMA = " + datasourceConfiguration.getSchema());
-            statement.executeUpdate("ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS'");
+            try (Statement sessionStmt = getStatement(con, datasourceConfiguration.getQueryTimeout())) {
+                sessionStmt.executeUpdate("ALTER SESSION SET CURRENT_SCHEMA = " + Utils.safeIdentifier(datasourceConfiguration.getSchema()));
+                sessionStmt.executeUpdate("ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS'");
+            }
             //调整字符集
             if (StringUtils.isNotEmpty(datasourceConfiguration.getCharset()) && StringUtils.isNotEmpty(datasourceConfiguration.getTargetCharset())) {
                 datasourceRequest.setQuery(new String(datasourceRequest.getQuery().getBytes(datasourceConfiguration.getTargetCharset()), datasourceConfiguration.getCharset()));
             }
         }
-        statement = getPreparedStatement(con, datasourceConfiguration.getQueryTimeout(), datasourceRequest.getQuery(), datasourceRequest.getTableFieldWithValues(), autoIncrementPkName, datasourceConfiguration);
+        Statement statement = getPreparedStatement(con, datasourceConfiguration.getQueryTimeout(), datasourceRequest.getQuery(), datasourceRequest.getTableFieldWithValues(), autoIncrementPkName, datasourceConfiguration);
         return statement;
     }
 
@@ -1221,9 +1222,9 @@ public class CalciteProvider extends Provider {
                     database = databasePrams[0];
                 }
                 if (database.contains(".")) {
-                    sql = "select * from " + datasourceRequest.getTable() + " limit 0 offset 0 ";
+                    sql = "select * from `" + Utils.safeIdentifier(datasourceRequest.getTable()) + "` limit 0 offset 0 ";
                 } else {
-                    sql = String.format("SELECT COLUMN_NAME,DATA_TYPE,COLUMN_COMMENT,IF(COLUMN_KEY='PRI',1,0),IF(EXTRA LIKE '%%auto_increment%%',1,0) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '%s' AND TABLE_NAME = '%s'", database, datasourceRequest.getTable());
+                    sql = String.format("SELECT COLUMN_NAME,DATA_TYPE,COLUMN_COMMENT,IF(COLUMN_KEY='PRI',1,0),IF(EXTRA LIKE '%%auto_increment%%',1,0) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '%s' AND TABLE_NAME = '%s'", Utils.safeIdentifier(database), Utils.safeIdentifier(datasourceRequest.getTable()));
                 }
                 break;
             case mysql:
@@ -1240,7 +1241,7 @@ public class CalciteProvider extends Provider {
                     String[] databasePrams = matcher.group(3).split("\\?");
                     database = databasePrams[0];
                 }
-                sql = String.format("SELECT COLUMN_NAME,DATA_TYPE,COLUMN_COMMENT,IF(COLUMN_KEY='PRI',1,0),IF(EXTRA LIKE '%%auto_increment%%',1,0) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '%s' AND TABLE_NAME = '%s'", database, datasourceRequest.getTable());
+                sql = String.format("SELECT COLUMN_NAME,DATA_TYPE,COLUMN_COMMENT,IF(COLUMN_KEY='PRI',1,0),IF(EXTRA LIKE '%%auto_increment%%',1,0) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '%s' AND TABLE_NAME = '%s'", Utils.safeIdentifier(database), Utils.safeIdentifier(datasourceRequest.getTable()));
                 break;
             case oracle:
                 configuration = JsonUtil.parseObject(datasourceRequest.getDatasource().getConfiguration(), Oracle.class);
@@ -1275,14 +1276,14 @@ public class CalciteProvider extends Provider {
                         WHERE tc.TABLE_NAME = '%s'
                           AND tc.OWNER = '%s'
                         ORDER BY tc.TABLE_NAME, tc.COLUMN_ID
-                        """, datasourceRequest.getTable(), datasourceRequest.getTable(), configuration.getSchema());
+                        """, Utils.safeIdentifier(datasourceRequest.getTable()), Utils.safeIdentifier(datasourceRequest.getTable()), Utils.safeIdentifier(configuration.getSchema()));
                 break;
             case db2:
                 configuration = JsonUtil.parseObject(datasourceRequest.getDatasource().getConfiguration(), Db2.class);
                 if (StringUtils.isEmpty(configuration.getSchema())) {
                     DEException.throwException(Translator.get("i18n_schema_is_empty"));
                 }
-                sql = String.format("SELECT COLNAME, TYPENAME, REMARKS, 0, 0 FROM SYSCAT.COLUMNS WHERE TABSCHEMA = '%s' AND TABNAME = '%s' ", configuration.getSchema(), datasourceRequest.getTable());
+                sql = String.format("SELECT COLNAME, TYPENAME, REMARKS, 0, 0 FROM SYSCAT.COLUMNS WHERE TABSCHEMA = '%s' AND TABNAME = '%s' ", Utils.safeIdentifier(configuration.getSchema()), Utils.safeIdentifier(datasourceRequest.getTable()));
                 break;
             case sqlServer:
                 configuration = JsonUtil.parseObject(datasourceRequest.getDatasource().getConfiguration(), Sqlserver.class);
@@ -1290,7 +1291,7 @@ public class CalciteProvider extends Provider {
                     DEException.throwException(Translator.get("i18n_schema_is_empty"));
                 }
 
-                sql = String.format("SELECT \n" + "    c.name ,t.name ,ep.value, 0, 0  \n" + "FROM \n" + "    sys.columns AS c\n" + "LEFT JOIN  sys.extended_properties AS ep ON c.object_id = ep.major_id AND c.column_id = ep.minor_id\n" + "LEFT JOIN sys.types AS t ON c.user_type_id = t.user_type_id\n" + "LEFT JOIN sys.objects AS o ON c.object_id = o.object_id\n" + "WHERE  o.name = '%s'", datasourceRequest.getTable());
+                sql = String.format("SELECT \n" + "    c.name ,t.name ,ep.value, 0, 0  \n" + "FROM \n" + "    sys.columns AS c\n" + "LEFT JOIN  sys.extended_properties AS ep ON c.object_id = ep.major_id AND c.column_id = ep.minor_id\n" + "LEFT JOIN sys.types AS t ON c.user_type_id = t.user_type_id\n" + "LEFT JOIN sys.objects AS o ON c.object_id = o.object_id\n" + "WHERE  o.name = '%s'", Utils.safeIdentifier(datasourceRequest.getTable()));
                 break;
             case pg:
                 configuration = JsonUtil.parseObject(datasourceRequest.getDatasource().getConfiguration(), Pg.class);
@@ -1324,11 +1325,11 @@ public class CalciteProvider extends Provider {
                           AND a.attnum > 0
                           AND NOT a.attisdropped
                         ORDER BY a.attnum;
-                        """, configuration.getSchema(), datasourceRequest.getTable());
+                        """, Utils.safeIdentifier(configuration.getSchema()), Utils.safeIdentifier(datasourceRequest.getTable()));
                 break;
             case redshift:
                 configuration = JsonUtil.parseObject(datasourceRequest.getDatasource().getConfiguration(), CK.class);
-                sql = String.format("SELECT\n" + "    a.attname AS ColumnName,\n" + "    t.typname,\n" + "    b.description AS ColumnDescription,\n" + "    0, 0\n" + "FROM\n" + "    pg_class c\n" + "    JOIN pg_attribute a ON a.attrelid = c.oid\n" + "    LEFT JOIN pg_description b ON a.attrelid = b.objoid AND a.attnum = b.objsubid\n" + "    JOIN pg_type t ON a.atttypid = t.oid\n" + "WHERE\n" + "    c.relname = '%s'\n" + "    AND a.attnum > 0\n" + "    AND NOT a.attisdropped\n" + "ORDER BY\n" + "    a.attnum\n" + "   ", datasourceRequest.getTable());
+                sql = String.format("SELECT\n" + "    a.attname AS ColumnName,\n" + "    t.typname,\n" + "    b.description AS ColumnDescription,\n" + "    0, 0\n" + "FROM\n" + "    pg_class c\n" + "    JOIN pg_attribute a ON a.attrelid = c.oid\n" + "    LEFT JOIN pg_description b ON a.attrelid = b.objoid AND a.attnum = b.objsubid\n" + "    JOIN pg_type t ON a.atttypid = t.oid\n" + "WHERE\n" + "    c.relname = '%s'\n" + "    AND a.attnum > 0\n" + "    AND NOT a.attisdropped\n" + "ORDER BY\n" + "    a.attnum\n" + "   ", Utils.safeIdentifier(datasourceRequest.getTable()));
                 break;
             case ck:
                 configuration = JsonUtil.parseObject(datasourceRequest.getDatasource().getConfiguration(), CK.class);
@@ -1342,13 +1343,13 @@ public class CalciteProvider extends Provider {
                     String[] databasePrams = matcher.group(3).split("\\?");
                     database = databasePrams[0];
                 }
-                sql = String.format(" SELECT\n" + "    name,\n" + "    type,\n" + "    comment,\n" + "    0, 0\n" + "FROM\n" + "    system.columns\n" + "WHERE\n" + "    database = '%s'  \n" + "    AND table = '%s' ", database, datasourceRequest.getTable());
+                sql = String.format(" SELECT\n" + "    name,\n" + "    type,\n" + "    comment,\n" + "    0, 0\n" + "FROM\n" + "    system.columns\n" + "WHERE\n" + "    database = '%s'  \n" + "    AND table = '%s' ", Utils.safeIdentifier(database), Utils.safeIdentifier(datasourceRequest.getTable()));
                 break;
             case impala:
-                sql = String.format("DESCRIBE `%s`", datasourceRequest.getTable());
+                sql = String.format("DESCRIBE `%s`", Utils.safeIdentifier(datasourceRequest.getTable()));
                 break;
             case h2:
-                sql = String.format("SELECT COLUMN_NAME, DATA_TYPE, REMARKS, 0, 0 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '%s'", datasourceRequest.getTable());
+                sql = String.format("SELECT COLUMN_NAME, DATA_TYPE, REMARKS, 0, 0 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '%s'", Utils.safeIdentifier(datasourceRequest.getTable()));
                 break;
             default:
                 break;
@@ -1378,7 +1379,7 @@ public class CalciteProvider extends Provider {
                 if (database.contains(".")) {
                     tableSqls.add("show tables");
                 } else {
-                    tableSqls.add(String.format("SELECT TABLE_NAME,TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '%s' ;", database));
+                    tableSqls.add(String.format("SELECT TABLE_NAME,TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '%s' ;", Utils.safeIdentifier(database)));
                 }
                 break;
             case mongo:
@@ -1397,44 +1398,47 @@ public class CalciteProvider extends Provider {
                     String[] databasePrams = matcher.group(3).split("\\?");
                     database = databasePrams[0];
                 }
-                tableSqls.add(String.format("SELECT TABLE_NAME,TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '%s' ;", database));
+                tableSqls.add(String.format("SELECT TABLE_NAME,TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '%s' ;", Utils.safeIdentifier(database)));
                 break;
             case oracle:
                 configuration = JsonUtil.parseObject(datasourceRequest.getDatasource().getConfiguration(), Oracle.class);
                 if (StringUtils.isEmpty(configuration.getSchema())) {
                     DEException.throwException(Translator.get("i18n_schema_is_empty"));
                 }
-                tableSqls.add("select table_name, comments, owner  from all_tab_comments where owner='" + configuration.getSchema() + "' AND table_type = 'TABLE'");
-                tableSqls.add("select table_name, comments, owner  from all_tab_comments where owner='" + configuration.getSchema() + "' AND table_type = 'VIEW'");
-                tableSqls.add("SELECT \n" + "    m.mview_name,\n" + "    c.comments\n" + "FROM \n" + "    ALL_MVIEWS m\n" + "LEFT JOIN \n" + "    ALL_TAB_COMMENTS c \n" + "ON \n" + "    m.owner = c.owner \n" + "    AND m.mview_name = c.table_name\n" + "    AND c.table_type = 'MATERIALIZED VIEW'\n" + "WHERE m.OWNER ='DE_SCHEMA'".replace("DE_SCHEMA", configuration.getSchema()));
+                String oracleSchema = Utils.safeIdentifier(configuration.getSchema());
+                tableSqls.add("select table_name, comments, owner  from all_tab_comments where owner='" + oracleSchema + "' AND table_type = 'TABLE'");
+                tableSqls.add("select table_name, comments, owner  from all_tab_comments where owner='" + oracleSchema + "' AND table_type = 'VIEW'");
+                tableSqls.add("SELECT \n" + "    m.mview_name,\n" + "    c.comments\n" + "FROM \n" + "    ALL_MVIEWS m\n" + "LEFT JOIN \n" + "    ALL_TAB_COMMENTS c \n" + "ON \n" + "    m.owner = c.owner \n" + "    AND m.mview_name = c.table_name\n" + "    AND c.table_type = 'MATERIALIZED VIEW'\n" + "WHERE m.OWNER ='" + oracleSchema + "'");
                 break;
             case db2:
                 configuration = JsonUtil.parseObject(datasourceRequest.getDatasource().getConfiguration(), Db2.class);
                 if (StringUtils.isEmpty(configuration.getSchema())) {
                     DEException.throwException(Translator.get("i18n_schema_is_empty"));
                 }
-                tableSqls.add("select TABNAME, REMARKS from syscat.tables  WHERE TABSCHEMA ='DE_SCHEMA' AND \"TYPE\" = 'T'".replace("DE_SCHEMA", configuration.getSchema()));
+                tableSqls.add("select TABNAME, REMARKS from syscat.tables  WHERE TABSCHEMA ='" + Utils.safeIdentifier(configuration.getSchema()) + "' AND \"TYPE\" = 'T'");
                 break;
             case sqlServer:
                 configuration = JsonUtil.parseObject(datasourceRequest.getDatasource().getConfiguration(), Sqlserver.class);
                 if (StringUtils.isEmpty(configuration.getSchema())) {
                     DEException.throwException(Translator.get("i18n_schema_is_empty"));
                 }
-                tableSqls.add("SELECT   \n" + "    t.name AS TableName,  \n" + "    ep.value AS TableDescription  \n" + "FROM   \n" + "    sys.tables t  \n" + "LEFT OUTER JOIN   sys.schemas sc ON sc.schema_id =t.schema_id \n" + "LEFT OUTER JOIN   \n" + "    sys.extended_properties ep ON t.object_id = ep.major_id   \n" + "                               AND ep.minor_id = 0   \n" + "                               AND ep.class = 1  \n" + "                               AND ep.name = 'MS_Description'\n" + "where sc.name ='DS_SCHEMA'".replace("DS_SCHEMA", configuration.getSchema()));
-                tableSqls.add("SELECT   \n" + "    t.name AS TableName,  \n" + "    ep.value AS TableDescription  \n" + "FROM   \n" + "    sys.views t  \n" + "LEFT OUTER JOIN   sys.schemas sc ON sc.schema_id =t.schema_id \n" + "LEFT OUTER JOIN   \n" + "    sys.extended_properties ep ON t.object_id = ep.major_id   \n" + "                               AND ep.minor_id = 0   \n" + "                               AND ep.class = 1  \n" + "                               AND ep.name = 'MS_Description'\n" + "where sc.name ='DS_SCHEMA'".replace("DS_SCHEMA", configuration.getSchema()));
+                String ssSchema = Utils.safeIdentifier(configuration.getSchema());
+                tableSqls.add("SELECT   \n" + "    t.name AS TableName,  \n" + "    ep.value AS TableDescription  \n" + "FROM   \n" + "    sys.tables t  \n" + "LEFT OUTER JOIN   sys.schemas sc ON sc.schema_id =t.schema_id \n" + "LEFT OUTER JOIN   \n" + "    sys.extended_properties ep ON t.object_id = ep.major_id   \n" + "                               AND ep.minor_id = 0   \n" + "                               AND ep.class = 1  \n" + "                               AND ep.name = 'MS_Description'\n" + "where sc.name ='" + ssSchema + "'");
+                tableSqls.add("SELECT   \n" + "    t.name AS TableName,  \n" + "    ep.value AS TableDescription  \n" + "FROM   \n" + "    sys.views t  \n" + "LEFT OUTER JOIN   sys.schemas sc ON sc.schema_id =t.schema_id \n" + "LEFT OUTER JOIN   \n" + "    sys.extended_properties ep ON t.object_id = ep.major_id   \n" + "                               AND ep.minor_id = 0   \n" + "                               AND ep.class = 1  \n" + "                               AND ep.name = 'MS_Description'\n" + "where sc.name ='" + ssSchema + "'");
                 break;
             case pg:
                 configuration = JsonUtil.parseObject(datasourceRequest.getDatasource().getConfiguration(), Pg.class);
                 if (StringUtils.isEmpty(configuration.getSchema())) {
                     DEException.throwException(Translator.get("i18n_schema_is_empty"));
                 }
-                tableSqls.add("SELECT  \n" + "    relname AS TableName,  \n" + "    obj_description(relfilenode::regclass, 'pg_class') AS TableDescription  \n" + "FROM  \n" + "    pg_class  \n" + "WHERE  \n" + "   relkind in  ('r','p', 'f')  \n" + "    AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'SCHEMA') ".replace("SCHEMA", configuration.getSchema()));
-                tableSqls.add("SELECT \n" + "    c.relname AS view_name,\n" + "    COALESCE(d.description, 'No description provided') AS view_description\n" + "FROM \n" + "    pg_class c\n" + "JOIN \n" + "    pg_namespace n ON c.relnamespace = n.oid\n" + "LEFT JOIN \n" + "    pg_description d ON c.oid = d.objoid\n" + "WHERE \n" + "    c.relkind = 'v'  \n" + "    AND n.nspname = 'SCHEMA'".replace("SCHEMA", configuration.getSchema()));
-                tableSqls.add("SELECT \n" + "    c.relname AS materialized_view_name,\n" + "    COALESCE(d.description, '') AS view_description\n" + "FROM \n" + "    pg_class c\n" + "JOIN \n" + "    pg_namespace n ON c.relnamespace = n.oid\n" + "LEFT JOIN \n" + "    pg_description d ON c.oid = d.objoid\n" + "WHERE \n" + "    c.relkind = 'm' and n.nspname ='SCHEMA';  ".replace("SCHEMA", configuration.getSchema()));
+                String pgSchema = Utils.safeIdentifier(configuration.getSchema());
+                tableSqls.add("SELECT  \n" + "    relname AS TableName,  \n" + "    obj_description(relfilenode::regclass, 'pg_class') AS TableDescription  \n" + "FROM  \n" + "    pg_class  \n" + "WHERE  \n" + "   relkind in  ('r','p', 'f')  \n" + "    AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = '" + pgSchema + "') ");
+                tableSqls.add("SELECT \n" + "    c.relname AS view_name,\n" + "    COALESCE(d.description, 'No description provided') AS view_description\n" + "FROM \n" + "    pg_class c\n" + "JOIN \n" + "    pg_namespace n ON c.relnamespace = n.oid\n" + "LEFT JOIN \n" + "    pg_description d ON c.oid = d.objoid\n" + "WHERE \n" + "    c.relkind = 'v'  \n" + "    AND n.nspname = '" + pgSchema + "'");
+                tableSqls.add("SELECT \n" + "    c.relname AS materialized_view_name,\n" + "    COALESCE(d.description, '') AS view_description\n" + "FROM \n" + "    pg_class c\n" + "JOIN \n" + "    pg_namespace n ON c.relnamespace = n.oid\n" + "LEFT JOIN \n" + "    pg_description d ON c.oid = d.objoid\n" + "WHERE \n" + "    c.relkind = 'm' and n.nspname ='" + pgSchema + "';  ");
                 break;
             case redshift:
                 configuration = JsonUtil.parseObject(datasourceRequest.getDatasource().getConfiguration(), CK.class);
-                tableSqls.add("SELECT  \n" + "    relname AS TableName,  \n" + "    obj_description(relfilenode::regclass, 'pg_class') AS TableDescription  \n" + "FROM  \n" + "    pg_class  \n" + "WHERE  \n" + "   relkind in  ('r','p', 'f')  \n" + "    AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'SCHEMA') ".replace("SCHEMA", configuration.getSchema()));
+                tableSqls.add("SELECT  \n" + "    relname AS TableName,  \n" + "    obj_description(relfilenode::regclass, 'pg_class') AS TableDescription  \n" + "FROM  \n" + "    pg_class  \n" + "WHERE  \n" + "   relkind in  ('r','p', 'f')  \n" + "    AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = '" + Utils.safeIdentifier(configuration.getSchema()) + "') ");
                 break;
             case ck:
                 configuration = JsonUtil.parseObject(datasourceRequest.getDatasource().getConfiguration(), CK.class);
@@ -1447,10 +1451,11 @@ public class CalciteProvider extends Provider {
                     String[] databasePrams = matcher.group(3).split("\\?");
                     database = databasePrams[0];
                 }
+                String ckDb = Utils.safeIdentifier(database);
                 if (datasourceRequest.getDsVersion() < 22) {
-                    tableSqls.add("SELECT name, name FROM system.tables where database='DATABASE';".replace("DATABASE", database));
+                    tableSqls.add("SELECT name, name FROM system.tables where database='" + ckDb + "';");
                 } else {
-                    tableSqls.add("SELECT name, comment FROM system.tables where database='DATABASE';".replace("DATABASE", database));
+                    tableSqls.add("SELECT name, comment FROM system.tables where database='" + ckDb + "';");
                 }
 
 
@@ -1471,7 +1476,7 @@ public class CalciteProvider extends Provider {
                 return "select name from sys.schemas;";
             case db2:
                 DatasourceConfiguration configuration = JsonUtil.parseObject(datasource.getConfiguration(), Db2.class);
-                return "select SCHEMANAME from syscat.SCHEMATA   WHERE \"DEFINER\" ='USER'".replace("USER", configuration.getUsername().toUpperCase());
+                return "select SCHEMANAME from syscat.SCHEMATA   WHERE \"DEFINER\" ='" + Utils.safeIdentifier(configuration.getUsername().toUpperCase()) + "'";
             case pg:
                 return "SELECT nspname FROM pg_namespace;";
             case redshift:

@@ -14,6 +14,7 @@ import io.dataease.extensions.view.dto.ColumnPermissionItem;
 import io.dataease.extensions.view.dto.ColumnPermissions;
 import io.dataease.extensions.view.dto.DatasetRowPermissionsTreeItem;
 import io.dataease.extensions.view.dto.DatasetRowPermissionsTreeObj;
+import io.dataease.dataset.manage.filter.FilterExpressionParser;
 import io.dataease.utils.AuthUtils;
 import io.dataease.utils.JsonUtil;
 import jakarta.annotation.Resource;
@@ -37,6 +38,24 @@ public class PermissionManage {
     private ColumnPermissionsApi columnPermissionsApi = null;
     @Resource
     private DatasetTableFieldManage datasetTableFieldManage;
+
+    @Autowired
+    private FilterExpressionParser filterExpressionParser;
+
+    /**
+     * 校验行权限表达式（保存前调用）
+     * 如果 expressionTree 是新格式 JSON 结构化表达式，执行安全校验
+     * 如果是旧格式则跳过（兼容旧逻辑）
+     */
+    public void validateRowPermissionExpression(DataSetRowPermissionsTreeDTO dto) {
+        if (dto == null) return;
+        String expressionTree = dto.getExpressionTree();
+        if (StringUtils.isBlank(expressionTree)) return;
+        // 仅对新格式 JSON 表达式进行校验，旧格式保持兼容
+        if (filterExpressionParser.isJsonExpression(expressionTree)) {
+            filterExpressionParser.validateExpression(expressionTree);
+        }
+    }
 
     private RowPermissionsApi getRowPermissionsApi() {
 
