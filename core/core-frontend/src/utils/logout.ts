@@ -3,6 +3,7 @@ import router from '@/router'
 import { usePermissionStoreWithOut } from '@/store/modules/permission'
 import { interactiveStoreWithOut } from '@/store/modules/interactive'
 import { useCache } from '@/hooks/web/useCache'
+import { wsDestroy } from '@/websocket'
 
 const { wsCache } = useCache()
 const permissionStore = usePermissionStoreWithOut()
@@ -10,6 +11,7 @@ const userStore = useUserStoreWithOut()
 const interactiveStore = interactiveStoreWithOut()
 
 export const logoutHandler = (justClean?: boolean, save_platform_status = false) => {
+  wsDestroy()
   userStore.clear()
   userStore.$reset()
   permissionStore.clear()

@@ -1,4 +1,5 @@
 <script lang="tsx" setup>
+import { logger } from '@/utils/logger'
 import dvFolder from '@/assets/svg/dv-folder.svg'
 import icon_left_outlined from '@/assets/svg/icon_left_outlined.svg'
 import icon_right_outlined from '@/assets/svg/icon_right_outlined.svg'
@@ -762,7 +763,7 @@ const initEdite = async () => {
     dsChange(dataSource.value)
     datasetDrag.value.initState(arr)
   } catch (error) {
-    console.error(error)
+    logger.error(error)
     loading.value = false
   }
 }

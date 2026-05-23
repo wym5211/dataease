@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger'
 import { defineStore } from 'pinia'
 import { store } from '@/store/index'
 import { defaultFont, list } from '@/api/font'
@@ -216,7 +217,7 @@ export const useAppearanceStore = defineStore('appearanceStore', {
       defaultFont().then(res => {
         const [font] = res || []
         if (!font?.fileTransName) {
-          console.warn('[appearance] Default font not available, skipping font setup')
+          logger.warn('[appearance] Default font not available, skipping font setup')
           return
         }
         setDefaultFont(

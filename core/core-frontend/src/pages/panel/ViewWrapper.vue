@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, onBeforeMount, reactive, inject, nextTick } from 'vue'
+import { ref, onBeforeMount, onBeforeUnmount, reactive, inject, nextTick } from 'vue'
 import { initCanvasData, onInitReady } from '@/utils/canvasUtils'
 import { interactiveStoreWithOut } from '@/store/modules/interactive'
 import { useEmbedded } from '@/store/modules/embedded'
@@ -100,7 +100,7 @@ onBeforeMount(async () => {
       attachParams = outerPramsParse.attachParams
       dvMainStore.setEmbeddedCallBack(outerPramsParse.callBackFlag || 'no')
     } catch (e) {
-      console.error(e)
+      logger.error(e)
       ElMessage.error(t('visualization.outer_param_decode_error'))
       return
     }
@@ -164,6 +164,9 @@ onBeforeMount(async () => {
       })
     }
   )
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('message', winMsgHandle)
 })
 const userViewEnlargeOpen = (opt: Record<string, unknown>) => {
   userViewEnlargeRef.value.dialogInit(state.canvasStylePreview, viewInfo.value, config.value, opt)

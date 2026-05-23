@@ -198,6 +198,7 @@
 </template>
 
 <script lang="ts" setup>
+import { logger } from '@/utils/logger'
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus-secondary'
 import { useI18n } from '@/hooks/web/useI18n'
@@ -288,7 +289,7 @@ const loadHistory = async () => {
       historyList.value = (res.data as BackupHistoryItem[]) || []
     }
   } catch (e) {
-    console.error('Failed to load history', e)
+    logger.error('Failed to load history', e)
   }
 }
 
@@ -324,7 +325,7 @@ const onResourceSelected = async (selectedIds: string[]) => {
         doExport(selectedIds)
       }
     } catch (e) {
-      console.error('Dependency check failed:', e)
+      logger.error('Dependency check failed:', e)
       ElMessage.warning(t('backup.dependency_check_failed'))
       doExport(selectedIds)
     } finally {

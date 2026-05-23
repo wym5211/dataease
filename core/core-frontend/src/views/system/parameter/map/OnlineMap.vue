@@ -71,6 +71,7 @@
 </template>
 
 <script lang="ts" setup>
+import { logger } from '@/utils/logger'
 import { onMounted, reactive, ref } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
 import { queryMapKeyApi, saveMapKeyApi, queryMapKeyApiByType } from '@/api/setting/sysParameter'
@@ -96,7 +97,7 @@ const saveHandler = () => {
       initLoad()
     })
     .catch(e => {
-      console.error(e)
+      logger.error(e)
     })
 }
 const initLoad = (type?: string) => {
@@ -119,7 +120,7 @@ const initLoad = (type?: string) => {
     }
   })
     .catch(e => {
-      console.error(e)
+      logger.error(e)
     })
     .finally(() => {
       setTimeout(() => {

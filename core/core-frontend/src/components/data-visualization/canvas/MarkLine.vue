@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { logger } from '@/utils/logger'
 import eventBus from '@/utils/eventBus'
 import { getComponentRotatedStyle } from '@/utils/style'
 import { getCurrentInstance, onMounted, ref } from 'vue'
@@ -153,7 +154,7 @@ const showLine = (isDownward, isRightward) => {
         chooseTheTrueLine(needToShow, isDownward, isRightward)
       }
     } catch (e) {
-      console.warn('markLine disabled')
+      logger.warn('markLine disabled')
     }
   })
 }

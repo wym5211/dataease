@@ -265,6 +265,7 @@
 </template>
 
 <script lang="ts" setup>
+import { logger } from '@/utils/logger'
 import icon_add_outlined from '@/assets/svg/icon_add_outlined.svg'
 import icon_more_outlined from '@/assets/svg/icon_more_outlined.svg'
 import icon_edit_outlined from '@/assets/svg/icon_edit_outlined.svg'
@@ -372,7 +373,7 @@ const loadTreeData = (cache?: boolean) => {
       wsCache.set(key, treeData.value)
     })
     .catch(e => {
-      console.error(e)
+      logger.error(e)
     })
 }
 

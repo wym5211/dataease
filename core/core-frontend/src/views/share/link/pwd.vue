@@ -41,6 +41,7 @@
 </template>
 
 <script lang="ts" setup>
+import { logger } from '@/utils/logger'
 import { ref, reactive, onMounted } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
 import type { FormInstance, FormRules } from 'element-plus-secondary'
@@ -90,7 +91,7 @@ const refresh = async (formEl: FormInstance | undefined) => {
         }
       })
     } else {
-      console.error('error submit!', fields)
+      logger.error('error submit!', fields)
     }
   })
 }

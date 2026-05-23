@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger'
 import { valueFormatter } from '@/views/chart/components/js/formatter'
 import { hexToRgba, parseJson } from '@/views/chart/components/js/util'
 import { isEmpty } from 'lodash-es'
@@ -125,7 +126,7 @@ const chartPointParentId = chart => {
 function removeDivsWithPrefix(parentDivId, prefix) {
   const parentDiv = document.getElementById(parentDivId)
   if (!parentDiv) {
-    console.error('Parent div not found')
+    logger.error('Parent div not found')
     return
   }
   const childDivs = parentDiv.getElementsByTagName('div')

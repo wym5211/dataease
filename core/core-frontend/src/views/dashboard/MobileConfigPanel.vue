@@ -38,7 +38,7 @@ const mobileStatusChange = (type, value) => {
         type,
         value
       },
-      '*'
+      window.location.origin
     )
   }
 }
@@ -83,6 +83,8 @@ const componentDataNotInMobile = computed(() => {
 const newWindow = ref()
 
 const hanedleMessage = event => {
+  if (event.origin !== window.location.origin) return
+  if (!event.data) return
   if (
     event.data?.msgOrigin === 'de-fit2cloud' &&
     !!embeddedStore.token &&
@@ -93,7 +95,7 @@ const hanedleMessage = event => {
     }
     params['de-embedded'] = true
     const contentWindow = newWindow.value.contentWindow
-    contentWindow.postMessage(params, '*')
+    contentWindow.postMessage(params, window.location.origin)
     return
   }
   if (event.data.type === 'panelInit') {

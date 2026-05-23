@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { logger } from '@/utils/logger'
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { storeToRefs } from 'pinia'
@@ -236,7 +237,7 @@ onMounted(async () => {
         watermarkBaseInfo.settingContent = JSON.parse(watermarkBaseInfo.settingContent)
       })
     } catch (e) {
-      console.error('can not find watermark info')
+      logger.error('can not find watermark info')
     }
     let deTemplateData
     let preName
@@ -275,6 +276,7 @@ onMounted(async () => {
 
 // 目标校验： 需要校验targetSourceId 是否是当前可视化资源ID
 const winMsgHandle = event => {
+  if (event.origin !== window.location.origin) return
   const msgInfo = event.data
   if (msgInfo?.targetSourceId === dvInfo.value.id + '')
     if (msgInfo.type === 'webParams') {

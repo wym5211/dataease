@@ -1,4 +1,5 @@
 <script setup lang="tsx">
+import { logger } from '@/utils/logger'
 import icon_info_outlined from '@/assets/svg/icon_info_outlined.svg'
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { snapshotStoreWithOut } from '@/store/modules/data-visualization/snapshot'
@@ -87,7 +88,7 @@ const themeAttrChange = (custom, property, value) => {
           useEmitt().emitter.emit('calcData-' + viewId, viewInfo)
         }
       } catch (e) {
-        console.warn('themeAttrChange-error')
+        logger.warn('themeAttrChange-error')
       }
     })
     snapshotStore.recordSnapshotCache('renderChart')

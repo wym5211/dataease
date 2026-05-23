@@ -127,6 +127,7 @@
 </template>
 
 <script lang="ts" setup>
+import { logger } from '@/utils/logger'
 import icon_close_outlined from '@/assets/svg/icon_close_outlined.svg'
 import deCopy from '@/assets/svg/de-copy.svg'
 import icon_refresh_outlined from '@/assets/svg/icon_refresh_outlined.svg'
@@ -206,7 +207,7 @@ const getArgCount = row => {
     const obj = JSON.parse(args)
     return Object.keys(obj).length
   } catch (error) {
-    console.error(error)
+    logger.error(error)
     return 0
   }
 }

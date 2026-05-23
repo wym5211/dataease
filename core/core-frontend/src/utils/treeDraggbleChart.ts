@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger'
 import { dvNameCheck, moveResource } from '@/api/visualization/dataVisualization'
 import { cloneDeep } from 'lodash-es'
 const treeDraggbleChart = (state, key, type) => {
@@ -104,7 +105,7 @@ const treeDraggbleChart = (state, key, type) => {
     try {
       await dvNameCheck(params)
     } catch (error) {
-      console.error(error)
+      logger.error(error)
     }
     delete params.opt
 

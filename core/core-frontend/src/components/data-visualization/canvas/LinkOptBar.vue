@@ -67,6 +67,7 @@
 </template>
 
 <script lang="ts" setup>
+import { logger } from '@/utils/logger'
 import { computed, reactive, toRefs } from 'vue'
 import router from '@/router'
 import { ElIcon } from 'element-plus-secondary'
@@ -122,7 +123,7 @@ const toggleFullscreen = () => {
   } else {
     // 如果当前是全屏状态，则退出全屏
     document.exitFullscreen().catch(error => {
-      console.error('Exit fullscreen failed:', error)
+      logger.error('Exit fullscreen failed:', error)
     })
   }
 }

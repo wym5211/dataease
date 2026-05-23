@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { logger } from '@/utils/logger'
 import icon_info_outlined from '@/assets/svg/icon_info_outlined.svg'
 import icon_linkRecord_outlined from '@/assets/svg/icon_link-record_outlined.svg'
 import icon_viewinchat_outlined from '@/assets/svg/icon_viewinchat_outlined.svg'
@@ -355,7 +356,7 @@ const onPointClick = param => {
     }
     emit('onPointClick', msg)
   } catch (e) {
-    console.warn('de_inner_params send error')
+    logger.warn('de_inner_params send error')
   }
 }
 
@@ -446,7 +447,7 @@ const windowsJump = (url, jumpType, size = 'middle') => {
     }
     initOpenHandler(newWindow)
   } catch (e) {
-    console.warn(t('visualization.url_check_error') + ':' + url)
+    logger.warn(t('visualization.url_check_error') + ':' + url)
   }
 }
 

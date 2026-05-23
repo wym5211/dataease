@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { logger } from '@/utils/logger'
 import { getStyle } from '@/utils/style'
 import eventBus from '@/utils/eventBus'
 import { ref, toRefs, computed, nextTick } from 'vue'
@@ -386,7 +387,7 @@ const onWrapperClick = e => {
           }
         }
       } catch (e) {
-        console.warn('url 格式错误:' + url)
+        logger.warn('url 格式错误:' + url)
       }
     } else if (config.value.events.type === 'refreshDataV') {
       useEmitt().emitter.emit('componentRefresh')

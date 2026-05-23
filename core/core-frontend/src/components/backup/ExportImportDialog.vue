@@ -155,6 +155,7 @@
 </template>
 
 <script lang="ts" setup>
+import { logger } from '@/utils/logger'
 import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus-secondary'
 import { useI18n } from '@/hooks/web/useI18n'
@@ -241,7 +242,7 @@ const onResourceSelected = async (selectedIds: string[]) => {
         doExport(selectedIds)
       }
     } catch (e) {
-      console.error('Dependency check failed:', e)
+      logger.error('Dependency check failed:', e)
       ElMessage.warning(t('backup.dependency_check_failed'))
       doExport(selectedIds)
     }

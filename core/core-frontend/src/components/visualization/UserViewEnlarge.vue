@@ -154,6 +154,7 @@
 </template>
 
 <script setup lang="ts">
+import { logger } from '@/utils/logger'
 import ComponentWrapper from '@/components/data-visualization/canvas/ComponentWrapper.vue'
 import { computed, h, nextTick, reactive, ref } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
@@ -468,7 +469,7 @@ const htmlToImage = () => {
         initWatermark()
         useEmitt().emitter.emit('l7-unprepare-picture', viewInfo.value.id)
         useEmitt().emitter.emit('renderChart-viewDialog-' + viewInfo.value.id)
-        console.error('oops, something went wrong!', error)
+        logger.error('oops, something went wrong!', error)
       })
   }, renderTime)
 }

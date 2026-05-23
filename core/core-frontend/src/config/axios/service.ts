@@ -128,22 +128,21 @@ const refreshTokenAndRetry = async (
   try {
     if (!refreshingPromise) {
       refreshingPromise = axios
-        .post(
-          PATH_URL + '/login/refreshAccess',
-          qs.stringify({ refreshToken }),
-          {
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            timeout: 10000
-          }
-        )
+        .post(PATH_URL + '/login/refreshAccess', qs.stringify({ refreshToken }), {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          timeout: 10000
+        })
         .then(resp => {
           const data = resp.data as Record<string, unknown>
           const inner = data?.data as Record<string, unknown> | undefined
           const tokenCandidate = inner?.token ?? data?.token
           const newToken = tokenCandidate ? String(tokenCandidate) : null
-          const rtCandidate = (inner?.refreshToken as string) ?? (data?.refreshToken as string) ?? (resp.headers['x-refresh-token'] as string)
+          const rtCandidate =
+            (inner?.refreshToken as string) ??
+            (data?.refreshToken as string) ??
+            (resp.headers['x-refresh-token'] as string)
           if (newToken) {
             wsCache.set('user.token', newToken)
             if (rtCandidate) {
@@ -312,7 +311,7 @@ service.interceptors.response.use(
           redirectToLogin()
         }
       } else if (response?.config?.url.startsWith('/xpackComponent/content')) {
-        console.error(
+        logger.error(
           "never mind this error about '/xpackComponent/content', just a reminder to support the official license"
         )
       }
@@ -356,7 +355,7 @@ service.interceptors.response.use(
         showClose: true
       })
     } else if (error?.config?.url.startsWith('/xpackComponent/content')) {
-      console.error(
+      logger.error(
         "never mind this error about '/xpackComponent/content', just a reminder to support the official license"
       )
     }

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { logger } from '@/utils/logger'
 import {
   computed,
   nextTick,
@@ -140,7 +141,7 @@ const clearLinkage = () => {
     myChart?.setState('inactive', () => true, false)
     myChart?.setState('selected', () => true, false)
   } catch (e) {
-    console.warn('clearLinkage error')
+    logger.warn('clearLinkage error')
   }
 }
 const reDrawView = () => {
@@ -370,7 +371,7 @@ const renderG2Plot = async (chart, chartView: G2PlotChartView) => {
         linkageActive()
       }
     } catch (e) {
-      console.error('renderG2Plot error', e)
+      logger.error('renderG2Plot error', e)
     }
   }, 300)
 }
@@ -818,7 +819,7 @@ onBeforeUnmount(() => {
     resizeObserver?.disconnect()
     intersectionObserver?.disconnect()
   } catch (e) {
-    console.warn(e)
+    logger.warn(e)
   }
 })
 </script>

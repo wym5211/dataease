@@ -26,6 +26,7 @@
 </template>
 
 <script lang="ts" setup>
+import { logger } from '@/utils/logger'
 import { ref, onMounted } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
 
@@ -56,7 +57,7 @@ const loadGroupInfo = async () => {
     userRoles.value = [{ id: '1', name: '管理员' }]
     userGroups.value = [{ id: '1', name: '默认分组' }]
   } catch (error) {
-    console.error('Failed to load group info:', error)
+    logger.error('Failed to load group info:', error)
   } finally {
     loading.value = false
   }

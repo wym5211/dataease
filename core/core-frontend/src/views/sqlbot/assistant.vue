@@ -6,6 +6,7 @@
 </template>
 
 <script lang="ts" setup>
+import { logger } from '@/utils/logger'
 import { createApp, onMounted, onUnmounted, reactive, ref } from 'vue'
 import request from '@/config/axios'
 import { useUserStoreWithOut } from '@/store/modules/user'
@@ -30,10 +31,10 @@ const loadSqlbotInfo = () => {
     if (res && res.data) {
       const { domain, id, enabled, valid } = res.data
       if (!enabled) {
-        console.error('sqlbot embedded disabled')
+        logger.error('sqlbot embedded disabled')
       }
       if (!valid) {
-        console.error('sqlbot embedded invalid')
+        logger.error('sqlbot embedded invalid')
       }
       state.domain = domain
       state.id = id

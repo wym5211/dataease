@@ -10,6 +10,7 @@ import router from '@/router'
 import type { RouteRecordRaw } from 'vue-router'
 const { wsCache } = useCache()
 let stompClient: Stomp.Client
+let heartbeatTimer: ReturnType<typeof setInterval> | null = null
 import dev from '../../config/dev'
 const env = import.meta.env
 const basePath = env.VITE_API_BASEPATH
@@ -53,6 +54,24 @@ function handlePermissionChange(data: { type: string; changeType: string }) {
       logger.error('刷新权限失败: ' + e)
     }
   }, 1000)
+}
+
+export const wsDestroy = () => {
+  if (heartbeatTimer) {
+    clearInterval(heartbeatTimer)
+    heartbeatTimer = null
+  }
+  if (stompClient && stompClient.connected) {
+    stompClient.disconnect(
+      function () {
+        logger.debug('断开连接')
+      },
+      function (error) {
+        logger.debug('断开连接失败: ' + error)
+      }
+    )
+  }
+  stompClient = null
 }
 
 export default {
@@ -148,7 +167,7 @@ export default {
 
     function initialize() {
       connection()
-      setInterval(() => {
+      heartbeatTimer = setInterval(() => {
         if (!isLoginStatus()) {
           disconnect()
           return
@@ -158,6 +177,7 @@ export default {
         }
       }, 5000)
     }
+
     initialize()
   }
 }

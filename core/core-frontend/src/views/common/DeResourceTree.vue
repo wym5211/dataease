@@ -47,7 +47,7 @@ const shareStore = useShareStoreWithOut()
 const interactiveStore = interactiveStoreWithOut()
 const userStore = useUserStoreWithOut()
 import { useI18n } from '@/hooks/web/useI18n'
-import * as _ from 'lodash-es'
+import { filter, cloneDeep, forEach, union } from 'lodash-es'
 import DeResourceCreateOptV2 from '@/views/common/DeResourceCreateOptV2.vue'
 import { useCache } from '@/hooks/web/useCache'
 import { findParentIdByChildIdRecursive, onInitReady } from '@/utils/canvasUtils'
@@ -449,16 +449,16 @@ const getTree = async (notOpen = false) => {
 }
 
 const flattedTree = computed<BusiTreeNode[]>(() => {
-  return _.filter(flatTree(state.resourceTree), node => node.leaf)
+  return filter(flatTree(state.resourceTree), node => node.leaf)
 })
 
 const hasData = computed<boolean>(() => flattedTree.value.length > 0)
 
 function flatTree(tree: BusiTreeNode[]) {
-  let result = _.cloneDeep(tree)
-  _.forEach(tree, node => {
+  let result = cloneDeep(tree)
+  forEach(tree, node => {
     if (node.children && node.children.length > 0) {
-      result = _.union(result, flatTree(node.children))
+      result = union(result, flatTree(node.children))
     }
   })
   return result

@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger'
 import request from '@/config/axios'
 import type {
   User,
@@ -102,7 +103,7 @@ export const getUserList = async (params: UserListRequest): Promise<UserListResp
       total: data.total || 0
     }
   } catch (error) {
-    console.error('获取用户列表失败:', error)
+    logger.error('获取用户列表失败:', error)
     throw error
   }
 }
@@ -143,7 +144,7 @@ export const getUserOptions = async (): Promise<UserOptionsResponse> => {
       groups: []
     }
   } catch (error) {
-    console.error('获取选项数据失败:', error)
+    logger.error('获取选项数据失败:', error)
     // 返回空数据而不是抛出错误，避免页面崩溃
     return {
       roles: [],
@@ -187,7 +188,7 @@ export const createUser = async (data: UserForm): Promise<User> => {
       createTime: new Date().toISOString()
     }
   } catch (error) {
-    console.error('创建用户失败:', error)
+    logger.error('创建用户失败:', error)
     throw error
   }
 }
@@ -225,7 +226,7 @@ export const updateUser = async (userId: string, data: UserForm): Promise<User> 
       createTime: new Date().toISOString()
     }
   } catch (error) {
-    console.error('更新用户失败:', error)
+    logger.error('更新用户失败:', error)
     throw error
   }
 }
@@ -238,7 +239,7 @@ export const deleteUser = async (userId: string): Promise<void> => {
       url: `${API_BASE}/delete/${userId}`
     })
   } catch (error) {
-    console.error('删除用户失败:', error)
+    logger.error('删除用户失败:', error)
     throw error
   }
 }
@@ -251,7 +252,7 @@ export const resetPassword = async (userId: string, _newPassword: string): Promi
       url: `${API_BASE}/resetPwd/${userId}`
     })
   } catch (error) {
-    console.error('重置密码失败:', error)
+    logger.error('重置密码失败:', error)
     throw error
   }
 }

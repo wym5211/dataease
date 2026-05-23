@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { logger } from '@/utils/logger'
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { snapshotStoreWithOut } from '@/store/modules/data-visualization/snapshot'
 import { storeToRefs } from 'pinia'
@@ -78,7 +79,7 @@ const themeAttrChange = (custom, property, value) => {
           useEmitt().emitter.emit('calcData-' + viewId, viewInfo)
         }
       } catch (e) {
-        console.warn('themeAttrChange-error')
+        logger.warn('themeAttrChange-error')
       }
     })
     snapshotStore.recordSnapshotCache('renderChart')

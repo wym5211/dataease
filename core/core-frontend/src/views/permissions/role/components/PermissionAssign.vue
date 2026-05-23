@@ -68,6 +68,7 @@
 </template>
 
 <script setup lang="ts">
+import { logger } from '@/utils/logger'
 import { ref, watch } from 'vue'
 import { ElMessage } from 'element-plus-secondary'
 import MenuPermissionTree from './MenuPermissionTree.vue'
@@ -116,7 +117,7 @@ const loadRolePermissions = async (_roleId: string) => {
     menuPermissions.value = []
     resourcePermissions.value = []
   } catch (error) {
-    console.error('加载权限失败:', error)
+    logger.error('加载权限失败:', error)
   }
 }
 

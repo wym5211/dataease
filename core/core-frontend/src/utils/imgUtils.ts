@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger'
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { useEmbedded } from '@/store/modules/embedded'
 import { storeToRefs } from 'pinia'
@@ -73,7 +74,7 @@ export async function download2AppTemplate(downloadType, canvasDom, name, attach
     if (callBack) {
       callBack()
     }
-    console.error(e)
+    logger.error(e)
   }
 }
 
@@ -108,7 +109,7 @@ export async function downloadCanvas(type, canvasDom, name, callBack?) {
         }
       })
       .catch(error => {
-        console.error('oops, something went wrong!', error)
+        logger.error('oops, something went wrong!', error)
         if (callBack) {
           callBack()
         }
@@ -144,7 +145,7 @@ export async function downloadCanvas2(type, canvasDom, name, callBack?) {
       if (callBack) {
         callBack()
       }
-      console.error('oops, something went wrong!', error)
+      logger.error('oops, something went wrong!', error)
     })
 }
 
@@ -214,7 +215,7 @@ export function findStaticSource(callBack) {
         callBack(rsp.data)
       })
     } catch (e) {
-      console.error('findResourceAsBase64 error', e)
+      logger.error('findResourceAsBase64 error', e)
       callBack()
     }
   } else {

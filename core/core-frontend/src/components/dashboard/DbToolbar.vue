@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { logger } from '@/utils/logger'
 import dvBatch from '@/assets/svg/dv-batch.svg'
 import dvDashboard from '@/assets/svg/dv-dashboard.svg'
 import dvHidden from '@/assets/svg/dv-hidden.svg'
@@ -295,7 +296,7 @@ const saveResource = (checkParams?) => {
         }
       })
     } catch (e) {
-      console.error(e)
+      logger.error(e)
     }
   }
 }

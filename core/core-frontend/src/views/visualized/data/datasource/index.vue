@@ -1,4 +1,5 @@
 <script lang="tsx" setup>
+import { logger } from '@/utils/logger'
 import icon_down_outlined1 from '@/assets/svg/icon_down_outlined-1.svg'
 import icon_down_outlined from '@/assets/svg/icon_down_outlined.svg'
 import icon_copy_filled from '@/assets/svg/icon_copy_filled.svg'
@@ -633,7 +634,7 @@ const setSupportSetKey = () => {
       isSupportSetKey.value = response.data
     })
     .catch(error => {
-      console.warn(error?.message)
+      logger.warn(error?.message)
     })
 }
 const changeDsStatus = (ds, id, extraFlag) => {

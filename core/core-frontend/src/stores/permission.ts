@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger'
 import { defineStore } from 'pinia'
 import { ref, computed, readonly } from 'vue'
 import { ElMessage } from 'element-plus-secondary'
@@ -279,7 +280,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
       })
       state.value.roles = response.records || []
     } catch (error) {
-      console.error('[Permission Store] 加载角色列表失败:', error)
+      logger.error('[Permission Store] 加载角色列表失败:', error)
       ElMessage.error('加载角色列表失败')
       throw error
     }
@@ -325,14 +326,14 @@ export const usePermissionStore = defineStore('permissionManager', () => {
 
           applyMenuPermissions(transformedMenus, grantedMenuIds, isRoot)
         } catch (error) {
-          console.error('加载角色菜单权限失败，使用默认值:', error)
+          logger.error('加载角色菜单权限失败，使用默认值:', error)
           // 如果获取角色权限失败，所有菜单默认有权限
         }
       }
 
       state.value.menuTreeData = transformedMenus
     } catch (error) {
-      console.error('加载菜单权限失败:', error)
+      logger.error('加载菜单权限失败:', error)
       // 如果 API 调用失败，使用空数组
       state.value.menuTreeData = []
       throw error
@@ -379,7 +380,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
         [resourceType]: mockData[resourceType as keyof typeof mockData] || []
       }
     } catch (error) {
-      console.error(`加载${resourceType}权限失败:`, error)
+      logger.error(`加载${resourceType}权限失败:`, error)
       throw error
     }
   }
@@ -556,7 +557,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
             applyPermissions(treeData)
           }
         } catch (error) {
-          console.error('[Permission Store] 加载资源权限失败:', error)
+          logger.error('[Permission Store] 加载资源权限失败:', error)
         }
       }
 
@@ -567,7 +568,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
       }
       // 资源树加载完成
     } catch (error) {
-      console.error('加载资源树失败:', error)
+      logger.error('加载资源树失败:', error)
       ElMessage.error(`加载${resourceType}资源树失败`)
       // 失败时使用空数组
       state.value.resourceTreeData = {
@@ -734,7 +735,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
 
       ElMessage.success('菜单权限保存成功')
     } catch (error) {
-      console.error('保存菜单权限变更失败:', error)
+      logger.error('保存菜单权限变更失败:', error)
       ElMessage.error('保存失败: ' + (error as Error).message)
       throw error
     }
@@ -818,7 +819,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
 
       ElMessage.success('资源权限保存成功')
     } catch (error) {
-      console.error('保存资源权限变更失败:', error)
+      logger.error('保存资源权限变更失败:', error)
       ElMessage.error('保存资源权限失败')
       throw error
     }
@@ -901,7 +902,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
         }
       ]
     } catch (error) {
-      console.error('加载审计日志失败:', error)
+      logger.error('加载审计日志失败:', error)
       throw error
     }
   }
@@ -915,7 +916,7 @@ export const usePermissionStore = defineStore('permissionManager', () => {
       // 模拟API调用
       await new Promise(resolve => setTimeout(resolve, 500))
     } catch (error) {
-      console.error('回滚权限变更失败:', error)
+      logger.error('回滚权限变更失败:', error)
       throw error
     }
   }

@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger'
 import { isNumber } from 'lodash-es'
 import { DEFAULT_TITLE_STYLE } from '../editor/util/chart'
 import { parseJson } from './parseJson'
@@ -37,8 +38,7 @@ export function hexColorToRGBA(hex, alpha) {
     if (/^#[0-9A-F]{6}$/i.test(hex)) {
       // 判断传入是否为#六位十六进制数
       hex.replace(/[0-9A-F]{2}/gi, function (kw) {
-        // eslint-disable-next-line no-eval
-        rgb.push(eval('0x' + kw)) // 十六进制转化为十进制并存如数组
+        rgb.push(parseInt(kw, 16))
       })
       return `rgba(${rgb.join(',')},${alpha / 100})` // 输出RGB格式颜色
     } else {
@@ -641,7 +641,7 @@ export const exportExcelDownload = (chart, preFix, callBack?) => {
       }
     })
     .catch(() => {
-      console.error('Excel download error')
+      logger.error('Excel download error')
       callBack('error')
     })
 }

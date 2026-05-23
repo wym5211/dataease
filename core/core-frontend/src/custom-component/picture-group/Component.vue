@@ -14,6 +14,7 @@
 </template>
 
 <script setup lang="ts">
+import { logger } from '@/utils/logger'
 import {
   CSSProperties,
   computed,
@@ -268,7 +269,7 @@ const calcData = (viewCalc: Chart, callback) => {
         })
       })
       .catch(e => {
-        console.error(e)
+        logger.error(e)
         nextTick(() => {
           initReady.value = true
         })

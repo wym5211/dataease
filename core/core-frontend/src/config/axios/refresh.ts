@@ -105,7 +105,7 @@ export const configHandler = (config: InternalAxiosRequestConfig) => {
             }
           })
           .catch(e => {
-            console.error(e)
+            logger.error(e)
           })
           .finally(() => {
             setRefreshStatus(false)

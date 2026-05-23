@@ -56,6 +56,7 @@
 </template>
 
 <script setup lang="ts">
+import { logger } from '@/utils/logger'
 import { ref, watch, nextTick } from 'vue'
 import { ArrowDown, ArrowUp, Check, Close } from '@element-plus/icons-vue'
 import { getMenuTree } from '../api'
@@ -157,7 +158,7 @@ const loadMenuTree = async () => {
       treeRef.value?.setCheckedKeys(props.modelValue)
     }
   } catch (error) {
-    console.error('加载菜单树失败:', error)
+    logger.error('加载菜单树失败:', error)
     menuTree.value = []
   } finally {
     loading.value = false

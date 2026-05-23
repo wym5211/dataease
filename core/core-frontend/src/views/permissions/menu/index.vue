@@ -150,6 +150,7 @@
 </template>
 
 <script lang="ts" setup>
+import { logger } from '@/utils/logger'
 import { ref, computed, nextTick, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus-secondary'
 import { Search } from '@element-plus/icons-vue'
@@ -222,7 +223,7 @@ onMounted(async () => {
       createTime: role.createTime
     }))
   } catch (error: unknown) {
-    console.error('加载角色列表失败:', error)
+    logger.error('加载角色列表失败:', error)
     const errorObj = error as {
       response?: { data?: { msg?: string } }
       msg?: string

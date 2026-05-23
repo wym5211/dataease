@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { logger } from '@/utils/logger'
 import dvRuler from '@/assets/svg/dv-ruler.svg'
 import CanvasAttr from '@/components/data-visualization/CanvasAttr.vue'
 import { computed, watch, onMounted, reactive, ref, nextTick, onUnmounted } from 'vue'
@@ -359,6 +360,7 @@ const checkPer = async resourceId => {
 }
 // 目标校验： 需要校验targetSourceId 是否是当前可视化资源ID
 const winMsgHandle = event => {
+  if (event.origin !== window.location.origin) return
   const msgInfo = event.data
   if (msgInfo?.targetSourceId === dvInfo.value.id + '')
     if (msgInfo.type === 'webParams') {
@@ -424,7 +426,7 @@ onMounted(async () => {
         watermarkBaseInfo.settingContent = JSON.parse(watermarkBaseInfo.settingContent)
       })
     } catch (e) {
-      console.error('can not find watermark info')
+      logger.error('can not find watermark info')
     }
     let deTemplateData
     let preName

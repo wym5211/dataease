@@ -19,6 +19,7 @@
   </el-row>
 </template>
 <script lang="ts" setup>
+import { logger } from '@/utils/logger'
 import '@/style/custom-theme.css'
 import { onMounted, reactive, toRefs, getCurrentInstance, nextTick, onBeforeUnmount } from 'vue'
 import { useEmitt } from '@/hooks/web/useEmitt'
@@ -94,7 +95,7 @@ const initOption = async () => {
           state.flvPlayer.load()
           state.flvPlayer.play()
         } catch (error) {
-          console.error('flvjs err ignore', error)
+          logger.error('flvjs err ignore', error)
         }
       }
     }

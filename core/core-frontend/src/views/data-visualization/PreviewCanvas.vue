@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { logger } from '@/utils/logger'
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import DePreview from '@/components/data-visualization/canvas/DePreview.vue'
@@ -78,7 +79,7 @@ const loadCanvasDataAsync = async (dvId, dvType, ignoreParams = false) => {
         dvMainStore.setNowTargetPanelJumpInfo(rsp.data)
       })
     } catch (e) {
-      console.error(e)
+      logger.error(e)
     }
   }
 
@@ -86,7 +87,7 @@ const loadCanvasDataAsync = async (dvId, dvType, ignoreParams = false) => {
   try {
     argsObject = JSON.parse(props.ticketArgs)
   } catch (error) {
-    console.error(error)
+    logger.error(error)
   }
   const hasTicketArgs = argsObject && Object.keys(argsObject)
 
@@ -107,7 +108,7 @@ const loadCanvasDataAsync = async (dvId, dvType, ignoreParams = false) => {
         attachParam = Object.assign({}, attachParam, argsObject)
       }
     } catch (e) {
-      console.error(e)
+      logger.error(e)
       ElMessage.error(t('visualization.outer_param_decode_error'))
     }
   }

@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger'
 import { deepCopy } from './utils'
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { storeToRefs } from 'pinia'
@@ -80,7 +81,7 @@ function changeComponentsSizeWithScaleCircle(componentDataCopy, scale) {
         nextTick(() => groupSizeStyleAdaptor(component))
       } catch (e) {
         // 旧Group适配
-        console.error('group adaptor error:' + e)
+        logger.error('group adaptor error:' + e)
       }
     }
   })

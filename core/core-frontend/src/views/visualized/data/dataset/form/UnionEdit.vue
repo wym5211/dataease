@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { logger } from '@/utils/logger'
 import { ref, reactive, inject, type Ref } from 'vue'
 import UnionFieldList from './UnionFieldList.vue'
 import UnionItemEdit from './UnionItemEdit.vue'
@@ -97,7 +98,7 @@ const getFields = async () => {
     })
   } catch (error) {
     loading.value = false
-    console.error(error)
+    logger.error(error)
   }
 }
 

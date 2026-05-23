@@ -217,6 +217,7 @@
 </template>
 
 <script lang="ts" setup>
+import { logger } from '@/utils/logger'
 import { ref, computed, nextTick, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus-secondary'
 import {
@@ -619,7 +620,7 @@ onMounted(async () => {
     // 加载默认的资源树
     await permissionStore.loadResourceTree(selectedResourceType.value)
   } catch (error) {
-    console.error('初始化失败:', error)
+    logger.error('初始化失败:', error)
   }
 })
 </script>

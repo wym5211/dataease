@@ -491,7 +491,7 @@ const onPointClick = param => {
       window.parent.postMessage(targetPm, '*')
     }
   } catch (e) {
-    console.warn('de_inner_params send error')
+    logger.warn('de_inner_params send error')
   }
 }
 

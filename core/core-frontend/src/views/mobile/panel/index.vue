@@ -20,6 +20,8 @@ const checkItemPosition = component => {
 }
 
 const hanedleMessage = event => {
+  if (event.origin !== window.location.origin) return
+  if (!event.data) return
   if (event.data.type === 'panelInit') {
     const { componentData, canvasStyleData, dvInfo, canvasViewInfo, isEmbedded } = event.data.value
     componentData.forEach(ele => {
@@ -152,7 +154,7 @@ const hanedleMessage = event => {
           return pre
         }, {})
       },
-      '*'
+      window.location.origin
     )
   }
 }
@@ -164,10 +166,10 @@ const initIframe = () => {
   })
 }
 const curComponentChangeHandle = (type, value) => {
-  window.parent.postMessage({ type: type, value: value }, '*')
+  window.parent.postMessage({ type: type, value: value }, window.location.origin)
 }
 onBeforeMount(() => {
-  window.parent.postMessage({ type: 'panelInit', value: true }, '*')
+  window.parent.postMessage({ type: 'panelInit', value: true }, window.location.origin)
   window.addEventListener('message', hanedleMessage)
   useEmitt({
     name: 'onMobileStatusChange',
@@ -186,7 +188,7 @@ onBeforeMount(() => {
 })
 
 const mobileStatusChange = (type, value) => {
-  window.parent.postMessage({ type, value }, '*')
+  window.parent.postMessage({ type, value }, window.location.origin)
   if (type === 'delFromMobile') {
     eventBus.emit('removeMatrixItemById-canvas-main', value)
   }

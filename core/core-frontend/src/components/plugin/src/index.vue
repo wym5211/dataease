@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { logger } from '@/utils/logger'
 import noLic from './nolic.vue'
 import { ref, useAttrs, onMounted, computed } from 'vue'
 import { execute, randomKey, formatArray } from './convert'
@@ -72,7 +73,7 @@ const importProxy = (bytesArray: number[][]) => {
       plugin.value = res.default
     })
     .catch(e => {
-      console.error(e)
+      logger.error(e)
       showNolic()
     })
 }

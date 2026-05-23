@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { logger } from '@/utils/logger'
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 
 const domId = ref('de-map-container')
@@ -49,7 +50,7 @@ const loadMap = () => {
       createMapInstance()
     })
     .catch(e => {
-      console.error(e)
+      logger.error(e)
       if (mapInstance.value) {
         destroyMap()
       }

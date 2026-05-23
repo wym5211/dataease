@@ -16,7 +16,7 @@ import { Datum } from '@antv/g2plot/esm/types/common'
 import { Tooltip } from '@antv/g2plot/esm'
 
 import isEmpty from 'lodash-es/isEmpty'
-import * as _ from 'lodash-es'
+import { filter, find, assign } from 'lodash-es'
 import type { LegendOptions } from '@antv/l7plot/dist/esm/types/legend'
 import { CategoryLegendListItem } from '@antv/l7plot-component/dist/lib/types/legend'
 import createDom from '@antv/dom-util/esm/create-dom'
@@ -826,13 +826,13 @@ export function getAnalyse(chart: Chart) {
     const dynamicLineFields = assistLineArr
       .filter(ele => ele.field === '1')
       .map(item => item.fieldId)
-    const quotaFields = _.filter(chart.yAxis, ele => ele.summary !== '' && ele.id !== '-1')
-    const quotaExtFields = _.filter(chart.yAxisExt, ele => ele.summary !== '' && ele.id !== '-1')
+    const quotaFields = filter(chart.yAxis, ele => ele.summary !== '' && ele.id !== '-1')
+    const quotaExtFields = filter(chart.yAxisExt, ele => ele.summary !== '' && ele.id !== '-1')
     const dynamicLines = chart.data.dynamicAssistLines?.filter(item => {
       return (
         dynamicLineFields?.includes(item.fieldId) &&
-        (!!_.find(quotaFields, d => d.id === item.fieldId) ||
-          (!!_.find(quotaExtFields, d => d.id === item.fieldId) &&
+        (!!find(quotaFields, d => d.id === item.fieldId) ||
+          (!!find(quotaExtFields, d => d.id === item.fieldId) &&
             chart.type.includes('chart-mix')))
       )
     })
@@ -900,11 +900,11 @@ export function getAnalyseHorizontal(chart: Chart) {
     const dynamicLineFields = assistLineArr
       .filter(ele => ele.field === '1')
       .map(item => item.fieldId)
-    const quotaFields = _.filter(chart.yAxis, ele => ele.summary !== '' && ele.id !== '-1')
+    const quotaFields = filter(chart.yAxis, ele => ele.summary !== '' && ele.id !== '-1')
     const dynamicLines = chart.data.dynamicAssistLines?.filter(
       item =>
         dynamicLineFields?.includes(item.fieldId) &&
-        !!_.find(quotaFields, d => d.id === item.fieldId)
+        !!find(quotaFields, d => d.id === item.fieldId)
     )
     const lines = fixedLines.concat(dynamicLines || [])
 
@@ -2077,7 +2077,7 @@ export function configAxisLabelLengthLimit(chart, plot, triggerObjName = 'axis-l
       AXIS_LABEL_TOOLTIP_STYLE.backgroundColor = tooltip.backgroundColor
       AXIS_LABEL_TOOLTIP_STYLE.boxShadow = `${tooltip.backgroundColor} 0px 0px 5px`
       AXIS_LABEL_TOOLTIP_STYLE.maxWidth = '200px'
-      _.assign(labelTooltipDom.style, AXIS_LABEL_TOOLTIP_STYLE)
+      assign(labelTooltipDom.style, AXIS_LABEL_TOOLTIP_STYLE)
 
       // 将 tooltip 添加到父节点
       parentNode.appendChild(labelTooltipDom)

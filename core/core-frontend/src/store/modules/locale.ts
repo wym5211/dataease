@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger'
 import { defineStore } from 'pinia'
 import { store } from '../index'
 import type { LocaleDropdownType } from 'types/localeDropdown'
@@ -43,7 +44,7 @@ const loadCustomLocaleData = async (lang: string) => {
     const localeData = localeModule.default || localeModule
     return localeData.element_plus || {}
   } catch (error) {
-    console.warn(`Failed to load custom locale data for ${lang}:`, error)
+    logger.warn(`Failed to load custom locale data for ${lang}:`, error)
     return {}
   }
 }

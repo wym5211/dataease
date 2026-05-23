@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger'
 import { BusiTreeNode } from '@/models/tree/TreeNode'
 import { useCache } from '@/hooks/web/useCache'
 import { loadScript } from '@/utils/RemoteJs'
@@ -115,7 +116,7 @@ export const isInIframe = () => {
   try {
     return window.top !== window.self
   } catch (error) {
-    console.error(error)
+    logger.error(error)
     return true
   }
 }

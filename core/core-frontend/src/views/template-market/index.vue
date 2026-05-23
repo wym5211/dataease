@@ -187,6 +187,7 @@
 </template>
 
 <script setup lang="ts">
+import { logger } from '@/utils/logger'
 import no_result from '@/assets/svg/no_result.svg'
 import { searchMarket } from '@/api/templateMarket'
 import { useEmbedded } from '@/store/modules/embedded'
@@ -439,7 +440,7 @@ const initMarketTemplate = async () => {
       state.marketActiveTab = state.marketTabs[1].label
     })
     .catch(err => {
-      console.error('searchMarket:', err)
+      logger.error('searchMarket:', err)
       state.networkStatus = false
     })
 }

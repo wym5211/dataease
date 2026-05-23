@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { logger } from '@/utils/logger'
 import {
   computed,
   CSSProperties,
@@ -668,7 +669,7 @@ onBeforeUnmount(() => {
     myChart = null
     resizeObserver?.disconnect()
   } catch (e) {
-    console.warn(e)
+    logger.warn(e)
   }
 })
 

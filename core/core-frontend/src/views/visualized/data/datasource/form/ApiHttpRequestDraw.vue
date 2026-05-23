@@ -1,4 +1,5 @@
 <script lang="tsx" setup>
+import { logger } from '@/utils/logger'
 import icon_expandRight_filled from '@/assets/svg/icon_expand-right_filled.svg'
 import { nextTick, reactive, ref, shallowRef, provide } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
@@ -266,7 +267,7 @@ const showApiData = () => {
           originFieldItem.jsonFields = data.jsonFields
         })
         .catch(error => {
-          console.warn(error?.message)
+          logger.warn(error?.message)
         })
       loading.value = false
     } else {
@@ -454,7 +455,7 @@ const stepNext = () => {
     .catch(error => {
       disabledNext.value = false
       formLoading.value = false
-      console.warn(error?.message)
+      logger.warn(error?.message)
     })
 }
 const validate = () => {

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { logger } from '@/utils/logger'
 import { ref, reactive, onBeforeMount, nextTick, inject } from 'vue'
 import { initCanvasData, initCanvasDataMobile, onInitReady } from '@/utils/canvasUtils'
 import { interactiveStoreWithOut } from '@/store/modules/interactive'
@@ -78,7 +79,7 @@ onBeforeMount(async () => {
       attachParams = outerPramsParse.attachParams
       dvMainStore.setEmbeddedCallBack(outerPramsParse.callBackFlag || 'no')
     } catch (e) {
-      console.error(e)
+      logger.error(e)
       ElMessage.error(t('visualization.outer_param_decode_error'))
       return
     }

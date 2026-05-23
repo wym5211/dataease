@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger'
 import { cloneDeep } from 'lodash-es'
 import componentList, {
   ACTION_SELECTION,
@@ -995,7 +996,7 @@ export async function decompressionPre(params, callBack) {
       }
     })
     .catch(e => {
-      console.error(e)
+      logger.error(e)
     })
   historyAdaptor(
     deTemplateData.canvasStyleData,
@@ -1099,7 +1100,7 @@ export function onInitReady(params, eventName = 'canvas_init_ready') {
     }
     window.parent.postMessage(targetPm, '*')
   } catch (e) {
-    console.warn('de_inner_params send error')
+    logger.warn('de_inner_params send error')
   }
 }
 

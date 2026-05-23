@@ -60,6 +60,7 @@
 </template>
 
 <script lang="ts" setup>
+import { logger } from '@/utils/logger'
 import { ref, computed, watch } from 'vue'
 import { Search, Folder } from '@element-plus/icons-vue'
 import { useI18n } from '@/hooks/web/useI18n'
@@ -150,7 +151,7 @@ const loadTreeData = async (type: ResourceType) => {
         break
     }
   } catch (e) {
-    console.error('Failed to load tree data:', e)
+    logger.error('Failed to load tree data:', e)
     treeData.value = []
   } finally {
     loading.value = false

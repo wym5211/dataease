@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { logger } from '@/utils/logger'
 import logo from '@/assets/svg/logo.svg'
 import aboutBg from '@/assets/img/about-bg.png'
 import { ref, reactive, onMounted } from 'vue'
@@ -75,7 +76,7 @@ const back2Community = () => {
       })
     })
     .catch(e => {
-      console.error(e)
+      logger.error(e)
     })
 }
 const logout = async () => {

@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger'
 import request from '@/config/axios'
 import { ElMessage } from 'element-plus-secondary'
 
@@ -80,11 +81,11 @@ export const downloadBackup = async (id: string, fileName?: string) => {
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
     } else {
-      console.error('Invalid blob:', blob)
+      logger.error('Invalid blob:', blob)
       ElMessage.error('下载失败：无有效的文件数据')
     }
   } catch (error) {
-    console.error('Download failed:', error)
+    logger.error('Download failed:', error)
     ElMessage.error('下载失败')
   }
 }
