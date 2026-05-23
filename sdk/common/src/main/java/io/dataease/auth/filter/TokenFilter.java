@@ -87,7 +87,11 @@ public class TokenFilter implements Filter {
             // 黑名单检查：在验证前拦截已被作废的 token
             if (StringUtils.isNotBlank(token)) {
                 if (cachedBlacklistService == null) {
-                    cachedBlacklistService = CommonBeanFactory.getBean(TokenBlacklistService.class);
+                    synchronized (this) {
+                        if (cachedBlacklistService == null) {
+                            cachedBlacklistService = CommonBeanFactory.getBean(TokenBlacklistService.class);
+                        }
+                    }
                 }
                 TokenBlacklistService blacklistService = cachedBlacklistService;
                 if (blacklistService != null && blacklistService.isBlacklisted(token)) {

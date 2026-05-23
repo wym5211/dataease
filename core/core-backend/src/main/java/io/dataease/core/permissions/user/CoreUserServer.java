@@ -13,8 +13,11 @@ import io.dataease.auth.bo.TokenUserBO;
 import io.dataease.i18n.Lang;
 import io.dataease.constant.CacheConstant;
 import io.dataease.utils.CacheUtils;
+import io.dataease.auth.service.TokenBlacklistService;
+import io.dataease.auth.service.TokenRefreshService;
 import io.dataease.auth.vo.TokenVO;
 import io.dataease.utils.AuthUtils;
+import io.dataease.utils.LogUtil;
 import io.dataease.exception.DEException;
 import io.dataease.model.KeywordRequest;
 import io.dataease.system.dao.auto.entity.SysUser;
@@ -59,6 +62,12 @@ public class CoreUserServer implements UserApi {
 
     @Autowired
     private SysRoleMapper sysRoleMapper;
+
+    @Autowired
+    private TokenBlacklistService tokenBlacklistService;
+
+    @Autowired
+    private TokenRefreshService tokenRefreshService;
 
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -240,6 +249,11 @@ public class CoreUserServer implements UserApi {
         // 清除该用户的所有权限缓存
         CacheUtils.evictUserPermissionCaches(editor.getId());
 
+        // 如果用户被禁用，撤销其所有 token
+        if (editor.getEnable() != null && !editor.getEnable()) {
+            revokeUserTokens(editor.getId());
+        }
+
         if (CollectionUtils.isNotEmpty(editor.getRoleIds())) {
             for (Long roleId : editor.getRoleIds()) {
                 SysUserRole userRole = new SysUserRole();
@@ -283,6 +297,9 @@ public class CoreUserServer implements UserApi {
 
         // 清除被删除用户的缓存
         CacheUtils.evictUserPermissionCaches(id);
+
+        // 撤销被删除用户的所有 token
+        revokeUserTokens(id);
     }
 
     @Override
@@ -316,6 +333,7 @@ public class CoreUserServer implements UserApi {
         // 清除被批量删除用户的缓存
         for (Long id : ids) {
             CacheUtils.evictUserPermissionCaches(id);
+            revokeUserTokens(id);
         }
     }
 
@@ -503,6 +521,9 @@ public class CoreUserServer implements UserApi {
         user.setPassword(passwordEncoder.encode("DataEase@123456"));
         user.setUpdateTime(System.currentTimeMillis());
         sysUserMapper.updateById(user);
+
+        // 重置密码后撤销该用户的所有 token
+        revokeUserTokens(id);
     }
 
     @Override
@@ -530,6 +551,11 @@ public class CoreUserServer implements UserApi {
         user.setStatus(request.getEnable() != null && request.getEnable() ? 1 : 0);
         user.setUpdateTime(System.currentTimeMillis());
         sysUserMapper.updateById(user);
+
+        // 禁用用户时撤销其所有 token
+        if (request.getEnable() != null && !request.getEnable()) {
+            revokeUserTokens(request.getId());
+        }
     }
 
     @Override
@@ -568,6 +594,9 @@ public class CoreUserServer implements UserApi {
 
         user.setPassword(passwordEncoder.encode(newPwd));
         sysUserMapper.updateById(user);
+
+        // 修改密码后撤销该用户的所有 token
+        revokeUserTokens(tokenUser.getUserId());
     }
 
     @Override
@@ -776,5 +805,20 @@ public class CoreUserServer implements UserApi {
                 .map(SysUserRole::getUserId)
                 .distinct()
                 .collect(Collectors.toList());
+    }
+
+    // 尽力而为撤销 token：即使个别缓存操作失败，用户禁用/删除操作仍然成功。
+    // 用户级别撤销标记持久化到 EhCache/Redis，服务重启后仍然有效。
+    private void revokeUserTokens(Long userId) {
+        try {
+            tokenBlacklistService.blacklistByUserId(userId);
+        } catch (Exception e) {
+            LogUtil.error("Failed to blacklist tokens for user " + userId, e);
+        }
+        try {
+            tokenRefreshService.revokeAllByUserId(userId);
+        } catch (Exception e) {
+            LogUtil.error("Failed to revoke refresh tokens for user " + userId, e);
+        }
     }
 }

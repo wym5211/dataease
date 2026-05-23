@@ -5,15 +5,20 @@ import io.dataease.i18n.Translator;
 import io.dataease.result.ResultCode;
 import io.dataease.result.ResultMessage;
 import io.dataease.utils.LogUtil;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 
 @RestControllerAdvice
+@Order(Ordered.LOWEST_PRECEDENCE)
 public class GlobalExceptionHandler {
 
+    private static final int UNAUTHORIZED_CODE = 401;
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResultMessage MethodArgumentNotValidExceptionHandler(MethodArgumentNotValidException e) {
@@ -25,8 +30,18 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(DEException.class)
-    public ResultMessage deExceptionHandler(DEException e) {
+    public ResultMessage deExceptionHandler(DEException e, HttpServletResponse response) {
         LogUtil.error(e.getMessage(), e);
+        if (!response.isCommitted()) {
+            int code = e.getCode();
+            if (code == UNAUTHORIZED_CODE
+                    || code == ResultCode.USER_NOT_LOGGED_IN.code()
+                    || code == ResultCode.USER_LOGIN_ERROR.code()) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            } else if (code == ResultCode.USER_ACCOUNT_FORBIDDEN.code()) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            }
+        }
         return new ResultMessage(e.getCode(), e.getMessage());
     }
 

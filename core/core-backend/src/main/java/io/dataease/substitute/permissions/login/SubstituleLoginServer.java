@@ -59,7 +59,11 @@ public class SubstituleLoginServer {
 
     @PostMapping("/login/refreshAccess")
     public TokenVO refreshAccess(@RequestParam("refreshToken") String refreshToken) {
-        // 桌面模式：直接重新生成 admin token
+        if (StringUtils.isBlank(refreshToken)) {
+            DEException.throwException("refreshToken 不能为空");
+        }
+        // 桌面模式无持久化 refresh token 存储，验证非空后直接重新生成 admin token。
+        // 安全性依赖 TokenFilter 的 localhost 限制。
         TokenUserBO tokenUserBO = new TokenUserBO();
         tokenUserBO.setUserId(1L);
         tokenUserBO.setDefaultOid(1L);
