@@ -12,19 +12,27 @@ class Logger {
     this.isDevelopment = import.meta.env.MODE === 'dev' || import.meta.env.DEV
   }
 
-  debug(message: string, ...args: unknown[]): void {
+  debug(message: string | Error, ...args: unknown[]): void {
     if (this.isDevelopment) {
-      console.log(`[DEBUG] ${message}`, ...args)
+      if (message instanceof Error) {
+        console.log('[DEBUG]', message, ...args)
+      } else {
+        console.log(`[DEBUG] ${message}`, ...args)
+      }
     }
   }
 
-  info(message: string, ...args: unknown[]): void {
+  info(message: string | Error, ...args: unknown[]): void {
     if (this.isDevelopment) {
-      console.info(`[INFO] ${message}`, ...args)
+      if (message instanceof Error) {
+        console.info('[INFO]', message, ...args)
+      } else {
+        console.info(`[INFO] ${message}`, ...args)
+      }
     }
   }
 
-  warn(message: string, ...args: unknown[]): void {
+  warn(message: string | Error, ...args: unknown[]): void {
     if (message instanceof Error) {
       console.warn('[WARN]', message, ...args)
     } else {
@@ -32,7 +40,7 @@ class Logger {
     }
   }
 
-  error(message: string, ...args: unknown[]): void {
+  error(message: string | Error, ...args: unknown[]): void {
     if (message instanceof Error) {
       console.error('[ERROR]', message, ...args)
     } else {

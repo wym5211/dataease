@@ -38,6 +38,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -249,9 +251,9 @@ public class CoreUserServer implements UserApi {
         // 清除该用户的所有权限缓存
         CacheUtils.evictUserPermissionCaches(editor.getId());
 
-        // 如果用户被禁用，撤销其所有 token
+        // 如果用户被禁用，在事务提交后撤销其所有 token
         if (editor.getEnable() != null && !editor.getEnable()) {
-            revokeUserTokens(editor.getId());
+            registerPostCommitRevocation(editor.getId());
         }
 
         if (CollectionUtils.isNotEmpty(editor.getRoleIds())) {
@@ -298,8 +300,8 @@ public class CoreUserServer implements UserApi {
         // 清除被删除用户的缓存
         CacheUtils.evictUserPermissionCaches(id);
 
-        // 撤销被删除用户的所有 token
-        revokeUserTokens(id);
+        // 在事务提交后撤销被删除用户的所有 token
+        registerPostCommitRevocation(id);
     }
 
     @Override
@@ -333,8 +335,10 @@ public class CoreUserServer implements UserApi {
         // 清除被批量删除用户的缓存
         for (Long id : ids) {
             CacheUtils.evictUserPermissionCaches(id);
-            revokeUserTokens(id);
         }
+
+        // 在事务提交后撤销被批量删除用户的所有 token
+        registerPostCommitRevocation(ids);
     }
 
     @Override
@@ -507,6 +511,7 @@ public class CoreUserServer implements UserApi {
     }
 
     @Override
+    @Transactional
     public void resetPwd(Long id) {
         if (id == null) {
             DEException.throwException("用户ID不能为空");
@@ -522,11 +527,12 @@ public class CoreUserServer implements UserApi {
         user.setUpdateTime(System.currentTimeMillis());
         sysUserMapper.updateById(user);
 
-        // 重置密码后撤销该用户的所有 token
-        revokeUserTokens(id);
+        // 在事务提交后撤销该用户的所有 token
+        registerPostCommitRevocation(id);
     }
 
     @Override
+    @Transactional
     public void enable(EnableSwitchRequest request) {
         if (request == null || request.getId() == null) {
             DEException.throwException("用户ID不能为空");
@@ -552,15 +558,19 @@ public class CoreUserServer implements UserApi {
         user.setUpdateTime(System.currentTimeMillis());
         sysUserMapper.updateById(user);
 
-        // 禁用用户时撤销其所有 token
+        // 禁用用户时在事务提交后撤销其所有 token
         if (request.getEnable() != null && !request.getEnable()) {
-            revokeUserTokens(request.getId());
+            registerPostCommitRevocation(request.getId());
         }
     }
 
     @Override
+    @Transactional
     public void modifyPwd(ModifyPwdRequest request) {
         TokenUserBO tokenUser = AuthUtils.getUser();
+        if (tokenUser == null) {
+            DEException.throwException("用户未登录");
+        }
         SysUser user = sysUserMapper.selectById(tokenUser.getUserId());
         if (user == null) {
             DEException.throwException("User not found");
@@ -595,8 +605,8 @@ public class CoreUserServer implements UserApi {
         user.setPassword(passwordEncoder.encode(newPwd));
         sysUserMapper.updateById(user);
 
-        // 修改密码后撤销该用户的所有 token
-        revokeUserTokens(tokenUser.getUserId());
+        // 修改密码后在事务提交后撤销该用户的所有 token
+        registerPostCommitRevocation(tokenUser.getUserId());
     }
 
     @Override
@@ -807,18 +817,56 @@ public class CoreUserServer implements UserApi {
                 .collect(Collectors.toList());
     }
 
-    // 尽力而为撤销 token：即使个别缓存操作失败，用户禁用/删除操作仍然成功。
-    // 用户级别撤销标记持久化到 EhCache/Redis，服务重启后仍然有效。
+    // 在事务提交后撤销用户 token
+    private void registerPostCommitRevocation(Long userId) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                try {
+                    revokeUserTokens(userId);
+                } catch (Exception e) {
+                    LogUtil.error("Token revocation failed for user " + userId, e);
+                }
+            }
+        });
+    }
+
+    // 在事务提交后批量撤销用户 token
+    private void registerPostCommitRevocation(List<Long> userIds) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                for (Long userId : userIds) {
+                    try {
+                        revokeUserTokens(userId);
+                    } catch (Exception e) {
+                        LogUtil.error("Token revocation failed for user " + userId, e);
+                    }
+                }
+            }
+        });
+    }
+
+    // 撤销 token：分别记录每个步骤的成功/失败，便于运维诊断
     private void revokeUserTokens(Long userId) {
+        Exception blacklistError = null;
+        Exception refreshError = null;
         try {
             tokenBlacklistService.blacklistByUserId(userId);
         } catch (Exception e) {
-            LogUtil.error("Failed to blacklist tokens for user " + userId, e);
+            blacklistError = e;
         }
         try {
             tokenRefreshService.revokeAllByUserId(userId);
         } catch (Exception e) {
-            LogUtil.error("Failed to revoke refresh tokens for user " + userId, e);
+            refreshError = e;
+        }
+        if (blacklistError != null && refreshError != null) {
+            LogUtil.error("Both token revocation steps failed for user " + userId, refreshError);
+        } else if (blacklistError != null) {
+            LogUtil.warn("Access token blacklist failed for user " + userId + ", but refresh token revocation succeeded");
+        } else if (refreshError != null) {
+            LogUtil.warn("Refresh token revocation failed for user " + userId + ", but access token blacklist succeeded");
         }
     }
 }

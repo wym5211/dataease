@@ -1,4 +1,5 @@
 import router from './router'
+import { isDatasetFormRedirect } from '@/utils/datasetRedirect'
 import { useUserStoreWithOut } from '@/store/modules/user'
 import { useAppStoreWithOut } from '@/store/modules/app'
 import type { RouteRecordRaw } from 'vue-router'
@@ -88,6 +89,9 @@ async function handleAuthenticatedRoute(to, from, next, isDesktop: boolean) {
 
   permissionStore.setCurrentPath(to.path)
 
+  // 数据集编辑表单在新窗口打开，重定向到无 Layout 包装的路由
+  if (isDatasetFormRedirect(to, next)) return
+
   // 路由已初始化
   if (permissionStore.getIsAddRouters) {
     const queryStr = buildRedirectQuery(to, from)
@@ -138,10 +142,7 @@ async function handleUnauthenticatedRoute(to, next, platform) {
 
   // 嵌入式访问检查
   if (isEmbeddedAccess(to, embeddedStore.getToken, appStore.getIsIframe, embeddedRouteWhiteList)) {
-    if (to.path.includes('/dataset-form')) {
-      next({ path: '/dataset-embedded-form', query: to.query })
-      return
-    }
+    if (isDatasetFormRedirect(to, next)) return
     permissionStore.setCurrentPath(to.path)
     next()
     return

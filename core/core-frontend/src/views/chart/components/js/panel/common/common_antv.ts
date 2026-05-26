@@ -832,8 +832,7 @@ export function getAnalyse(chart: Chart) {
       return (
         dynamicLineFields?.includes(item.fieldId) &&
         (!!find(quotaFields, d => d.id === item.fieldId) ||
-          (!!find(quotaExtFields, d => d.id === item.fieldId) &&
-            chart.type.includes('chart-mix')))
+          (!!find(quotaExtFields, d => d.id === item.fieldId) && chart.type.includes('chart-mix')))
       )
     })
     const lines = fixedLines.concat(dynamicLines || [])
@@ -903,8 +902,7 @@ export function getAnalyseHorizontal(chart: Chart) {
     const quotaFields = filter(chart.yAxis, ele => ele.summary !== '' && ele.id !== '-1')
     const dynamicLines = chart.data.dynamicAssistLines?.filter(
       item =>
-        dynamicLineFields?.includes(item.fieldId) &&
-        !!find(quotaFields, d => d.id === item.fieldId)
+        dynamicLineFields?.includes(item.fieldId) && !!find(quotaFields, d => d.id === item.fieldId)
     )
     const lines = fixedLines.concat(dynamicLines || [])
 

@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import '@/style/index.less'
 import 'normalize.css/normalize.css'
+import 'element-plus-secondary/dist/index.css'
 import '@antv/s2/dist/style.min.css'
 import 'vxe-table/lib/style.css'
 import App from './App.vue'

@@ -719,7 +719,7 @@ const isEdit = ref(false)
 const datasetCheckRef = ref()
 const initEdite = async () => {
   let { id, datasourceId, tableName } = route.query
-  let { id: copyId } = route.params
+  let copyId = Array.isArray(route.query.copyId) ? route.query.copyId[0] : (route.query.copyId as string)
   if (appStore.getIsDataEaseBi) {
     id = embeddedStore.datasetId
     datasourceId = embeddedStore.datasourceId

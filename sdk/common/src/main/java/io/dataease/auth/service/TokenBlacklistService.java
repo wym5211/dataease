@@ -5,6 +5,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import io.dataease.auth.bo.TokenUserBO;
 import io.dataease.constant.CacheConstant;
 import io.dataease.utils.CacheUtils;
+import io.dataease.utils.LogUtil;
 import io.dataease.utils.TokenUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -43,8 +44,8 @@ public class TokenBlacklistService {
             if (bo != null && bo.getUserId() != null) {
                 userTokens.computeIfAbsent(bo.getUserId(), k -> new CopyOnWriteArraySet<>()).add(token);
             }
-        } catch (Exception ignored) {
-            // 解析失败不影响黑名单加入
+        } catch (Exception e) {
+            LogUtil.warn("JWT decode failed in blacklist add: " + e.getMessage());
         }
     }
 
@@ -71,7 +72,8 @@ public class TokenBlacklistService {
                     return true;
                 }
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            LogUtil.debug("JWT decode failed in blacklist check: " + e.getMessage());
         }
         return false;
     }

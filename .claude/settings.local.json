@@ -10,7 +10,10 @@
       "Bash(playwright-cli open:*)",
       "Bash(playwright-cli snapshot:*)",
       "Bash(playwright-cli fill:*)",
-      "Bash(claude plugin:*)"
+      "Bash(claude plugin:*)",
+      "Bash(rtk git *)",
+      "Bash(cd E:\\\\cursor\\\\dataease *)",
+      "Bash(rtk read *)"
     ]
   }
 }

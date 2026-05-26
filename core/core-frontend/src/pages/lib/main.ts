@@ -1,3 +1,4 @@
+import 'element-plus-secondary/dist/index.css'
 import '@/style/index.less'
 import '@/plugins/svg-icon'
 import 'normalize.css/normalize.css'

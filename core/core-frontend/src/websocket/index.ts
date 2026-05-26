@@ -61,6 +61,10 @@ export const wsDestroy = () => {
     clearInterval(heartbeatTimer)
     heartbeatTimer = null
   }
+  if (permissionChangeTimer) {
+    clearTimeout(permissionChangeTimer)
+    permissionChangeTimer = null
+  }
   if (stompClient && stompClient.connected) {
     stompClient.disconnect(
       function () {
